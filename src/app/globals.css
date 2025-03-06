@@ -124,3 +124,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom styles for the calendar navigation buttons */
+.rdp-nav_button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Make sure the day-picker nav buttons have the right size */
+.rdp-nav_button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

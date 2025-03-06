@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -59,17 +58,17 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("size-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("size-4", className)} {...props} />
-        ),
-      }}
       {...props}
     />
   )
 }
+
+// Instead of trying to customize the icons via the components prop,
+// apply the styling by targeting the nav buttons with CSS
+// You can do this in your global CSS file or add it inline:
+// .rdp-nav_button svg {
+//   width: 16px;
+//   height: 16px;
+// }
 
 export { Calendar }
