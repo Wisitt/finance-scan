@@ -174,7 +174,7 @@ export default function Layout({ children }: LayoutProps) {
                             <item.icon className="h-4 w-4 mr-3" />
                             {item.name}
                           </Button>
-                        ) : (
+                        ) : ( 
                           // Otherwise render a normal link
                           <Link href={item.href} key={item.name} passHref>
                             <Button
