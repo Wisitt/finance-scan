@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FinTrack - บันทึกรายรับรายจ่ายและสแกนใบเสร็จ
 
-## Getting Started
+FinTrack เป็นแอปพลิเคชันที่ช่วยให้คุณสามารถบันทึกรายรับรายจ่ายและสแกนใบเสร็จได้อย่างง่ายดาย โดยใช้เทคโนโลยี OCR (Optical Character Recognition) เพื่อแปลงข้อมูลในใบเสร็จเป็นข้อมูลดิจิทัล
 
-First, run the development server:
+## คุณสมบัติ
+
+- บันทึกรายรับรายจ่าย
+- สแกนใบเสร็จ
+- จัดการหมวดหมู่
+- ดูรายงานการเงินและกราฟต่างๆ
+
+## การติดตั้ง
+
+1. ติดตั้ง Node.js และ npm
+2. รันคำสั่งในเทอร์มินัล
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. เปิดเบราว์เซอร์และไปที่ `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## English
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+FinTrack is an application that helps you easily record income and expenses and scan receipts using OCR (Optical Character Recognition) technology to convert receipt data into digital data.
 
-## Learn More
+### Features
 
-To learn more about Next.js, take a look at the following resources:
+- Record Income and Expenses
+- Scan Receipts
+- Manage Categories
+- View Financial Reports and Graphs
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Installation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Install Node.js and npm
+2. Run the following commands in your terminal
 
-## Deploy on Vercel
+```bash
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Open your browser and go to `http://localhost:3000`
