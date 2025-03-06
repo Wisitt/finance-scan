@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+// import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 
@@ -33,14 +33,14 @@ export default function UserSelector() {
   };
   
   // ฟังก์ชันสร้างตัวอักษรย่อจากชื่อ
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
+  // const getInitials = (name: string) => {
+  //   return name
+  //     .split(' ')
+  //     .map(part => part[0])
+  //     .join('')
+  //     .toUpperCase()
+  //     .substring(0, 2);
+  // };
   
   return (
     <div>
