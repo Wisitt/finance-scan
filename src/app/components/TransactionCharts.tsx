@@ -425,7 +425,12 @@ export default function TransactionCharts() {
         beginAtZero: true,
         grid: { color: 'rgba(0, 0, 0, 0.05)' },
         ticks: {
-          callback: (value: number) => formatCurrency(value).replace('฿', '')
+          // Updated callback with proper signature
+          callback: function(tickValue: number | string) {
+            // Since we're formatting currency, we need to ensure it's a number
+            const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
+            return formatCurrency(value).replace('฿', '');
+          }
         }
       }
     },
@@ -455,7 +460,6 @@ export default function TransactionCharts() {
       duration: 1000,
     },
   };
-  
   // Month comparison chart data
   const comparisonData = useMemo(() => {
     // Get current month data
@@ -584,7 +588,12 @@ export default function TransactionCharts() {
         beginAtZero: true,
         grid: { color: 'rgba(0, 0, 0, 0.05)' },
         ticks: {
-          callback: (value: number) => formatCurrency(value).replace('฿', '')
+          // Updated callback with proper signature
+          callback: function(tickValue: number | string) {
+            // Since we're formatting currency, we need to ensure it's a number
+            const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
+            return formatCurrency(value).replace('฿', '');
+          }
         }
       }
     },
@@ -610,7 +619,6 @@ export default function TransactionCharts() {
       duration: 1000,
     },
   };
-  
   // Generate insights based on financial data
   const generateInsights = () => {
     const insights = [];

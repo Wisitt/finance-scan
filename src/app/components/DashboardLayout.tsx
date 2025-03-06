@@ -43,15 +43,18 @@ import { useUserStore } from '@/store/userStore';
 interface LayoutProps {
   children: React.ReactNode;
 }
-
+interface NavItem {
+  name: string;
+  href?: string; // Make href optional
+  icon: React.ElementType;
+  isDialog?: boolean;
+}
 // Modified navigation items - removed href for the 'Add User' item
-const navItems = [
+const navItems: NavItem[] = [
   { name: 'หน้าแรก', href: '/', icon: Home },
   { name: 'ธุรกรรม', href: '/transactions', icon: ArrowRightLeft },
   { name: 'สแกนใบเสร็จ', href: '/scan', icon: ScanLine },
-  { name: 'เพิ่มบัญชี', icon: UserPlus, isDialog: true }, // Modified to indicate this opens a dialog
-  // { name: 'บัญชี', href: '/accounts', icon: Wallet },
-  // { name: 'งบประมาณ', href: '/budget', icon: PieChart },
+  { name: 'เพิ่มบัญชี', icon: UserPlus, isDialog: true }, // No href needed
 ];
 
 // const quickActions = [
@@ -176,7 +179,8 @@ export default function Layout({ children }: LayoutProps) {
                           </Button>
                         ) : ( 
                           // Otherwise render a normal link
-                          <Link href={item.href} key={item.name} passHref>
+                          item.href &&(
+                            <Link href={item.href} key={item.name} passHref>
                             <Button
                               variant={pathname === item.href ? "secondary" : "ghost"}
                               className={cn(
@@ -189,6 +193,7 @@ export default function Layout({ children }: LayoutProps) {
                               {item.name}
                             </Button>
                           </Link>
+                          )
                         )
                       ))}
                     </nav>
@@ -317,7 +322,7 @@ export default function Layout({ children }: LayoutProps) {
                         </Button>
                       ) : (
                         // Otherwise render a normal link
-                        <Link href={item.href} passHref>
+                        item.href &&(                        <Link href={item.href} passHref>
                           <Button
                             variant={pathname === item.href ? "secondary" : "ghost"}
                             className={cn(
@@ -332,6 +337,7 @@ export default function Layout({ children }: LayoutProps) {
                             )}
                           </Button>
                         </Link>
+                        )
                       )}
                     </TooltipTrigger>
                     {isSidebarCollapsed && (
