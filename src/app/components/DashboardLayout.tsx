@@ -7,9 +7,7 @@ import { usePathname } from 'next/navigation';
 
 import { 
   Home, 
-  // BarChart2,
   Wallet,
-  // PieChart,
   ScanLine,
   Settings,
   User,
@@ -133,7 +131,6 @@ export default function Layout({ children }: LayoutProps) {
                       <h2 className="font-bold text-lg">FinTrack</h2>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-                      {/* <X  className="h-5 w-5" /> */}
                     </Button>
                   </div>
                   
