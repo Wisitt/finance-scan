@@ -4,7 +4,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { parseISO, format, isToday, isYesterday, isSameWeek, isSameMonth } from 'date-fns';
 import { useTransactionStore } from '@/store/transactionStore';
+import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/hook/useAuthUser';
 import { cn } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 // UI Components
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +30,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Icons
 import {
@@ -45,46 +49,15 @@ import {
   ChevronRight,
   Check,
   Info,
-  RefreshCw,
-  Plus,
   FileText,
   Calendar,
   SlidersHorizontal,
-  Tag
+  Tag,
 } from 'lucide-react';
-
-import toast from 'react-hot-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 type FilterType = 'all' | 'income' | 'expense';
 type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
 type DateRangeOption = 'all' | 'today' | 'week' | 'month' | 'custom';
-
-// Thai Date Formatting
-const formatThaiMonth = (date: Date): string => {
-  const thaiMonths = [
-    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-  ];
-  const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
-  const year = date.getFullYear() + 543;
-  
-  return `${day} ${month} ${year}`;
-};
-
-const formatThaiShortDate = (date: Date): string => {
-  const thaiMonths = [
-    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-  ];
-  
-  const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
-  const year = date.getFullYear() + 543;
-  
-  return `${day} ${month} ${year.toString().substring(2)}`;
-};
 
 interface TransactionGroup {
   title: string;
@@ -92,74 +65,125 @@ interface TransactionGroup {
   transactions: any[];
 }
 
+// Thai date formatting - moved outside component for better performance
+const thaiMonths = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+];
+
+const thaiMonthsShort = [
+  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+];
+
+const formatThaiMonth = (date: Date): string => {
+  const day = date.getDate();
+  const month = thaiMonths[date.getMonth()];
+  const year = date.getFullYear() + 543;
+  return `${day} ${month} ${year}`;
+};
+
+const formatThaiShortDate = (date: Date): string => {
+  const day = date.getDate();
+  const month = thaiMonthsShort[date.getMonth()];
+  const year = (date.getFullYear() + 543).toString().substring(2);
+  return `${day} ${month} ${year}`;
+};
+
+// Format currency consistently - moved outside component
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('th-TH', {
+    style: 'currency',
+    currency: 'THB',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(amount);
+};
+
 export default function TransactionList() {
-  const { transactions, deleteTransaction } = useTransactionStore();
-  const [filterType, setFilterType] = useState<FilterType>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { transactions, loading: transactionsLoading, deleteTransaction, fetchTransactions } = useTransactionStore();
+  const { data: session } = useSession();
+  const { user } = useAuthUser();
+
+  // Filter states - consolidated
+  const [filters, setFilters] = useState({
+    type: 'all' as FilterType,
+    category: 'all',
+    dateRange: 'all' as DateRangeOption,
+    sortOption: 'newest' as SortOption,
+    searchTerm: ''
+  });
+  
+  // UI states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
-  const [sortOption, setSortOption] = useState<SortOption>('newest');
-  const [dateRange, setDateRange] = useState<DateRangeOption>('all');
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   
-  // Get current date & time for displaying
-  const currentDate = new Date('2025-03-06 08:00:22');
-  const currentUser = 'Wisitt';
-  
-  // Pagination settings
+  // Constants
   const itemsPerPage = 10;
-  
-  useEffect(() => {
-    // Simulate loading state
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    
-    return () => clearTimeout(timer);
-  }, [filterType, searchTerm, dateRange, sortOption, categoryFilter]);
-  
-  // Get unique categories for filter
-  const categories = useMemo(() => {
-    const cats = transactions.map(tx => tx.category);
-    return ['all', ...Array.from(new Set(cats))];
-  }, [transactions]);
-  
-  // Format currency consistently
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(amount);
+  const currentDate = new Date('2025-03-08 10:48:32');
+
+  // Update filters with a single setter function
+  const updateFilter = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1); // Reset to first page on filter change
   };
-  
-  // Filter and sort transactions based on selected options
+
+  // Reset all filters
+  const resetFilters = () => {
+    setFilters({
+      type: 'all',
+      category: 'all',
+      dateRange: 'all',
+      sortOption: 'newest',
+      searchTerm: ''
+    });
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchTransactions(session.user.id);
+    }
+  }, [fetchTransactions, session?.user?.id]);
+
+  // Simulated loading effect - simplified
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, [filters]);
+
+  // Get unique categories from transactions - memoized
+  const uniqueCategories = useMemo(() => {
+    if (!transactions.length) return ['all'];
+    return ['all', ...Array.from(new Set(transactions.map(tx => tx.category)))];
+  }, [transactions]);
+
+  // Process transactions (filter and sort) - optimized memoization
   const processedTransactions = useMemo(() => {
+    // Return early if loading or no transactions
+    if (transactionsLoading || !transactions.length) return [];
+    
+    const { type, category, dateRange, sortOption, searchTerm } = filters;
+    
     // Apply filters
-    const result = transactions.filter(tx => {
+    const filtered = transactions.filter(tx => {
       // Type filter
-      if (filterType !== 'all' && tx.type !== filterType) {
-        return false;
-      }
+      if (type !== 'all' && tx.type !== type) return false;
       
       // Category filter
-      if (categoryFilter !== 'all' && tx.category !== categoryFilter) {
-        return false;
-      }
+      if (category !== 'all' && tx.category !== category) return false;
       
-      // Search filter
+      // Search filter - only do lowercase conversion once
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        return (
-          tx.category.toLowerCase().includes(searchLower) ||
-          (tx.description && tx.description.toLowerCase().includes(searchLower))
-        );
+        const categoryMatch = tx.category.toLowerCase().includes(searchLower);
+        const descriptionMatch = tx.description && tx.description.toLowerCase().includes(searchLower);
+        if (!categoryMatch && !descriptionMatch) return false;
       }
       
       // Date range filter
@@ -168,99 +192,53 @@ export default function TransactionList() {
         const today = new Date();
         
         switch (dateRange) {
-          case 'today':
-            return isToday(txDate);
-          case 'week':
-            return isSameWeek(txDate, today);
-          case 'month':
-            return isSameMonth(txDate, today);
-          default:
-            return true;
+          case 'today': return isToday(txDate);
+          case 'week': return isSameWeek(txDate, today);
+          case 'month': return isSameMonth(txDate, today);
         }
       }
       
       return true;
     });
     
-    // Apply sorting
-    result.sort((a, b) => {
-      const dateA = parseISO(a.date);
-      const dateB = parseISO(b.date);
-      
-      switch (sortOption) {
-        case 'newest':
-          return dateB.getTime() - dateA.getTime();
-        case 'oldest':
-          return dateA.getTime() - dateB.getTime();
-        case 'highest':
-          return b.amount - a.amount;
-        case 'lowest':
-          return a.amount - b.amount;
-        default:
-          return dateB.getTime() - dateA.getTime();
-      }
-    });
+    // Sort filtered transactions - avoid unnecessary date parsing when possible
+    const sorted = [...filtered];
     
-    return result;
-  }, [transactions, filterType, searchTerm, dateRange, sortOption, categoryFilter]);
+    switch (sortOption) {
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        break;
+      case 'oldest':
+        sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        break;
+      case 'highest':
+        sorted.sort((a, b) => b.amount - a.amount);
+        break;
+      case 'lowest':
+        sorted.sort((a, b) => a.amount - b.amount);
+        break;
+    }
+    
+    return sorted;
+  }, [transactions, transactionsLoading, filters]);
   
-  // // Group transactions by date
-  // const groupedTransactions = useMemo(() => {
-  //   const groups: TransactionGroup[] = [];
-  //   const today = new Date();
+  // Calculate pagination and group transactions by date - optimized
+  const paginatedData = useMemo(() => {
+    if (!processedTransactions.length) {
+      return { groups: [], totalPages: 0, totalItems: 0 };
+    }
     
-  //   processedTransactions.forEach(tx => {
-  //     const txDate = parseISO(tx.date);
-      
-  //     let groupTitle = '';
-      
-  //     if (isToday(txDate)) {
-  //       groupTitle = 'วันนี้';
-  //     } else if (isYesterday(txDate)) {
-  //       groupTitle = 'เมื่อวาน';
-  //     } else if (isSameWeek(txDate, today, { weekStartsOn: 1 })) {
-  //       groupTitle = 'สัปดาห์นี้';
-  //     } else if (isSameMonth(txDate, today)) {
-  //       groupTitle = 'เดือนนี้';
-  //     } else {
-  //       groupTitle = format(txDate, 'MMMM yyyy');
-  //     }
-      
-  //     const existingGroup = groups.find(g => g.title === groupTitle);
-      
-  //     if (existingGroup) {
-  //       existingGroup.transactions.push(tx);
-  //     } else {
-  //       groups.push({
-  //         title: groupTitle,
-  //         date: txDate,
-  //         transactions: [tx]
-  //       });
-  //     }
-  //   });
-    
-  //   // Sort groups by date (newest first)
-  //   groups.sort((a, b) => b.date.getTime() - a.date.getTime());
-    
-  //   return groups;
-  // }, [processedTransactions]);
-  
-  // Handle pagination
-  const paginatedTransactionGroups = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    
-    const allTransactions = processedTransactions;
-    const paginatedTransactions = allTransactions.slice(startIndex, endIndex);
-    
-    // Re-group the paginated transactions
+    const paginatedTxs = processedTransactions.slice(startIndex, startIndex + itemsPerPage);
     const groups: TransactionGroup[] = [];
     const today = new Date();
     
-    paginatedTransactions.forEach(tx => {
+    // Group transactions by date
+    const groupMap = new Map<string, { title: string, date: Date, transactions: any[] }>();
+    
+    paginatedTxs.forEach(tx => {
       const txDate = parseISO(tx.date);
-      
-      let groupTitle = '';
+      let groupTitle: string;
       
       if (isToday(txDate)) {
         groupTitle = 'วันนี้';
@@ -274,72 +252,85 @@ export default function TransactionList() {
         groupTitle = format(txDate, 'MMMM yyyy');
       }
       
-      const existingGroup = groups.find(g => g.title === groupTitle);
-      
-      if (existingGroup) {
-        existingGroup.transactions.push(tx);
-      } else {
-        groups.push({
-          title: groupTitle,
-          date: txDate,
-          transactions: [tx]
-        });
+      if (!groupMap.has(groupTitle)) {
+        groupMap.set(groupTitle, { title: groupTitle, date: txDate, transactions: [] });
       }
+      
+      groupMap.get(groupTitle)?.transactions.push(tx);
     });
     
-    // Sort groups by date (newest first)
-    groups.sort((a, b) => b.date.getTime() - a.date.getTime());
+    // Convert map to array and sort by date
+    const groupArray = Array.from(groupMap.values());
+    groupArray.sort((a, b) => b.date.getTime() - a.date.getTime());
     
     return {
-      groups,
-      totalPages: Math.ceil(allTransactions.length / itemsPerPage),
-      totalItems: allTransactions.length
+      groups: groupArray,
+      totalPages: Math.ceil(processedTransactions.length / itemsPerPage),
+      totalItems: processedTransactions.length
     };
   }, [processedTransactions, currentPage, itemsPerPage]);
   
-  // Calculate summary statistics
+  // Calculate summary statistics - simplified
   const summary = useMemo(() => {
-    const totalIncome = processedTransactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
+    let totalIncome = 0;
+    let totalExpense = 0;
     
-    const totalExpense = processedTransactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + tx.amount, 0);
+    processedTransactions.forEach(tx => {
+      if (tx.type === 'income') totalIncome += tx.amount;
+      else totalExpense += tx.amount;
+    });
     
-    const balance = totalIncome - totalExpense;
-    
-    return { totalIncome, totalExpense, balance };
+    return { 
+      totalIncome, 
+      totalExpense, 
+      balance: totalIncome - totalExpense 
+    };
   }, [processedTransactions]);
   
-  const viewReceipt = (imageUrl: string) => {
-    setShowImageModal(imageUrl);
-  };
-  
-  const viewTransactionDetails = (transaction: any) => {
-    setSelectedTransaction(transaction);
-  };
-  
+  // Handle transaction deletion - consolidated
   const handleDelete = async (id: string) => {
     try {
       await deleteTransaction(id);
-      toast.success('รายการถูกลบเรียบร้อยแล้ว');
-    } catch {
-      toast.error('ไม่สามารถลบรายการได้');
+      toast.success('ลบรายการสำเร็จ');
+      setDeleteId(null);
+      setSelectedTransaction(null);
+    } catch (error) {
+      toast.error('เกิดข้อผิดพลาดในการลบรายการ');
+      console.error('Error deleting transaction:', error);
     }
   };
   
-  // Reset filters
-  const resetFilters = () => {
-    setFilterType('all');
-    setSearchTerm('');
-    setDateRange('all');
-    setSortOption('newest');
-    setCategoryFilter('all');
+  // Export to CSV
+  const exportCSV = () => {
+    if (processedTransactions.length === 0) {
+      toast.error('ไม่มีข้อมูลที่จะส่งออก');
+      return;
+    }
+    
+    // Create CSV content
+    const csvHeader = 'วันที่,ประเภท,หมวดหมู่,รายละเอียด,จำนวนเงิน\n';
+    const csvRows = processedTransactions.map(tx => {
+      const date = format(parseISO(tx.date), 'yyyy-MM-dd');
+      const type = tx.type === 'income' ? 'รายรับ' : 'รายจ่าย';
+      const amount = tx.amount.toString();
+      const escapedDescription = `"${tx.description?.replace(/"/g, '""') || ''}"`;
+      const escapedCategory = `"${tx.category.replace(/"/g, '""')}"`;
+      
+      return `${date},${type},${escapedCategory},${escapedDescription},${amount}`;
+    }).join('\n');
+    
+    // Download CSV
+    const blob = new Blob([csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `transactions_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    
+    toast.success('ส่งออกข้อมูลสำเร็จ');
   };
   
-  // Render transaction card - reusable component
-  const renderTransactionCard = (transaction: any) => (
+  // Transaction card component - extracted for cleaner code
+  const TransactionCard = ({ transaction }: { transaction: any }) => (
     <div
       key={transaction.id}
       className={cn(
@@ -399,7 +390,7 @@ export default function TransactionList() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-full hover:bg-muted"
-              onClick={() => viewReceipt(transaction.receipt_images![0])}
+              onClick={() => setShowImageModal(transaction.receipt_images[0])}
             >
               <ImageIcon className="h-4 w-4" />
             </Button>
@@ -409,7 +400,7 @@ export default function TransactionList() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 rounded-full hover:bg-muted"
-            onClick={() => viewTransactionDetails(transaction)}
+            onClick={() => setSelectedTransaction(transaction)}
           >
             <Info className="h-4 w-4" />
           </Button>
@@ -427,6 +418,54 @@ export default function TransactionList() {
     </div>
   );
 
+  // Loading skeleton
+  if (transactionsLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <Card key={i} className="bg-muted/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-8 w-32" />
+                  </div>
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="h-4 w-32" />
+          </CardHeader>
+          <Separator />
+          <CardContent className="p-6 space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -441,7 +480,7 @@ export default function TransactionList() {
             {format(currentDate, 'dd MMM yyyy')}
           </Badge>
           
-          <Button variant="outline" size="sm" className="hidden md:flex">
+          <Button variant="outline" size="sm" className="hidden md:flex" onClick={exportCSV}>
             <Download className="mr-1.5 h-3.5 w-3.5" />
             ส่งออก
           </Button>
@@ -534,8 +573,8 @@ export default function TransactionList() {
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="ค้นหารายการ..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={filters.searchTerm}
+                  onChange={(e) => updateFilter('searchTerm', e.target.value)}
                   className="pl-8 w-[200px]"
                 />
               </div>
@@ -547,9 +586,9 @@ export default function TransactionList() {
                     ตัวกรอง
                     <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
                       {(
-                        (filterType !== 'all' ? 1 : 0) +
-                        (dateRange !== 'all' ? 1 : 0) +
-                        (categoryFilter !== 'all' ? 1 : 0)
+                        (filters.type !== 'all' ? 1 : 0) +
+                        (filters.dateRange !== 'all' ? 1 : 0) +
+                        (filters.category !== 'all' ? 1 : 0)
                       )}
                     </Badge>
                   </Button>
@@ -561,8 +600,8 @@ export default function TransactionList() {
                     <div className="space-y-2">
                       <h5 className="text-sm font-medium">ประเภทธุรกรรม</h5>
                       <Tabs 
-                        value={filterType} 
-                        onValueChange={(value) => setFilterType(value as FilterType)}
+                        value={filters.type} 
+                        onValueChange={(value) => updateFilter('type', value as FilterType)}
                         className="w-full"
                       >
                         <TabsList className="grid grid-cols-3 w-full">
@@ -586,8 +625,8 @@ export default function TransactionList() {
                     <div className="space-y-2">
                       <h5 className="text-sm font-medium">ช่วงเวลา</h5>
                       <Select
-                        value={dateRange}
-                        onValueChange={(value) => setDateRange(value as DateRangeOption)}
+                        value={filters.dateRange}
+                        onValueChange={(value) => updateFilter('dateRange', value as DateRangeOption)}
                       >
                         <SelectTrigger>
                           <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -605,15 +644,15 @@ export default function TransactionList() {
                     <div className="space-y-2">
                       <h5 className="text-sm font-medium">หมวดหมู่</h5>
                       <Select
-                        value={categoryFilter}
-                        onValueChange={setCategoryFilter}
+                        value={filters.category}
+                        onValueChange={(value) => updateFilter('category', value)}
                       >
                         <SelectTrigger>
                           <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
                           <SelectValue placeholder="เลือกหมวดหมู่" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map(cat => (
+                          {uniqueCategories.map(cat => (
                             <SelectItem key={cat} value={cat}>
                               {cat === 'all' ? 'ทั้งหมด' : cat}
                             </SelectItem>
@@ -636,8 +675,8 @@ export default function TransactionList() {
               </Popover>
               
               <Select
-                value={sortOption}
-                onValueChange={(value) => setSortOption(value as SortOption)}
+                value={filters.sortOption}
+                onValueChange={(value) => updateFilter('sortOption', value as SortOption)}
               >
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="เรียงลำดับ" />
@@ -656,8 +695,8 @@ export default function TransactionList() {
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="ค้นหารายการ..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={filters.searchTerm}
+                onChange={(e) => updateFilter('searchTerm', e.target.value)}
                 className="pl-8 w-full"
               />
             </div>
@@ -665,8 +704,7 @@ export default function TransactionList() {
         </CardHeader>
         
         <Separator />
-        
-        {/* Transaction Content */}
+                {/* Transaction Content */}
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-4">
@@ -692,22 +730,12 @@ export default function TransactionList() {
               <p className="text-muted-foreground mb-6 max-w-md">
                 ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหาของคุณ ลองปรับเปลี่ยนตัวกรองหรือคำค้นหา
               </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Button variant="outline" onClick={resetFilters}>
-                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                  รีเซ็ตตัวกรอง
-                </Button>
-                <Button>
-                  <Plus className="mr-1.5 h-3.5 w-3.5" />
-                  เพิ่มธุรกรรมใหม่
-                </Button>
-              </div>
             </div>
           ) : (
             <div>
               <ScrollArea className="max-h-[600px]">
                 <div className="p-4 space-y-6">
-                {paginatedTransactionGroups.groups.map((group, index) => (
+                {paginatedData.groups.map((group, index) => (
                     <div key={index} className="space-y-3">
                       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm py-2">
                         <h3 className="text-sm font-medium text-muted-foreground flex items-center">
@@ -717,7 +745,9 @@ export default function TransactionList() {
                       </div>
                       
                       <div className="space-y-2">
-                        {group.transactions.map((transaction) => renderTransactionCard(transaction))}
+                        {group.transactions.map((transaction) => (
+                          <TransactionCard key={transaction.id} transaction={transaction} />
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -736,10 +766,10 @@ export default function TransactionList() {
         {!isLoading && processedTransactions.length > 0 && (
           <CardFooter className="border-t p-4 flex-col sm:flex-row gap-3">
             <div className="flex-1 text-xs text-muted-foreground">
-              อัปเดตล่าสุด: {format(new Date('2025-03-06 08:04:14'), 'dd MMM yyyy, HH:mm:ss')}
+              อัปเดตล่าสุด: {format(new Date('2025-03-08 10:52:31'), 'dd MMM yyyy, HH:mm:ss')}
             </div>
             
-            {paginatedTransactionGroups.totalPages > 1 && (
+            {paginatedData.totalPages > 1 && (
               <div className="flex items-center space-x-1">
                 <Button
                   variant="outline"
@@ -751,27 +781,41 @@ export default function TransactionList() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
-                {Array.from({ length: paginatedTransactionGroups.totalPages }).map((_, i) => (
-                  <Button
-                    key={i}
-                    variant={currentPage === i + 1 ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      "h-8 w-8 p-0",
-                      currentPage === i + 1 && "font-bold"
-                    )}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
+                {Array.from({ length: Math.min(5, paginatedData.totalPages) }).map((_, i) => {
+                  // Show current page and surrounding pages
+                  let pageToShow: number;
+                  if (paginatedData.totalPages <= 5) {
+                    pageToShow = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageToShow = i + 1;
+                  } else if (currentPage >= paginatedData.totalPages - 2) {
+                    pageToShow = paginatedData.totalPages - 4 + i;
+                  } else {
+                    pageToShow = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={i}
+                      variant={currentPage === pageToShow ? "default" : "outline"}
+                      size="sm"
+                      className={cn(
+                        "h-8 w-8 p-0",
+                        currentPage === pageToShow && "font-bold"
+                      )}
+                      onClick={() => setCurrentPage(pageToShow)}
+                    >
+                      {pageToShow}
+                    </Button>
+                  );
+                })}
                 
                 <Button
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  disabled={currentPage >= paginatedTransactionGroups.totalPages}
-                  onClick={() => setCurrentPage(prev => Math.min(paginatedTransactionGroups.totalPages, prev + 1))}
+                  disabled={currentPage >= paginatedData.totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(paginatedData.totalPages, prev + 1))}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -811,9 +855,11 @@ export default function TransactionList() {
             <Button onClick={() => setShowImageModal(null)} variant="outline" className="mr-auto">
               ปิด
             </Button>
-            <Button>
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              ดาวน์โหลด
+            <Button asChild>
+              <a href={showImageModal || '#'} download target="_blank" rel="noopener noreferrer">
+                <Download className="mr-1.5 h-3.5 w-3.5" />
+                ดาวน์โหลด
+              </a>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -870,7 +916,7 @@ export default function TransactionList() {
                             src={img}
                             alt={`Receipt ${idx + 1}`}
                             className="object-cover w-full h-full"
-                            onClick={() => viewReceipt(img)}
+                            onClick={() => setShowImageModal(img)}
                           />
                         </div>
                       ))}
@@ -883,7 +929,7 @@ export default function TransactionList() {
               
               <div className="flex justify-between text-xs text-muted-foreground">
                 <p>ID: {selectedTransaction.id.substring(0, 8)}...</p>
-                <p>รายการโดย: {currentUser}</p>
+                <p>รายการโดย: {user?.name || 'Wisitt'}</p>
               </div>
             </div>
           )}
@@ -926,7 +972,6 @@ export default function TransactionList() {
               onClick={() => {
                 if (deleteId) {
                   handleDelete(deleteId);
-                  setDeleteId(null);
                 }
               }}
               className="bg-red-600 hover:bg-red-700"
@@ -949,8 +994,8 @@ export default function TransactionList() {
             <div className="space-y-2">
               <h5 className="text-sm font-medium">ประเภทธุรกรรม</h5>
               <Tabs 
-                value={filterType} 
-                onValueChange={(value) => setFilterType(value as FilterType)}
+                value={filters.type} 
+                onValueChange={(value) => updateFilter('type', value as FilterType)}
                 className="w-full"
               >
                 <TabsList className="grid grid-cols-3 w-full">
@@ -974,8 +1019,8 @@ export default function TransactionList() {
             <div className="space-y-2">
               <h5 className="text-sm font-medium">ช่วงเวลา</h5>
               <Select
-                value={dateRange}
-                onValueChange={(value) => setDateRange(value as DateRangeOption)}
+                value={filters.dateRange}
+                onValueChange={(value) => updateFilter('dateRange', value as DateRangeOption)}
               >
                 <SelectTrigger>
                   <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -993,15 +1038,15 @@ export default function TransactionList() {
             <div className="space-y-2">
               <h5 className="text-sm font-medium">หมวดหมู่</h5>
               <Select
-                value={categoryFilter}
-                onValueChange={setCategoryFilter}
+                value={filters.category}
+                onValueChange={(value) => updateFilter('category', value)}
               >
                 <SelectTrigger>
                   <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
                   <SelectValue placeholder="เลือกหมวดหมู่" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(cat => (
+                  {uniqueCategories.map(cat => (
                     <SelectItem key={cat} value={cat}>
                       {cat === 'all' ? 'ทั้งหมด' : cat}
                     </SelectItem>
@@ -1013,8 +1058,8 @@ export default function TransactionList() {
             <div className="space-y-2">
               <h5 className="text-sm font-medium">การเรียงลำดับ</h5>
               <Select
-                value={sortOption}
-                onValueChange={(value) => setSortOption(value as SortOption)}
+                value={filters.sortOption}
+                onValueChange={(value) => updateFilter('sortOption', value as SortOption)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="เรียงลำดับ" />

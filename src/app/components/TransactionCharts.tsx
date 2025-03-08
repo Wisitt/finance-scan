@@ -59,7 +59,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useUserStore } from '@/store/userStore';
+import { useAuthUser } from '@/hook/useAuthUser';
 
 // Register Chart.js components
 ChartJS.register(
@@ -103,6 +103,7 @@ const formatCurrency = (amount: number): string => {
 
 export default function TransactionCharts() {
   const { transactions } = useTransactionStore();
+  const { user } = useAuthUser();
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [chartType, setChartType] = useState<'overview' | 'category' | 'trend' | 'comparison'>('overview');
   const [isLoading, setIsLoading] = useState(true);
@@ -669,7 +670,6 @@ export default function TransactionCharts() {
   
   // Financial insights
   const financialInsights = useMemo(() => generateInsights(), [filteredTransactions.length, savingsRate, totalIncome, totalExpense, sortedExpenseCategories, timeRange, comparisonData]);
-  const { currentUser } = useUserStore();
 
   // Selected chart render
   const renderChart = () => {
@@ -1262,7 +1262,7 @@ export default function TransactionCharts() {
             รายงานทางการเงิน
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            แสดงข้อมูลธุรกรรมของ {currentUser?.name} ณ วันที่ {format(new Date('2025-03-06'), 'd MMMM yyyy', { locale: th })}
+            แสดงข้อมูลธุรกรรมของ {user?.name} ณ วันที่ {format(new Date('2025-03-06'), 'd MMMM yyyy', { locale: th })}
           </p>
         </div>
         
@@ -1319,7 +1319,7 @@ export default function TransactionCharts() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              ผู้ใช้: {currentUser?.name}
+              ผู้ใช้: {user?.name}
             </span>
             <Button
               variant="ghost"

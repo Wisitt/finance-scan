@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useUserStore } from '@/store/userStore';
 import { useTransactionStore } from '@/store/transactionStore';
 import { scanReceipt, detectReceipts, loadModel } from '@/lib/ocr';
 import { supabase, uploadImage } from '@/lib/supabase';
@@ -64,11 +63,13 @@ import {
 import { Transaction } from '@/types';
 
 import toast from 'react-hot-toast';
+import { signIn } from 'next-auth/react';
+import { FcGoogle } from 'react-icons/fc';
+import { useAuthUser } from '@/hook/useAuthUser';
 
 export default function ReceiptScanner() {
-  const { currentUser } = useUserStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthUser();
   const { categories, addTransaction } = useTransactionStore();
-  
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
@@ -146,7 +147,7 @@ export default function ReceiptScanner() {
   
   // Start scanning all receipt images
   const startScanning = async () => {
-    if (!currentUser) {
+    if (!isAuthenticated || !user?.id) {
       toast.error('กรุณาเลือกผู้ใช้ก่อนสแกนใบเสร็จ');
       return;
     }
@@ -155,7 +156,7 @@ export default function ReceiptScanner() {
       toast.error('กรุณาเลือกรูปภาพอย่างน้อย 1 รูป');
       return;
     }
-    const userId = currentUser.id;
+    const userId = user.id;
     setIsScanning(true);
     setProcessingProgress(0);
     setCurrentFileIndex(0);
@@ -252,7 +253,7 @@ export default function ReceiptScanner() {
   
   // Save transactions
   const saveTransactions = async () => {
-    if (!currentUser) {
+    if (!isAuthenticated || !user?.id) {
       toast.error('กรุณาเลือกผู้ใช้ก่อนบันทึกรายการ');
       return;
     }
@@ -262,7 +263,7 @@ export default function ReceiptScanner() {
   
   // Confirm saving transactions
   const confirmSaveTransactions = async () => {
-    if (!currentUser) {
+    if (!isAuthenticated || !user?.id) {
       toast.error('กรุณาเลือกผู้ใช้ก่อนบันทึกรายการ');
       return;
     }
@@ -275,7 +276,7 @@ export default function ReceiptScanner() {
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', currentUser.id)
+        .eq('id', user.id)
         .single();
       
       if (userError || !userData) {
@@ -283,11 +284,11 @@ export default function ReceiptScanner() {
         setIsScanning(false);
         return;
       }
-      
+      const userId = user.id;
       for (const result of scanResults) {
         // Create new transaction
         const newTransaction = {
-          user_id: userData.id,
+          user_id: userId,
           amount: result.amount,
           type: transactionType,
           category: result.category,
@@ -346,6 +347,34 @@ export default function ReceiptScanner() {
     return 'ต่ำ';
   };
 
+    // แสดง loading หรือ error state
+    if (authLoading) {
+      return (
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary/70" />
+            <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!isAuthenticated) {
+      return (
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <AlertCircle className="h-12 w-12 mx-auto mb-3 text-amber-500 opacity-80" />
+            <h2 className="text-xl font-semibold mb-2">ต้องเข้าสู่ระบบก่อน</h2>
+            <p className="text-muted-foreground mb-4">คุณต้องเข้าสู่ระบบก่อนจึงจะสามารถสแกนใบเสร็จได้</p>
+            <Button className="mx-auto" onClick={() => signIn('google')}>
+              <FcGoogle className="mr-2 h-5 w-5" />
+              เข้าสู่ระบบด้วย Google
+            </Button>
+          </div>
+        </div>
+      );
+    }
+  
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Header with steps indicator */}
@@ -958,13 +987,13 @@ export default function ReceiptScanner() {
             <AlertDialogDescription>
               คุณต้องการบันทึกรายการทั้งหมด {scanResults.length} รายการใช่หรือไม่?
               {transactionType === 'expense' ? (
-                <p className="mt-2 font-medium text-red-600">
+                <div className="mt-2 font-medium text-red-600">
                   ยอดรวมรายจ่าย: {formatCurrency(scanResults.reduce((total, result) => total + result.amount, 0))}
-                </p>
+                </div>
               ) : (
-                <p className="mt-2 font-medium text-green-600">
+                <div className="mt-2 font-medium text-green-600">
                   ยอดรวมรายรับ: {formatCurrency(scanResults.reduce((total, result) => total + result.amount, 0))}
-                </p>
+                </div>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>

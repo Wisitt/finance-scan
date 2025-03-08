@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 
 import { useUserStore } from '@/store/userStore';
 import { useTransactionStore } from '@/store/transactionStore';
-import AddTransactionForm from '../components/AddTransactionForm';
-import TransactionList from '../components/TransactionList';
+import AddTransactionForm from '@/app/components/AddTransactionForm';
+import TransactionList from '@/app/components/TransactionList';
+
 
 export default function TransactionsPage() {
   const { currentUser } = useUserStore();

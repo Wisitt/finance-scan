@@ -8,7 +8,6 @@ import { format } from 'date-fns';
 import { CalendarIcon, Loader2, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { useUserStore } from '@/store/userStore';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
 
@@ -40,6 +39,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { signIn } from 'next-auth/react';
+import { useAuthUser } from '@/hook/useAuthUser';
 
 // Schema for form validation
 const transactionSchema = z.object({
@@ -63,7 +64,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function AddTransactionForm() {
-  const { currentUser } = useUserStore();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuthUser();
   const { categories, addTransaction } = useTransactionStore();
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,7 +113,7 @@ export default function AddTransactionForm() {
 
   // Handle form submission
   const onSubmit = async (data: TransactionFormValues) => {
-    if (!currentUser) {
+    if (!isAuthenticated || !user?.id) {
       toast.error('กรุณาเลือกผู้ใช้ก่อนเพิ่มรายการ');
       return;
     }
@@ -121,9 +122,9 @@ export default function AddTransactionForm() {
     
     try {
       const newTransaction: Omit<Transaction, 'id'> = {
-        user_id: currentUser.id,
+        user_id: user.id,
         amount: data.amount,
-        category: data.category,
+        category: data.category,  
         description: data.description || '',
         date: format(data.date, 'yyyy-MM-dd'),
         type: transactionType,
@@ -148,7 +149,28 @@ export default function AddTransactionForm() {
       setIsSubmitting(false);
     }
   };
+  if (authLoading) {
+    return (
+      <Card className="w-full shadow-lg">
+        <CardContent className="p-6 flex items-center justify-center min-h-[300px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+        </CardContent>
+      </Card>
+    );
+  }
   
+  if (!isAuthenticated) {
+    return (
+      <Card className="w-full shadow-lg">
+        <CardContent className="p-6 text-center">
+          <p className="mb-4">กรุณาเข้าสู่ระบบเพื่อเพิ่มรายการ</p>
+          <Button onClick={() => signIn('google')}>
+            เข้าสู่ระบบด้วย Google
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card className="w-full shadow-lg border-t-4 border-t-primary">
       <CardHeader className="space-y-1">

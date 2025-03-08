@@ -7,6 +7,7 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+// Client ปกติสำหรับฝั่ง client (มีสิทธิ์จำกัด)
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ฟังก์ชันสำหรับอัปโหลดไฟล์ภาพไปยัง Supabase Storage

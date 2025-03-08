@@ -1,9 +1,13 @@
 export interface User {
-  [x: string]: string | undefined;
+  [x: string]: string | undefined | null | Date;
   id: string;
   name: string;
+  email?: string; // อีเมลจาก Google
+  google_id?: string; // ID จาก Google OAuth
+  avatar_url?: string; // URL รูปโปรไฟล์จาก Google
+  last_login?: string; // เวลาล็อกอินล่าสุด
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   deleted_at?: string;
 }
 
@@ -37,7 +41,7 @@ export interface ReceiptData {
   amount: number;
   date?: string;
   merchant?: string;
-  tax_id?: string; // แก้ taxId เป็น tax_id ตามที่ error แจ้งไว้
+  tax_id?: string; // เปลี่ยนจาก taxId เป็น tax_id
   items?: Array<{name: string, price: number}>;
   details?: string;
   confidence: number;
@@ -66,4 +70,13 @@ export interface TransactionSummary {
     amount: number;
     percentage: number;
   }[];
+}
+
+// เพิ่ม interface สำหรับรองรับ NextAuth Session
+export interface SessionUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  avatar_url?: string | null;
 }

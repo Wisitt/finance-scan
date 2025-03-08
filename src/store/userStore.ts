@@ -9,9 +9,10 @@ interface UserState {
   currentUser: User | null;
   isLoading: boolean;
   error: string | null;
+  
   fetchUsers: () => Promise<void>;
-  setCurrentUser: (user: User) => Promise<void>;
-  createUser: (name: string) => Promise<User>;
+  setCurrentUser: (user: Partial<User>) => Promise<void>;
+  createUser: (name: string, email?: string, avatar_url?: string) => Promise<User>;
   validateCurrentUser: () => Promise<void>;
 }
 
@@ -32,35 +33,78 @@ export const useUserStore = create<UserState>()(
             .order('name');
             
           if (error) throw error;
-          
           set({ users: data, isLoading: false });
         } catch (error: any) {
           set({ error: error.message, isLoading: false });
         }
       },
       
-      setCurrentUser: async (user: User) => {
+      setCurrentUser: async (user: Partial<User>) => {
+        if (!user.id) {
+          throw new Error('User ID is required');
+        }
+        
         set({ isLoading: true, error: null });
         try {
           // ตรวจสอบว่าผู้ใช้มีอยู่จริงในฐานข้อมูล
-          const { data, error } = await supabase
+          const { data: existingUser, error } = await supabase
             .from('users')
             .select('*')
             .eq('id', user.id)
             .single();
           
           if (error && error.code === 'PGRST116') { // Record not found
-            console.log("User not found in database, will create:", user.name);
-            // ถ้าไม่พบผู้ใช้ในฐานข้อมูล ให้สร้างผู้ใช้ใหม่
-            const newUser = await get().createUser(user.name || 'New User');
+            console.log("User not found in database, creating new one:", user.name);
+            
+            // สร้างผู้ใช้ใหม่
+            const newUser = await get().createUser(
+              user.name || 'New User', 
+              user.email,
+              user.avatar_url
+            );
+            
             set({ currentUser: newUser, isLoading: false });
             return;
           } else if (error) {
             throw error;
           }
           
-          // พบผู้ใช้ในฐานข้อมูล
-          set({ currentUser: data, isLoading: false });
+          // อัปเดตข้อมูลผู้ใช้ถ้าจำเป็น
+          if (user.name || user.email || user.avatar_url) {
+            const updateData: Partial<User> = {};
+            let needsUpdate = false;
+            
+            if (user.name && existingUser.name !== user.name) {
+              updateData.name = user.name;
+              needsUpdate = true;
+            }
+            
+            if (user.email && existingUser.email !== user.email) {
+              updateData.email = user.email;
+              needsUpdate = true;
+            }
+            
+            if (user.avatar_url && existingUser.avatar_url !== user.avatar_url) {
+              updateData.avatar_url = user.avatar_url;
+              needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+              const { data: updatedUser, error: updateError } = await supabase
+                .from('users')
+                .update(updateData)
+                .eq('id', existingUser.id)
+                .select()
+                .single();
+                
+              if (updateError) throw updateError;
+              set({ currentUser: updatedUser, isLoading: false });
+              return;
+            }
+          }
+          
+          // ใช้ข้อมูลที่มีอยู่แล้ว
+          set({ currentUser: existingUser, isLoading: false });
         } catch (error: any) {
           console.error("Error in setCurrentUser:", error);
           set({ error: error.message, isLoading: false });
@@ -88,12 +132,12 @@ export const useUserStore = create<UserState>()(
         }
       },
       
-      createUser: async (name: string) => {
+      createUser: async (name: string, email?: string, avatar_url?: string) => {
         set({ isLoading: true, error: null });
         try {
           const { data, error } = await supabase
             .from('users')
-            .insert([{ name }])
+            .insert([{ name, email, avatar_url }])
             .select()
             .single();
             

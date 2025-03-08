@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUserStore } from '@/store/userStore';
 import { useTransactionStore } from '@/store/transactionStore';
 import { format,parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -53,15 +52,16 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import TransactionCharts from '../components/TransactionCharts';
-import ReceiptScanner from '../components/ReceiptScanner';
+import { useSession } from 'next-auth/react';
+import ReceiptScanner from '@/app/components/ReceiptScanner';
 
-export default function HomePage() {
-  const { currentUser } = useUserStore();
+export default function DashBoardPage() {
+  const { data: session } = useSession();
   const { fetchCategories, transactions, loadingTransactions, fetchTransactions } = useTransactionStore();
   const [currentDateTime] = useState(new Date('2025-03-06 08:15:47'));
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+  const currentUser = session?.user;
   // Calculate greeting based on time of day
   const getGreeting = () => {
     const hour = currentDateTime.getHours();
@@ -117,7 +117,7 @@ export default function HomePage() {
       clearTimeout(loadTimer);
     };
   }, [fetchCategories, fetchTransactions, currentUser]);
-
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('th-TH', {
       style: 'currency',
@@ -473,13 +473,13 @@ export default function HomePage() {
                   <Card>
                     <CardHeader className="flex flex-row items-center gap-4 pb-2">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={currentUser?.avatarUrl} />
+                        <AvatarImage src={currentUser?.avatar_url || ''} />
                         <AvatarFallback className="bg-primary/10 text-primary">
-                          {currentUser?.name.charAt(0) || 'W'}
+                          {currentUser?.name ? currentUser.name.charAt(0) : "unknow"}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle>{currentUser?.name || 'Wisitt'}</CardTitle>
+                        <CardTitle>{currentUser?.name ? currentUser.name : 'unknow'}</CardTitle>
                         <CardDescription>รายงานส่วนบุคคล</CardDescription>
                       </div>
                     </CardHeader>

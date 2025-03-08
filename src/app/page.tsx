@@ -1,5 +1,1 @@
-import HomePage from './dashboard/page';
-
-export default function Page() {
-  return <HomePage />;
-}
+export { default } from './dashboard/page';

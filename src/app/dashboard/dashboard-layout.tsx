@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useUserStore } from '@/store/userStore';
-import DashboardLayout from '../components/DashboardLayout';
+import Layout from '@/components/layout/Layout';
 
 export default function DashboardWrapper({ children }: { children: React.ReactNode }) {
   const { setCurrentUser } = useUserStore();
@@ -11,5 +11,5 @@ export default function DashboardWrapper({ children }: { children: React.ReactNo
 
   }, [setCurrentUser]);
   
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <Layout>{children}</Layout>;
 }
