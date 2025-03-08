@@ -10,17 +10,12 @@ import TransactionList from '@/app/components/TransactionList';
 
 export default function TransactionsPage() {
   const { currentUser } = useUserStore();
-  const { fetchTransactions, fetchCategories } = useTransactionStore();
+  const { fetchCategories } = useTransactionStore();
   
   useEffect(() => {
-    // โหลดข้อมูลหมวดหมู่เมื่อเข้าถึงหน้านี้
     fetchCategories();
-    
-    // โหลดธุรกรรมถ้ามีผู้ใช้ปัจจุบัน
-    if (currentUser) {
-      fetchTransactions(currentUser.id);
-    }
-  }, [fetchCategories, fetchTransactions, currentUser]);
+
+  }, [fetchCategories, currentUser]);
   
   return (
     <main className="container mx-auto px-4 py-6 max-w-7xl">

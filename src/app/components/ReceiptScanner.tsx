@@ -67,6 +67,9 @@ import { signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuthUser } from '@/hook/useAuthUser';
 
+let modelLoadInitiated = false;
+
+
 export default function ReceiptScanner() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuthUser();
   const { categories, addTransaction } = useTransactionStore();
@@ -101,13 +104,49 @@ export default function ReceiptScanner() {
 
   // Simulate model loading progress
   useEffect(() => {
-    if (modelLoadingProgress < 100 && !modelLoaded) {
+    // Skip if already loaded or loading
+    if (modelLoadingProgress >= 100 || modelLoaded || modelLoadInitiated) return;
+    
+    modelLoadInitiated = true;
+    setModelLoadingProgress(25); // Start with higher initial progress
+
+    // Delayed loading to avoid blocking UI
+    const timer = setTimeout(() => {
+      // Increment progress faster
+      setModelLoadingProgress(50);
+      
+      // Start actual model loading
+      loadModel().then(() => {
+        setModelLoadingProgress(100);
+        setModelLoaded(true);
+      }).catch(err => {
+        console.error('Model loading error:', err);
+        // Still set as loaded to not block usage
+        setModelLoadingProgress(100);
+        setModelLoaded(true);
+      });
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [modelLoaded, modelLoadingProgress]);
+
+  useEffect(() => {
+    if (modelLoadingProgress >= 25 && modelLoadingProgress < 100 && !modelLoaded) {
       const timer = setTimeout(() => {
-        setModelLoadingProgress(prev => Math.min(prev + 15, 95));
-      }, 300);
+        // Increment by larger steps for perceived faster loading
+        setModelLoadingProgress(prev => Math.min(prev + 20, 95));
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [modelLoadingProgress, modelLoaded]);
+  
+  // Handle file upload
+  const handleImagesSelected = useCallback((files: File[]) => {
+    setSelectedFiles(files);
+    setScanResults([]);
+    setScanningCompleted(false);
+  }, []);
+
 
   // Preload TensorFlow.js model
   useEffect(() => {
@@ -129,12 +168,6 @@ export default function ReceiptScanner() {
     preloadModel();
   }, []);
   
-  // Handle file upload
-  const handleImagesSelected = useCallback((files: File[]) => {
-    setSelectedFiles(files);
-    setScanResults([]);
-    setScanningCompleted(false);
-  }, []);
   
   // Toggle items visibility for a receipt
   const toggleItems = (index: number) => {
@@ -193,10 +226,24 @@ export default function ReceiptScanner() {
           // Continue processing even if detection fails
         }
         
-        // Scan receipt with enhanced OCR
-        setProcessingProgress(50);
+        // Skip detection for better performance if multiple files
+        if (selectedFiles.length <= 3) {
+          try {
+            setProcessingProgress(50);
+            await detectReceipts(imageUrl);
+            setProcessingProgress(60);
+          } catch {
+            // Continue processing even if detection fails
+          }
+        } else {
+          // Skip detection for multiple files
+          setProcessingProgress(60);
+        }
+        
+        setProcessingProgress(70);
         const ocrResult = await scanReceipt(file);
-        setProcessingProgress(80);
+        setProcessingProgress(90);
+
         
         // Format date or use current date
         const today = new Date();
@@ -550,7 +597,7 @@ export default function ReceiptScanner() {
                 
                 <Button 
                   onClick={startScanning} 
-                  disabled={selectedFiles.length === 0 || isScanning || !modelLoaded}
+                  disabled={selectedFiles.length === 0 || isScanning}
                   className={cn(
                     "min-w-[120px] transition-all flex-1 sm:flex-none",
                     transactionType === 'expense' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'

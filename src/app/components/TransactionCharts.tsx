@@ -4,9 +4,20 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useTransactionStore } from '@/store/transactionStore';
-import { format, subDays, parseISO, isWithinInterval, startOfMonth, endOfMonth, subMonths, addDays } from 'date-fns';
+import { useAuthUser } from '@/hook/useAuthUser';
+
+import { 
+  format, 
+  subDays, 
+  parseISO, 
+  isWithinInterval,
+  startOfMonth, 
+  endOfMonth, 
+  subMonths, 
+  addDays 
+} from 'date-fns';
 import { th } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,18 +32,16 @@ import {
   Filler,
 } from 'chart.js';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
+
+import { cn } from '@/lib/utils';
 import {
   ArrowDown,
-  ArrowUp,
-  BarChart3,
+  BarChart3, 
   Calendar,
-  ChevronRight,
-  CircleDollarSign,
   Clock,
   DollarSign,
   Download,
   HelpCircle,
-  Info,
   LayoutDashboard,
   LineChart,
   Loader2,
@@ -42,26 +51,18 @@ import {
   Tag,
   TrendingDown,
   TrendingUp,
-  Wallet,
+  Wallet
 } from 'lucide-react';
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs,TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Popover, PopoverContent } from '@/components/ui/popover';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useAuthUser } from '@/hook/useAuthUser';
 
-// Register Chart.js components
+// Chart.js register
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -75,23 +76,21 @@ ChartJS.register(
   Filler
 );
 
-// Define time range type
+// กำหนด Time Range
 type TimeRange = '7days' | '30days' | '90days' | 'all' | 'thisMonth' | 'lastMonth';
 
-// Format date to Thai short format (e.g., 5 ม.ค.)
+// ฟังก์ชัน format วันแบบย่อไทย
 const formatThaiShortDate = (date: Date): string => {
   const thaiMonths = [
     'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
     'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
   ];
-  
   const day = date.getDate();
   const month = thaiMonths[date.getMonth()];
-  
   return `${day} ${month}`;
 };
 
-// Format currency in Thai format
+// ฟังก์ชัน format สกุลเงินแบบไทย
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('th-TH', {
     style: 'currency',
@@ -104,43 +103,41 @@ const formatCurrency = (amount: number): string => {
 export default function TransactionCharts() {
   const { transactions } = useTransactionStore();
   const { user } = useAuthUser();
+
+  // ฟิลเตอร์ & UI States
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [chartType, setChartType] = useState<'overview' | 'category' | 'trend' | 'comparison'>('overview');
   const [isLoading, setIsLoading] = useState(true);
-  const [showInsights, setShowInsights] = useState(false);
-  
-  // Simulate loading effect
+
+  // Loading state จำลอง
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    
+    const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, [timeRange, chartType]);
-  
-  // Get time range description
+
+  // แปลง TimeRange เป็น label ภาษาไทย
   const getTimeRangeLabel = (range: TimeRange): string => {
     switch (range) {
-      case '7days': return '7 วันล่าสุด';
-      case '30days': return '30 วันล่าสุด';
-      case '90days': return '90 วันล่าสุด';
-      case 'thisMonth': return 'เดือนนี้';
-      case 'lastMonth': return 'เดือนที่แล้ว';
-      case 'all': return 'ทั้งหมด';
-      default: return '30 วันล่าสุด';
+      case '7days':    return '7 วันล่าสุด';
+      case '30days':   return '30 วันล่าสุด';
+      case '90days':   return '90 วันล่าสุด';
+      case 'thisMonth':return 'เดือนนี้';
+      case 'lastMonth':return 'เดือนที่แล้ว';
+      case 'all':      return 'ทั้งหมด';
+      default:         return '30 วันล่าสุด';
     }
   };
-  
-  // Filter transactions based on selected time range
+
+  // คัดกรองธุรกรรมตามช่วงเวลา
   const filteredTransactions = useMemo(() => {
-    if (transactions.length === 0) return [];
+    if (!transactions.length) return [];
     if (timeRange === 'all') return transactions;
-    
+
     const today = new Date();
     let startDate: Date;
     let endDate: Date = today;
-    
+
     switch (timeRange) {
       case '7days':
         startDate = subDays(today, 7);
@@ -163,48 +160,52 @@ export default function TransactionCharts() {
       default:
         startDate = subDays(today, 30);
     }
-    
+
     return transactions.filter(tx => {
       const txDate = parseISO(tx.date);
       return isWithinInterval(txDate, { start: startDate, end: endDate });
     });
   }, [transactions, timeRange]);
-  
-  // Calculate financial summaries
-  const { totalIncome, totalExpense, incomesByCategory, expensesByCategory, dailyData } = useMemo(() => {
-    const totals = {
+
+  // สรุปข้อมูล
+  const {
+    totalIncome, 
+    totalExpense, 
+    incomesByCategory, 
+    expensesByCategory, 
+    dailyData
+  } = useMemo(() => {
+    const result = {
       totalIncome: 0,
       totalExpense: 0,
       incomesByCategory: {} as Record<string, number>,
       expensesByCategory: {} as Record<string, number>,
-      dailyData: {} as Record<string, { income: number; expense: number; }>,
+      dailyData: {} as Record<string, { income: number; expense: number }>,
     };
-    
-    if (filteredTransactions.length === 0) {
-      return totals;
-    }
-    
-    // Initialize daily data with zeros for the selected time range
+
+    if (!filteredTransactions.length) return result;
+
+    // เตรียม dailyData (เฉพาะถ้าไม่ใช่ all)
     const today = new Date();
     let daysToShow = 30;
-    
+
     switch (timeRange) {
-      case '7days': daysToShow = 7; break;
-      case '30days': daysToShow = 30; break;
-      case '90days': daysToShow = 90; break;
-      case 'thisMonth': 
+      case '7days':    daysToShow = 7; break;
+      case '30days':   daysToShow = 30; break;
+      case '90days':   daysToShow = 90; break;
+      case 'thisMonth':{
         daysToShow = endOfMonth(today).getDate() - startOfMonth(today).getDate() + 1;
         break;
-      case 'lastMonth':
-        const lastMonth = subMonths(today, 1);
-        daysToShow = endOfMonth(lastMonth).getDate() - startOfMonth(lastMonth).getDate() + 1;
+      }
+      case 'lastMonth':{
+        const last = subMonths(today, 1);
+        daysToShow = endOfMonth(last).getDate() - startOfMonth(last).getDate() + 1;
         break;
+      }
     }
-    
-    // Don't initialize daily data for 'all' time range
+
     if (timeRange !== 'all') {
       let startDate: Date;
-      
       if (timeRange === 'thisMonth') {
         startDate = startOfMonth(today);
       } else if (timeRange === 'lastMonth') {
@@ -212,70 +213,62 @@ export default function TransactionCharts() {
       } else {
         startDate = subDays(today, daysToShow - 1);
       }
-      
+
       for (let i = 0; i < daysToShow; i++) {
         const date = addDays(startDate, i);
         const dateStr = format(date, 'yyyy-MM-dd');
-        totals.dailyData[dateStr] = { income: 0, expense: 0 };
+        result.dailyData[dateStr] = { income: 0, expense: 0 };
       }
     }
-    
-    // Process transaction data
+
+    // รวมข้อมูล
     filteredTransactions.forEach(tx => {
       const dateStr = tx.date.split('T')[0];
-      
-      // Add to daily data if within range
-      if (timeRange !== 'all') {
-        // Make sure the date exists in our dailyData object
-        if (!totals.dailyData[dateStr]) {
-          totals.dailyData[dateStr] = { income: 0, expense: 0 };
-        }
-      }
-      
+
       if (tx.type === 'income') {
-        totals.totalIncome += tx.amount;
-        totals.incomesByCategory[tx.category] = (totals.incomesByCategory[tx.category] || 0) + tx.amount;
-        if (timeRange !== 'all' && totals.dailyData[dateStr]) {
-          totals.dailyData[dateStr].income += tx.amount;
+        result.totalIncome += tx.amount;
+        result.incomesByCategory[tx.category] = (result.incomesByCategory[tx.category] || 0) + tx.amount;
+        if (result.dailyData[dateStr]) {
+          result.dailyData[dateStr].income += tx.amount;
         }
       } else {
-        totals.totalExpense += tx.amount;
-        totals.expensesByCategory[tx.category] = (totals.expensesByCategory[tx.category] || 0) + tx.amount;
-        if (timeRange !== 'all' && totals.dailyData[dateStr]) {
-          totals.dailyData[dateStr].expense += tx.amount;
+        result.totalExpense += tx.amount;
+        result.expensesByCategory[tx.category] = (result.expensesByCategory[tx.category] || 0) + tx.amount;
+        if (result.dailyData[dateStr]) {
+          result.dailyData[dateStr].expense += tx.amount;
         }
       }
     });
-    
-    return totals;
+
+    return result;
   }, [filteredTransactions, timeRange]);
 
-  // Sort and prepare category data
+  // คำนวณอัตราการออม
+  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
+
+  // จัดเรียง Top หมวดหมู่
   const sortedExpenseCategories = useMemo(() => {
     return Object.entries(expensesByCategory)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
   }, [expensesByCategory]);
-  
+
   const sortedIncomeCategories = useMemo(() => {
     return Object.entries(incomesByCategory)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
   }, [incomesByCategory]);
 
-  // Calculate savings rate
-  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
-  
-  // Generate color gradients for charts
-  const generateGradient = (ctx: any, color1: string, color2: string) => {
+  // ฟังก์ชันสร้าง gradient ให้กราฟ
+  const generateGradient = (ctx: CanvasRenderingContext2D, color1: string, color2: string) => {
     if (!ctx) return '#fff';
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, color1);
     gradient.addColorStop(1, color2);
     return gradient;
   };
-  
-  // Overview chart data
+
+  // **1) Overview Chart**
   const overviewData = {
     labels: ['รายรับ', 'รายจ่าย'],
     datasets: [
@@ -283,22 +276,21 @@ export default function TransactionCharts() {
         data: [totalIncome, totalExpense],
         backgroundColor: ['rgba(34, 211, 238, 0.7)', 'rgba(249, 115, 22, 0.7)'],
         borderColor: ['rgb(8, 145, 178)', 'rgb(194, 65, 12)'],
-        borderWidth: 1,
         hoverOffset: 15,
       },
     ],
   };
-  
-  // Category chart options
+
+  // Doughnut Chart Options
   const doughnutOptions = {
     maintainAspectRatio: false,
-    cutout: '70%',
+    cutout: '65%',
     plugins: {
       legend: {
-        position: 'right' as const,
+        position: 'bottom' as const,
         labels: {
           usePointStyle: true,
-          boxWidth: 10,
+          boxWidth: 8,
           padding: 15,
         }
       },
@@ -307,77 +299,66 @@ export default function TransactionCharts() {
           label: function(context: any) {
             const label = context.label || '';
             const value = context.raw || 0;
-            const percentage = context.dataset.data.reduce((sum: number, value: number) => sum + value, 0);
-            const percentageValue = percentage ? Math.round((value / percentage) * 100) : 0;
-            return `${label}: ${formatCurrency(value)} (${percentageValue}%)`;
+            const total = context.dataset.data.reduce((sum: number, val: number) => sum + val, 0);
+            const pct = total ? Math.round((value / total) * 100) : 0;
+            return `${label}: ${formatCurrency(value)} (${pct}%)`;
           }
         }
       }
     },
   };
-  
-  // Expense category chart data with better colors
+
+  // Expense Category Data
   const expenseCategoryData = {
     labels: Object.keys(expensesByCategory),
     datasets: [
       {
         data: Object.values(expensesByCategory),
         backgroundColor: [
-          'rgba(249, 115, 22, 0.7)', // Orange
-          'rgba(234, 88, 12, 0.7)',  // Darker orange
-          'rgba(249, 168, 212, 0.7)', // Pink
-          'rgba(136, 19, 55, 0.7)',   // Burgundy
-          'rgba(220, 38, 38, 0.7)',   // Red
-          'rgba(252, 211, 77, 0.7)',  // Yellow
-          'rgba(16, 185, 129, 0.7)',  // Green
-          'rgba(45, 212, 191, 0.7)',  // Teal
-          'rgba(59, 130, 246, 0.7)',  // Blue
-          'rgba(168, 85, 247, 0.7)',  // Purple
+          'rgba(249, 115, 22, 0.7)',
+          'rgba(234, 88, 12, 0.7)',
+          'rgba(220, 38, 38, 0.7)',
+          'rgba(252, 211, 77, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(45, 212, 191, 0.7)',
+          'rgba(236, 72, 153, 0.7)',
         ],
         borderWidth: 2,
-        borderColor: '#ffffff',
+        borderColor: '#fff',
       },
     ],
   };
-  
-  // Income category chart data
+
+  // Income Category Data
   const incomeCategoryData = {
     labels: Object.keys(incomesByCategory),
     datasets: [
       {
         data: Object.values(incomesByCategory),
         backgroundColor: [
-          'rgba(34, 211, 238, 0.7)',  // Light Blue
-          'rgba(8, 145, 178, 0.7)',   // Darker Blue
-          'rgba(6, 182, 212, 0.7)',   // Cyan
-          'rgba(16, 185, 129, 0.7)',  // Green
-          'rgba(5, 150, 105, 0.7)',   // Dark Green
-          'rgba(14, 165, 233, 0.7)',  // Sky
-          'rgba(79, 70, 229, 0.7)',   // Indigo
-          'rgba(168, 85, 247, 0.7)',  // Purple
-          'rgba(217, 70, 239, 0.7)',  // Fuchsia
-          'rgba(236, 72, 153, 0.7)',  // Pink
+          'rgba(34, 211, 238, 0.7)',
+          'rgba(6, 182, 212, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(14, 165, 233, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(236, 72, 153, 0.7)',
         ],
         borderWidth: 2,
-        borderColor: '#ffffff',
+        borderColor: '#fff',
       },
     ],
   };
-  
-  // Trend chart data
+
+  // **2) แนวโน้ม (Trend) Chart**
   const trendData = useMemo(() => {
-    if (Object.keys(dailyData).length === 0) {
-      return {
-        labels: [],
-        datasets: [
-          { label: 'รายรับ', data: [], borderColor: 'rgba(16, 185, 129, 1)' },
-          { label: 'รายจ่าย', data: [], borderColor: 'rgba(239, 68, 68, 1)' }
-        ]
-      };
+    if (!Object.keys(dailyData).length) {
+      return { labels: [], datasets: [] };
     }
 
     const sortedDates = Object.keys(dailyData).sort();
-    
     return {
       labels: sortedDates.map(date => formatThaiShortDate(parseISO(date))),
       datasets: [
@@ -385,35 +366,32 @@ export default function TransactionCharts() {
           label: 'รายรับ',
           data: sortedDates.map(date => dailyData[date].income),
           borderColor: 'rgba(16, 185, 129, 1)',
-          backgroundColor: (context: any) => {
-            const ctx = context.chart.ctx;
-            return generateGradient(ctx, 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.02)');
+          backgroundColor: (ctx: any) => {
+            if (!ctx.chart) return 'rgba(16, 185, 129, 0.3)';
+            const canvas = ctx.chart.ctx;
+            return generateGradient(canvas, 'rgba(16, 185, 129, 0.4)', 'rgba(16, 185, 129, 0.05)');
           },
-          tension: 0.3,
           fill: true,
-          pointBackgroundColor: 'rgba(16, 185, 129, 1)',
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          tension: 0.3,
+          pointRadius: 2,
         },
         {
           label: 'รายจ่าย',
           data: sortedDates.map(date => dailyData[date].expense),
           borderColor: 'rgba(239, 68, 68, 1)',
-          backgroundColor: (context: any) => {
-            const ctx = context.chart.ctx;
-            return generateGradient(ctx, 'rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0.02)');
+          backgroundColor: (ctx: any) => {
+            if (!ctx.chart) return 'rgba(239, 68, 68, 0.3)';
+            const canvas = ctx.chart.ctx;
+            return generateGradient(canvas, 'rgba(239, 68, 68, 0.4)', 'rgba(239, 68, 68, 0.05)');
           },
-          tension: 0.3,
           fill: true,
-          pointBackgroundColor: 'rgba(239, 68, 68, 1)',
-          pointRadius: 3,
-          pointHoverRadius: 5,
-        },
-      ],
+          tension: 0.3,
+          pointRadius: 2,
+        }
+      ]
     };
   }, [dailyData]);
-  
-  // Line chart options
+
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -426,11 +404,9 @@ export default function TransactionCharts() {
         beginAtZero: true,
         grid: { color: 'rgba(0, 0, 0, 0.05)' },
         ticks: {
-          // Updated callback with proper signature
           callback: function(tickValue: number | string) {
-            // Since we're formatting currency, we need to ensure it's a number
-            const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
-            return formatCurrency(value).replace('฿', '');
+            const val = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
+            return formatCurrency(val).replace('฿', '');
           }
         }
       }
@@ -441,7 +417,7 @@ export default function TransactionCharts() {
     },
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: 'bottom' as const,
         labels: {
           usePointStyle: true,
           boxWidth: 8,
@@ -457,119 +433,63 @@ export default function TransactionCharts() {
         }
       }
     },
-    animation: {
-      duration: 1000,
-    },
+    animation: { duration: 800 },
   };
-  // Month comparison chart data
+
+  // **3) เปรียบเทียบ (Comparison)**
   const comparisonData = useMemo(() => {
-    // Get current month data
     const today = new Date();
     const currentMonthStart = startOfMonth(today);
     const currentMonthEnd = endOfMonth(today);
-    
-    // Get previous month data
+
     const lastMonthDate = subMonths(today, 1);
     const lastMonthStart = startOfMonth(lastMonthDate);
     const lastMonthEnd = endOfMonth(lastMonthDate);
-    
-    // Filter transactions for current and previous months
-    const currentMonthTransactions = transactions.filter(tx => {
-      const txDate = parseISO(tx.date);
-      return isWithinInterval(txDate, { start: currentMonthStart, end: currentMonthEnd });
+
+    const currentMonthTxs = transactions.filter(tx => {
+      const d = parseISO(tx.date);
+      return isWithinInterval(d, { start: currentMonthStart, end: currentMonthEnd });
     });
-    
-    const lastMonthTransactions = transactions.filter(tx => {
-      const txDate = parseISO(tx.date);
-      return isWithinInterval(txDate, { start: lastMonthStart, end: lastMonthEnd });
+    const lastMonthTxs = transactions.filter(tx => {
+      const d = parseISO(tx.date);
+      return isWithinInterval(d, { start: lastMonthStart, end: lastMonthEnd });
     });
-    
-    // Calculate totals
-    const currentMonthIncome = currentMonthTransactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-      
-    const currentMonthExpense = currentMonthTransactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-      
-    const lastMonthIncome = lastMonthTransactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-      
-    const lastMonthExpense = lastMonthTransactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-      
-    // Calculate growth percentages
-    const incomeGrowth = lastMonthIncome ? ((currentMonthIncome - lastMonthIncome) / lastMonthIncome) * 100 : 100;
-    const expenseGrowth = lastMonthExpense ? ((currentMonthExpense - lastMonthExpense) / lastMonthExpense) * 100 : 100;
-    
-    // Calculate most changed categories
-    const currentMonthExpenseByCategory: Record<string, number> = {};
-    const lastMonthExpenseByCategory: Record<string, number> = {};
-    
-    currentMonthTransactions
-      .filter(tx => tx.type === 'expense')
-      .forEach(tx => {
-        currentMonthExpenseByCategory[tx.category] = (currentMonthExpenseByCategory[tx.category] || 0) + tx.amount;
-      });
-      
-    lastMonthTransactions
-      .filter(tx => tx.type === 'expense')
-      .forEach(tx => {
-        lastMonthExpenseByCategory[tx.category] = (lastMonthExpenseByCategory[tx.category] || 0) + tx.amount;
-      });
-    
-    // Find categories with significant changes
-    const categoryChanges: { name: string, change: number, percentage: number }[] = [];
-    
-    Object.keys({ ...currentMonthExpenseByCategory, ...lastMonthExpenseByCategory }).forEach(category => {
-      const current = currentMonthExpenseByCategory[category] || 0;
-      const last = lastMonthExpenseByCategory[category] || 0;
-      
-      if (current === 0 && last === 0) return;
-      
-      const change = current - last;
-      const percentage = last ? (change / last) * 100 : 100;
-      
-      if (Math.abs(percentage) >= 10) {
-        categoryChanges.push({ name: category, change, percentage });
-      }
-    });
-    
-    // Sort by absolute percentage change
-    categoryChanges.sort((a, b) => Math.abs(b.percentage) - Math.abs(a.percentage));
-    
+
+    const currentIncome = currentMonthTxs.filter(tx => tx.type === 'income').reduce((s, x) => s + x.amount, 0);
+    const currentExpense = currentMonthTxs.filter(tx => tx.type === 'expense').reduce((s, x) => s + x.amount, 0);
+
+    const lastIncome = lastMonthTxs.filter(tx => tx.type === 'income').reduce((s, x) => s + x.amount, 0);
+    const lastExpense = lastMonthTxs.filter(tx => tx.type === 'expense').reduce((s, x) => s + x.amount, 0);
+
+    const incomeGrowth = lastIncome ? ((currentIncome - lastIncome) / lastIncome) * 100 : 100;
+    const expenseGrowth = lastExpense ? ((currentExpense - lastExpense) / lastExpense) * 100 : 100;
+
     return {
       months: {
         current: format(today, 'MMMM', { locale: th }),
         last: format(lastMonthDate, 'MMMM', { locale: th }),
       },
       data: {
-        currentMonthIncome,
-        currentMonthExpense,
-        lastMonthIncome,
-        lastMonthExpense,
+        currentMonthIncome: currentIncome,
+        currentMonthExpense: currentExpense,
+        lastMonthIncome: lastIncome,
+        lastMonthExpense: lastExpense,
         incomeGrowth,
         expenseGrowth,
       },
-      categoryChanges: categoryChanges.slice(0, 3), // Get top 3 most changed categories
       chartData: {
         labels: ['รายรับ', 'รายจ่าย'],
         datasets: [
           {
-            label: format(lastMonthDate, 'MMMM', { locale: th }),
-            data: [lastMonthIncome, lastMonthExpense],
-            backgroundColor: 'rgba(107, 114, 128, 0.7)',
-            borderColor: 'rgba(75, 85, 99, 1)',
+            label: format(lastMonthDate, 'MMM', { locale: th }),
+            data: [lastIncome, lastExpense],
+            backgroundColor: 'rgba(156, 163, 175, 0.6)',
             borderWidth: 1,
           },
           {
-            label: format(today, 'MMMM', { locale: th }),
-            data: [currentMonthIncome, currentMonthExpense],
-            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-            borderColor: 'rgba(37, 99, 235, 1)',
+            label: format(today, 'MMM', { locale: th }),
+            data: [currentIncome, currentExpense],
+            backgroundColor: 'rgba(59, 130, 246, 0.6)',
             borderWidth: 1,
           },
         ],
@@ -577,30 +497,25 @@ export default function TransactionCharts() {
     };
   }, [transactions]);
 
-  // Bar chart options
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-      x: {
-        grid: { display: false },
-      },
-      y: {
+      x: { grid: { display: false } },
+      y: { 
         beginAtZero: true,
         grid: { color: 'rgba(0, 0, 0, 0.05)' },
         ticks: {
-          // Updated callback with proper signature
           callback: function(tickValue: number | string) {
-            // Since we're formatting currency, we need to ensure it's a number
-            const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
-            return formatCurrency(value).replace('฿', '');
+            const val = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
+            return formatCurrency(val).replace('฿', '');
           }
         }
       }
     },
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: 'bottom' as const,
         labels: {
           usePointStyle: true,
           boxWidth: 8,
@@ -616,635 +531,304 @@ export default function TransactionCharts() {
         }
       }
     },
-    animation: {
-      duration: 1000,
-    },
+    animation: { duration: 800 },
   };
-  // Generate insights based on financial data
-  const generateInsights = () => {
-    const insights = [];
-    
-    // Check if there's enough data
-    if (filteredTransactions.length < 3) {
-      insights.push("ยังมีข้อมูลไม่เพียงพอสำหรับคำแนะนำ กรุณาเพิ่มรายการธุรกรรมเพื่อรับคำแนะนำที่ดีขึ้น");
-      return insights;
-    }
-    
-    // Check savings rate
-    if (savingsRate < 10) {
-      insights.push("อัตราการออมของคุณต่ำกว่าที่แนะนำ (10%) ลองพิจารณาลดรายจ่ายที่ไม่จำเป็น");
-    } else if (savingsRate > 30) {
-      insights.push("อัตราการออมของคุณสูงถึง " + savingsRate.toFixed(0) + "% ซึ่งเป็นเรื่องที่น่ายินดี!");
-    }
-    
-    // Check expense categories
-    if (sortedExpenseCategories.length > 0) {
-      const topCategory = sortedExpenseCategories[0];
-      const topCategoryPercentage = (topCategory[1] / totalExpense) * 100;
-      
-      if (topCategoryPercentage > 40) {
-        insights.push(`รายจ่ายในหมวด ${topCategory[0]} คิดเป็น ${topCategoryPercentage.toFixed(0)}% ของรายจ่ายทั้งหมด ซึ่งค่อนข้างสูง`);
-      }
-    }
-    
-    // Compare income vs expense
-    if (totalExpense > totalIncome) {
-      insights.push("รายจ่ายของคุณสูงกว่ารายได้ในช่วงเวลานี้ ควรพิจารณาปรับแผนการเงิน");
-    }
-    
-    // Month over month changes
-    if (timeRange === '30days' || timeRange === 'thisMonth') {
-      if (Math.abs(comparisonData.data.expenseGrowth) > 20) {
-        const direction = comparisonData.data.expenseGrowth > 0 ? "เพิ่มขึ้น" : "ลดลง";
-        insights.push(`รายจ่ายของคุณ${direction} ${Math.abs(comparisonData.data.expenseGrowth).toFixed(0)}% เมื่อเทียบกับเดือนที่แล้ว`);
-      }
-    }
-    
-    // Add some general advice if there's room
-    if (insights.length < 2) {
-      insights.push("การจัดทำงบประมาณและติดตามรายจ่ายอย่างสม่ำเสมอเป็นกุญแจสู่ความสำเร็จทางการเงิน");
-    }
-    
-    return insights;
-  };
-  
-  // Financial insights
-  const financialInsights = useMemo(() => generateInsights(), [filteredTransactions.length, savingsRate, totalIncome, totalExpense, sortedExpenseCategories, timeRange, comparisonData]);
 
-  // Selected chart render
+  // **คำแนะนำ (Insights) เรียบง่าย**
+  const financialInsights = useMemo(() => {
+    const result: string[] = [];
+    if (filteredTransactions.length < 3) {
+      result.push('ยังมีข้อมูลธุรกรรมไม่เพียงพอสำหรับคำแนะนำที่ชัดเจน');
+      return result;
+    }
+    if (savingsRate < 10) {
+      result.push("อัตราการออมต่ำกว่า 10% แนะนำให้ปรับลดรายจ่ายไม่จำเป็น");
+    } else if (savingsRate > 30) {
+      result.push(`อัตราการออมสูงถึง ${savingsRate.toFixed(0)}% ถือว่าดีมาก!`);
+    }
+    if (totalExpense > totalIncome) {
+      result.push("รายจ่ายรวมสูงกว่ารายรับในช่วงนี้ ควรพิจารณาวางแผนเพิ่มรายได้/ลดรายจ่าย");
+    }
+    if (!result.length) {
+      result.push("การติดตามและจดบันทึกธุรกรรมอย่างสม่ำเสมอช่วยให้คุณวางแผนการเงินได้ดีขึ้น");
+    }
+    return result;
+  }, [filteredTransactions.length, savingsRate, totalExpense, totalIncome]);
+
+  // **ฟังก์ชัน Render กราฟตามโหมด chartType**
   const renderChart = () => {
-    // Loading state
+    // 1) Loading
     if (isLoading) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="md:col-span-2 lg:col-span-1">
-            <CardHeader className="pb-2">
-              <Skeleton className="h-6 w-40" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-1/2" />
             </CardHeader>
-            <CardContent className="h-[320px] flex items-center justify-center p-6">
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
+            <CardContent className="h-[250px] flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </CardContent>
           </Card>
-          
-          <Card className="md:col-span-2 lg:col-span-1">
-            <CardHeader className="pb-2">
-              <Skeleton className="h-6 w-48" />
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-1/3" />
             </CardHeader>
-            <CardContent className="h-[320px] flex items-center justify-center p-6">
-              <div className="w-full h-full flex flex-col justify-center space-y-4">
-              <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-8 w-1/2" />
-              </div>
+            <CardContent className="h-[250px] flex flex-col items-center justify-center space-y-3">
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-3 w-1/2" />
             </CardContent>
           </Card>
         </div>
       );
     }
-    
-    // No data state
-    if (filteredTransactions.length === 0) {
+
+    // 2) ไม่มีข้อมูล
+    if (!filteredTransactions.length) {
       return (
-        <Card className="bg-muted/20">
-          <CardContent className="flex flex-col items-center justify-center h-[350px] text-center p-6">
-            <BarChart3 className="h-16 w-16 text-muted-foreground opacity-20 mb-4" />
-            <h3 className="text-xl font-medium mb-2">ไม่พบข้อมูลธุรกรรม</h3>
-            <p className="text-muted-foreground max-w-md mb-6">
-              ยังไม่มีข้อมูลธุรกรรมในช่วงเวลาที่เลือก กรุณาเลือกช่วงเวลาอื่นหรือเพิ่มรายการธุรกรรมใหม่
-            </p>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              เพิ่มธุรกรรมใหม่
-            </Button>
-          </CardContent>
+        <Card className="bg-white border p-6 text-center">
+          <BarChart3 className="h-16 w-16 text-muted-foreground opacity-30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">ไม่พบข้อมูลธุรกรรม</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            ยังไม่มีข้อมูลธุรกรรมในช่วงเวลานี้ หรือยังไม่ได้เพิ่มรายการ
+          </p>
+          <Button>
+            <Plus className="mr-1.5 h-4 w-4" />
+            เพิ่มธุรกรรมใหม่
+          </Button>
         </Card>
       );
     }
-    
-    // Render appropriate chart based on selected type
+
+    // 3) มีข้อมูล => เลือกตาม chartType
     switch (chartType) {
       case 'overview':
         return (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {/* Summary Cards */}
-              <Card className={cn(
-                "overflow-hidden",
-                "border-t-4 border-t-cyan-500"
-              )}>
+          <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* รายรับ */}
+              <Card className="border">
                 <CardHeader className="pb-2">
-                  <CardDescription className="flex justify-between">
-                    <span>รายรับทั้งหมด</span>
-                    <Badge variant="secondary" className="font-normal">
-                      <Clock className="mr-1 h-3 w-3" />
-                      {getTimeRangeLabel(timeRange)}
-                    </Badge>
-                  </CardDescription>
-                  <CardTitle className="text-2xl font-bold text-cyan-600">
+                  <CardDescription>รายรับทั้งหมด</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-green-600 mt-1">
                     {formatCurrency(totalIncome)}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <ArrowUp className={cn(
-                      "mr-1 h-3 w-3",
-                      comparisonData.data.incomeGrowth >= 0 ? "text-green-500" : "text-red-500"
-                    )} />
-                    <span>
-                      {Math.abs(comparisonData.data.incomeGrowth).toFixed(1)}%
-                      {comparisonData.data.incomeGrowth >= 0 ? " เพิ่มขึ้น" : " ลดลง"}
-                      จากเดือนที่แล้ว
-                    </span>
-                  </div>
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">
+                    {getTimeRangeLabel(timeRange)}
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className={cn(
-                "overflow-hidden",
-                "border-t-4 border-t-orange-500"
-              )}>
+              {/* รายจ่าย */}
+              <Card className="border">
                 <CardHeader className="pb-2">
-                  <CardDescription className="flex justify-between">
-                    <span>รายจ่ายทั้งหมด</span>
-                  </CardDescription>
-                  <CardTitle className="text-2xl font-bold text-orange-600">
+                  <CardDescription>รายจ่ายทั้งหมด</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-red-600 mt-1">
                     {formatCurrency(totalExpense)}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <ArrowDown className={cn(
-                      "mr-1 h-3 w-3",
-                      comparisonData.data.expenseGrowth <= 0 ? "text-green-500" : "text-red-500"
-                    )} />
-                    <span>
-                      {Math.abs(comparisonData.data.expenseGrowth).toFixed(1)}%
-                      {comparisonData.data.expenseGrowth <= 0 ? " ลดลง" : " เพิ่มขึ้น"}
-                      จากเดือนที่แล้ว
-                    </span>
-                  </div>
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">
+                    {getTimeRangeLabel(timeRange)}
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className={cn(
-                "overflow-hidden",
-                totalIncome - totalExpense >= 0 ? "border-t-4 border-t-green-500" : "border-t-4 border-t-red-500"
-              )}>
+              {/* คงเหลือ + อัตราออม */}
+              <Card className="border">
                 <CardHeader className="pb-2">
-                  <CardDescription className="flex justify-between">
-                    <span>ยอดคงเหลือ</span>
-                  </CardDescription>
-                  <CardTitle className={cn(
-                    "text-2xl font-bold",
-                    totalIncome - totalExpense >= 0 ? "text-green-600" : "text-red-600"
-                  )}>
+                  <CardDescription>ยอดคงเหลือ</CardDescription>
+                  <CardTitle 
+                    className={cn(
+                      "text-2xl font-bold mt-1",
+                      (totalIncome - totalExpense) >= 0 ? "text-green-600" : "text-red-600"
+                    )}
+                  >
                     {formatCurrency(totalIncome - totalExpense)}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-muted-foreground">อัตราการออม</span>
-                      <span className={cn(
-                        "font-medium",
-                        savingsRate >= 20 ? "text-green-600" : 
-                        savingsRate >= 10 ? "text-amber-600" : "text-red-600"
-                      )}>
-                        {savingsRate.toFixed(1)}%
-                      </span>
-                    </div>
-                    <Progress 
-                      value={Math.min(savingsRate, 100)} 
-                      className={cn(
-                        "h-1.5",
-                        savingsRate >= 20 ? "bg-green-600" : 
-                        savingsRate >= 10 ? "bg-amber-600" : "bg-red-600"
-                      )} 
-                    />
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-muted-foreground">อัตราออม</span>
+                    <span className="text-xs font-medium">
+                      {savingsRate.toFixed(1)}%
+                    </span>
                   </div>
+                  <Progress value={Math.min(savingsRate, 100)} className="h-1.5" />
                 </CardContent>
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Overview Donut Chart */}
-              <Card>
+            {/* Donut Chart สัดส่วนรายรับ-รายจ่าย และคำแนะนำ */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card className="border">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <PieChart className="h-5 w-5 mr-2 text-primary" />
+                  <CardTitle className="text-sm flex items-center">
+                    <PieChart className="h-4 w-4 mr-2 text-primary" />
                     สัดส่วนรายรับ-รายจ่าย
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="h-[300px] flex items-center justify-center">
-                    <Doughnut
-                      data={overviewData}
-                      options={{
-                        maintainAspectRatio: false,
-                        cutout: '65%',
-                        plugins: {
-                          legend: {
-                            position: 'bottom',
-                            labels: {
-                              usePointStyle: true,
-                              boxWidth: 8,
-                              padding: 15
-                            }
-                          },
-                          tooltip: {
-                            callbacks: {
-                              label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw as number || 0;
-                                const percentage = context.dataset.data.reduce((sum: number, val: number) => sum + val, 0);
-                                const percentageValue = percentage ? Math.round((value / percentage) * 100) : 0;
-                                return `${label}: ${formatCurrency(value)} (${percentageValue}%)`;
-                              }
-                            }
-                          }
-                        }
-                      }}
-                    />
+                  <div className="h-[250px] flex items-center justify-center">
+                    <Doughnut data={overviewData} options={doughnutOptions} />
                   </div>
                 </CardContent>
-                <CardFooter className="border-t p-4 pt-3">
-                  <div className="flex items-center justify-between w-full text-sm">
-                    <span className="text-muted-foreground">อัพเดทข้อมูลล่าสุด</span>
-                    <span className="font-medium">
-                      {format(new Date('2025-03-06 07:51:12'), 'dd MMM yyyy, HH:mm', { locale: th })}
-                    </span>
-                  </div>
-                </CardFooter>
               </Card>
 
-              {/* Financial Insights */}
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+              <Card className="border">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <Info className="h-5 w-5 mr-2 text-primary" />
+                  <CardTitle className="text-sm flex items-center">
+                    <HelpCircle className="h-4 w-4 mr-2 text-primary" />
                     คำแนะนำทางการเงิน
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-4">
-                    {financialInsights.map((insight, i) => (
-                      <div key={i} className="flex">
-                        <div className="mr-3 mt-0.5">
-                          <div className="bg-primary/10 text-primary p-1 rounded-full">
-                            <ChevronRight className="h-4 w-4" />
-                          </div>
-                        </div>
-                        <p className="text-sm">{insight}</p>
-                      </div>
-                    ))}
-                    
-                    {/* Savings goal */}
-                    <div className="bg-white dark:bg-slate-800 rounded-lg p-4 mt-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-sm">เป้าหมายการออม (20%)</h4>
-                        <Badge variant={savingsRate >= 20 ? "default" : "outline"}>
-                          {savingsRate.toFixed(1)}%
-                        </Badge>
-                      </div>
-                      <div className="bg-muted h-2 rounded-full w-full overflow-hidden">
-                        <div 
-                          className={cn(
-                            "h-full rounded-full transition-all duration-500",
-                            savingsRate >= 20 ? "bg-green-500" : 
-                            savingsRate >= 10 ? "bg-amber-500" : "bg-red-500"
-                          )}
-                          style={{ width: `${Math.min(savingsRate * 5, 100)}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {savingsRate >= 20 
-                          ? "ยินดีด้วย! คุณบรรลุเป้าหมายการออมที่แนะนำ"
-                          : `อีก ${(20 - savingsRate).toFixed(1)}% เพื่อบรรลุเป้าหมายการออมที่แนะนำ`
-                        }
-                      </p>
+                <CardContent className="pt-0 space-y-2">
+                  {financialInsights.map((txt, i) => (
+                    <div key={i} className="flex items-start">
+                      <ArrowRightIndicator />
+                      <p className="text-sm ml-2">{txt}</p>
                     </div>
-                  </div>
+                  ))}
                 </CardContent>
-                <CardFooter className="border-t border-muted/30 pt-3">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    ดูรายงานโดยละเอียด
-                  </Button>
-                </CardFooter>
               </Card>
             </div>
           </div>
         );
-        
+
       case 'category':
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Expense Categories */}
-            <Card>
+            <Card className="border">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Tag className="h-5 w-5 mr-2 text-red-500" />
+                <CardTitle className="text-sm flex items-center">
+                  <Tag className="h-4 w-4 mr-2 text-red-600" />
                   หมวดหมู่รายจ่าย
                 </CardTitle>
                 <CardDescription>
-                  {getTimeRangeLabel(timeRange)} - รวม {formatCurrency(totalExpense)}
+                  รวม {formatCurrency(totalExpense)}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  {Object.keys(expensesByCategory).length > 0 ? (
-                    <Doughnut
-                      data={expenseCategoryData}
-                      options={doughnutOptions}
-                    />
+              <CardContent className="pt-1">
+                <div className="h-[220px] mb-3">
+                  {Object.keys(expensesByCategory).length ? (
+                    <Doughnut data={expenseCategoryData} options={doughnutOptions} />
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                      <PieChart className="h-12 w-12 text-muted-foreground opacity-20 mb-2" />
-                      <p className="text-muted-foreground">ไม่มีข้อมูลรายจ่าย</p>
-                    </div>
+                    <NoCategoryData text="ไม่มีหมวดหมู่รายจ่าย" />
                   )}
                 </div>
-                
-                {/* Top expense categories */}
+                {/* รายจ่ายสูงสุด */}
                 {sortedExpenseCategories.length > 0 && (
-                  <div className="mt-4 space-y-3 border-t pt-4">
-                    <h4 className="text-sm font-medium">รายจ่ายสูงสุด</h4>
-                    {sortedExpenseCategories.map(([category, amount], index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full bg-orange-${500 - (index * 100)}`} />
-                          <span className="text-sm">{category}</span>
-                        </div>
-                        <div className="text-sm font-medium">
-                          {formatCurrency(amount)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <CategoryList title="หมวดหมู่ที่ใช้จ่ายสูง" items={sortedExpenseCategories} />
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Income Categories */}
-            <Card>
+            <Card className="border">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Wallet className="h-5 w-5 mr-2 text-cyan-500" />
+                <CardTitle className="text-sm flex items-center">
+                  <Wallet className="h-4 w-4 mr-2 text-green-600" />
                   หมวดหมู่รายรับ
                 </CardTitle>
                 <CardDescription>
-                  {getTimeRangeLabel(timeRange)} - รวม {formatCurrency(totalIncome)}
+                  รวม {formatCurrency(totalIncome)}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  {Object.keys(incomesByCategory).length > 0 ? (
-                    <Doughnut
-                      data={incomeCategoryData}
-                      options={doughnutOptions}
-                    />
+              <CardContent className="pt-1">
+                <div className="h-[220px] mb-3">
+                  {Object.keys(incomesByCategory).length ? (
+                    <Doughnut data={incomeCategoryData} options={doughnutOptions} />
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                      <PieChart className="h-12 w-12 text-muted-foreground opacity-20 mb-2" />
-                      <p className="text-muted-foreground">ไม่มีข้อมูลรายรับ</p>
-                    </div>
+                    <NoCategoryData text="ไม่มีหมวดหมู่รายรับ" />
                   )}
                 </div>
-                
-                {/* Top income categories */}
+                {/* รายรับสูงสุด */}
                 {sortedIncomeCategories.length > 0 && (
-                  <div className="mt-4 space-y-3 border-t pt-4">
-                    <h4 className="text-sm font-medium">รายรับสูงสุด</h4>
-                    {sortedIncomeCategories.map(([category, amount], index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full bg-cyan-${500 - (index * 100)}`} />
-                          <span className="text-sm">{category}</span>
-                        </div>
-                        <div className="text-sm font-medium">
-                          {formatCurrency(amount)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <CategoryList title="หมวดหมู่ที่รับสูง" items={sortedIncomeCategories} />
                 )}
               </CardContent>
             </Card>
           </div>
         );
-        
+
       case 'trend':
         return (
-          <Card>
+          <Card className="border">
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-lg flex items-center">
-                    <LineChart className="h-5 w-5 mr-2 text-primary" />
-                    แนวโน้มรายรับรายจ่าย
-                  </CardTitle>
-                  <CardDescription>
-                    {getTimeRangeLabel(timeRange)}
-                  </CardDescription>
-                </div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-8 w-8">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>ดาวน์โหลดรายงาน</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              <CardTitle className="text-sm flex items-center">
+                <LineChart className="h-4 w-4 mr-2 text-primary" />
+                แนวโน้มรายรับรายจ่าย
+              </CardTitle>
+              <CardDescription>
+                {getTimeRangeLabel(timeRange)}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px]">
-                <Line data={trendData} options={lineOptions} />
-              </div>
-              
-              {/* Daily stats summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <div className="bg-muted/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">รายรับเฉลี่ย/วัน</h4>
-                    <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-lg font-bold text-cyan-600">
-                    {formatCurrency(totalIncome / Math.max(Object.keys(dailyData).length, 1))}
-                  </p>
-                </div>
-                
-                <div className="bg-muted/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">รายจ่ายเฉลี่ย/วัน</h4>
-                    <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-lg font-bold text-orange-600">
-                    {formatCurrency(totalExpense / Math.max(Object.keys(dailyData).length, 1))}
-                  </p>
-                </div>
-                
-                <div className="bg-muted/20 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">คงเหลือเฉลี่ย/วัน</h4>
-                    <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className={cn(
-                    "text-lg font-bold",
-                    (totalIncome - totalExpense) >= 0 ? "text-green-600" : "text-red-600"
-                  )}>
-                    {formatCurrency((totalIncome - totalExpense) / Math.max(Object.keys(dailyData).length, 1))}
-                  </p>
-                </div>
+              <div className="h-[300px]">
+                {trendData.labels.length ? (
+                  <Line data={trendData} options={lineOptions} />
+                ) : (
+                  <NoCategoryData text="ไม่มีข้อมูลแนวโน้ม" />
+                )}
               </div>
             </CardContent>
           </Card>
         );
-        
+
       case 'comparison':
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Main comparison chart - Takes up 3 columns */}
-            <Card className="lg:col-span-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Bar Chart เปรียบเทียบเดือน */}
+            <Card className="border">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-primary" />
+                <CardTitle className="text-sm flex items-center">
+                  <BarChart3 className="h-4 w-4 mr-2 text-primary" />
                   เปรียบเทียบรายเดือน
                 </CardTitle>
                 <CardDescription>
-                  {comparisonData.months.last} เทียบกับ {comparisonData.months.current}
+                  {comparisonData.months.last} &amp; {comparisonData.months.current}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="h-[350px] py-4">
+              <CardContent>
+                <div className="h-[300px]">
                   <Bar data={comparisonData.chartData} options={barOptions} />
                 </div>
               </CardContent>
             </Card>
-            
-            {/* Comparison metrics - Takes up 2 columns */}
-            <Card className="lg:col-span-2">
+
+            {/* รายรับ-รายจ่ายเดือนที่แล้ว/เดือนนี้ */}
+            <Card className="border">
               <CardHeader>
-                <CardTitle className="text-lg">สรุปการเปลี่ยนแปลง</CardTitle>
+                <CardTitle className="text-sm">สรุปการเปลี่ยนแปลง</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Income change */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium flex items-center">
-                      <DollarSign className="h-4 w-4 mr-1 text-cyan-600" />
-                      รายรับ
-                    </h4>
-                    <Badge 
-                      variant={comparisonData.data.incomeGrowth >= 0 ? "default" : "destructive"}
-                      className={comparisonData.data.incomeGrowth >= 0 ? "bg-green-600" : undefined}
-                    >
-                      {comparisonData.data.incomeGrowth >= 0 ? "+" : ""}
-                      {comparisonData.data.incomeGrowth.toFixed(1)}%
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex justify-between items-center text-sm">
-                    <div>
-                      <p className="text-muted-foreground">{comparisonData.months.last}</p>
-                      <p className="font-medium">{formatCurrency(comparisonData.data.lastMonthIncome)}</p>
-                    </div>
-                    <div className="flex-1 px-4">
-                      <div className="flex items-center justify-center">
-                        {comparisonData.data.incomeGrowth >= 0 ? (
-                          <TrendingUp className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-muted-foreground">{comparisonData.months.current}</p>
-                      <p className="font-medium">{formatCurrency(comparisonData.data.currentMonthIncome)}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Expense change */}
-                <div className="pt-2 border-t">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium flex items-center">
-                      <DollarSign className="h-4 w-4 mr-1 text-orange-600" />
-                      รายจ่าย
-                    </h4>
-                    <Badge 
-                      variant={comparisonData.data.expenseGrowth <= 0 ? "default" : "destructive"}
-                      className={comparisonData.data.expenseGrowth <= 0 ? "bg-green-600" : undefined}
-                    >
-                      {comparisonData.data.expenseGrowth <= 0 ? "" : "+"}
-                      {comparisonData.data.expenseGrowth.toFixed(1)}%
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex justify-between items-center text-sm">
-                    <div>
-                      <p className="text-muted-foreground">{comparisonData.months.last}</p>
-                      <p className="font-medium">{formatCurrency(comparisonData.data.lastMonthExpense)}</p>
-                    </div>
-                    <div className="flex-1 px-4">
-                      <div className="flex items-center justify-center">
-                        {comparisonData.data.expenseGrowth <= 0 ? (
-                          <TrendingDown className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <TrendingUp className="h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-muted-foreground">{comparisonData.months.current}</p>
-                      <p className="font-medium">{formatCurrency(comparisonData.data.currentMonthExpense)}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Category changes */}
-                {comparisonData.categoryChanges.length > 0 && (
-                  <div className="pt-4 mt-2 border-t">
-                    <h4 className="text-sm font-medium mb-3">การเปลี่ยนแปลงหมวดหมู่ที่สำคัญ</h4>
-                    <div className="space-y-3">
-                      {comparisonData.categoryChanges.map((category, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            {category.change > 0 ? (
-                              <ArrowUp className="h-4 w-4 mr-1.5 text-red-500" />
-                            ) : (
-                              <ArrowDown className="h-4 w-4 mr-1.5 text-green-500" />
-                            )}
-                            <span className="text-sm truncate max-w-[150px]">{category.name}</span>
-                          </div>
-                          <div>
-                            <Badge 
-                              variant={category.change <= 0 ? "outline" : "destructive"}
-                              className={cn(
-                                "whitespace-nowrap",
-                                category.change <= 0 && "text-green-600 border-green-200 bg-green-50"
-                              )}
-                            >
-                              {category.change >= 0 ? "+" : ""}
-                              {category.percentage.toFixed(0)}%
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <CardContent className="space-y-4">
+                <ComparisonRow 
+                  label="รายรับ"
+                  iconColor="text-green-600"
+                  lastValue={comparisonData.data.lastMonthIncome}
+                  currentValue={comparisonData.data.currentMonthIncome}
+                  growth={comparisonData.data.incomeGrowth}
+                  lastLabel={comparisonData.months.last}
+                  currentLabel={comparisonData.months.current}
+                />
+                <ComparisonRow 
+                  label="รายจ่าย"
+                  iconColor="text-red-600"
+                  lastValue={comparisonData.data.lastMonthExpense}
+                  currentValue={comparisonData.data.currentMonthExpense}
+                  growth={comparisonData.data.expenseGrowth}
+                  lastLabel={comparisonData.months.last}
+                  currentLabel={comparisonData.months.current}
+                />
               </CardContent>
-              <CardFooter className="bg-muted/10 rounded-b-lg border-t pt-3">
+              <CardFooter className="pt-2 border-t">
                 <Button variant="outline" size="sm" className="w-full">
-                  <RefreshCw className="h-3.5 w-3.5 mr-2" />
-                  อัปเดตข้อมูลล่าสุด
+                  <RefreshCw className="h-4 w-4 mr-1.5" />
+                  อัปเดตข้อมูล
                 </Button>
               </CardFooter>
             </Card>
@@ -1252,45 +836,52 @@ export default function TransactionCharts() {
         );
     }
   };
-  
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold flex items-center">
+          <h2 className="text-lg font-bold flex items-center">
             <BarChart3 className="h-5 w-5 mr-2 text-primary" />
             รายงานทางการเงิน
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            แสดงข้อมูลธุรกรรมของ {user?.name} ณ วันที่ {format(new Date('2025-03-06'), 'd MMMM yyyy', { locale: th })}
+          <p className="text-sm text-muted-foreground">
+            แสดงข้อมูลธุรกรรมของ {user?.name} ณ วันที่ 
+            {" " + format(new Date(), 'd MMM yyyy', { locale: th })}
           </p>
         </div>
-        
+
+        {/* Tabs & TimeRange */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <Tabs value={chartType} onValueChange={(value) => setChartType(value as any)} className="w-full sm:w-auto">
+          <Tabs 
+            value={chartType} 
+            onValueChange={(v) => setChartType(v as any)}
+            className="w-full sm:w-auto"
+          >
             <TabsList className="grid grid-cols-4 w-full">
               <TabsTrigger value="overview" className="text-xs">
-                <LayoutDashboard className="h-3.5 w-3.5 mr-1.5" />
+                <LayoutDashboard className="h-3.5 w-3.5 mr-1" />
                 ภาพรวม
               </TabsTrigger>
               <TabsTrigger value="category" className="text-xs">
-                <PieChart className="h-3.5 w-3.5 mr-1.5" />
+                <PieChart className="h-3.5 w-3.5 mr-1" />
                 หมวดหมู่
               </TabsTrigger>
               <TabsTrigger value="trend" className="text-xs">
-                <LineChart className="h-3.5 w-3.5 mr-1.5" />
+                <LineChart className="h-3.5 w-3.5 mr-1" />
                 แนวโน้ม
               </TabsTrigger>
               <TabsTrigger value="comparison" className="text-xs">
-                <BarChart3 className="h-3.5 w-3.5 mr-1.5" />
+                <BarChart3 className="h-3.5 w-3.5 mr-1" />
                 เปรียบเทียบ
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          
-          <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+
+          <Select value={timeRange} onValueChange={(val) => setTimeRange(val as TimeRange)}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
               <SelectValue placeholder="เลือกช่วงเวลา" />
             </SelectTrigger>
             <SelectContent>
@@ -1304,69 +895,107 @@ export default function TransactionCharts() {
           </Select>
         </div>
       </div>
-      
-      {/* Main Chart Content */}
+
+      {/* Render กราฟ/รายงานหลัก */}
       {renderChart()}
-      
-      {/* Footer with data insights */}
-      <Card className="bg-muted/20 border-dashed mt-6">
-        <CardContent className="flex items-center justify-between p-4">
-          <div className="flex items-center">
-            <Info className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              ข้อมูลอัพเดทล่าสุด: {format(new Date('2025-03-06 07:53:55'), 'dd MMM yyyy, HH:mm:ss', { locale: th })}
+
+      {/* Footer เล็ก ๆ */}
+      <Card className="border mt-6">
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="text-sm text-muted-foreground flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            <span>
+              อัปเดตล่าสุด: {format(new Date(), 'dd MMM yyyy, HH:mm:ss', { locale: th })}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              ผู้ใช้: {user?.name}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-xs"
-              onClick={() => setShowInsights(!showInsights)}
-            >
-              <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
-              คำอธิบายรายงาน
-            </Button>
-            <Button variant="outline" size="sm" className="h-8">
-              <Download className="h-3.5 w-3.5 mr-1.5" />
-              ดาวน์โหลด
-            </Button>
-          </div>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-1" />
+            ดาวน์โหลดข้อมูล
+          </Button>
         </CardContent>
       </Card>
-      
-      {/* Report explanation popover */}
-      <Popover open={showInsights} onOpenChange={setShowInsights}>
-        <PopoverContent className="w-80" align="end">
-          <div className="space-y-3">
-            <h3 className="font-medium">คำอธิบายรายงาน</h3>
-            <div className="space-y-1 text-sm">
-              <p className="flex items-start">
-                <LayoutDashboard className="h-4 w-4 mr-2 mt-0.5 text-primary" />
-                <span><b>ภาพรวม</b>: แสดงสรุปรายรับ-รายจ่าย และอัตราการออม</span>
-              </p>
-              <p className="flex items-start">
-                <PieChart className="h-4 w-4 mr-2 mt-0.5 text-primary" />
-                <span><b>หมวดหมู่</b>: แสดงสัดส่วนรายรับ-รายจ่ายตามหมวดหมู่</span>
-              </p>
-              <p className="flex items-start">
-                <LineChart className="h-4 w-4 mr-2 mt-0.5 text-primary" />
-                <span><b>แนวโน้ม</b>: แสดงรายรับ-รายจ่ายตามช่วงเวลา</span>
-              </p>
-              <p className="flex items-start">
-                <BarChart3 className="h-4 w-4 mr-2 mt-0.5 text-primary" />
-                <span><b>เปรียบเทียบ</b>: แสดงการเปรียบเทียบกับเดือนก่อนหน้า</span>
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground pt-2 border-t">
-              คุณสามารถปรับเปลี่ยนช่วงเวลาที่ต้องการดูข้อมูลได้จากเมนูด้านบน
-            </p>
-          </div>
-        </PopoverContent>
-      </Popover>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------
+  ส่วนประกอบ UI ย่อยเล็ก ๆ เพื่อให้โค้ดหลักอ่านง่ายขึ้น
+----------------------------------------------------- */
+
+// แสดงหมวดหมู่กับยอด
+function CategoryList({ title, items }: { title: string; items: [string, number][] }) {
+  return (
+    <div className="mt-3 border-t pt-3 space-y-2">
+      <h4 className="text-xs font-medium text-muted-foreground">{title}</h4>
+      {items.map(([cat, amt], i) => (
+        <div key={i} className="flex items-center justify-between text-sm">
+          <span className="truncate w-2/3">{cat}</span>
+          <span>{formatCurrency(amt)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// กรณีไม่มีข้อมูลใน chart
+function NoCategoryData({ text }: { text: string }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center text-sm text-muted-foreground">
+      <PieChart className="h-8 w-8 mb-1 opacity-30" />
+      {text}
+    </div>
+  );
+}
+
+// แสดงสัญลักษณ์ลูกศร พร้อมข้อความย่อ
+function ArrowRightIndicator() {
+  return (
+    <div className="text-primary">
+      <ArrowDown className="rotate-270 h-4 w-4" />
+    </div>
+  );
+}
+
+// แถวเปรียบเทียบ รายรับ/รายจ่าย เดือนปัจจุบัน vs. เดือนที่แล้ว
+function ComparisonRow(props: {
+  label: string;
+  iconColor: string;
+  lastValue: number;
+  currentValue: number;
+  growth: number;
+  lastLabel: string;
+  currentLabel: string;
+}) {
+  const { label, iconColor, lastValue, currentValue, growth, lastLabel, currentLabel } = props;
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <h4 className="text-sm font-medium flex items-center">
+          <DollarSign className={cn("h-4 w-4 mr-1", iconColor)} />
+          {label}
+        </h4>
+        <Badge variant={growth >= 0 ? "default" : "outline"} className="text-xs">
+          {growth >= 0 ? "+" : ""}
+          {growth.toFixed(1)}%
+        </Badge>
+      </div>
+      <div className="flex justify-between items-center text-xs">
+        <div>
+          <p className="text-muted-foreground">{lastLabel}</p>
+          <p className="font-medium">{formatCurrency(lastValue)}</p>
+        </div>
+        <div className="px-2">
+          {growth >= 0 ? (
+            <TrendingUp className="h-4 w-4 text-red-500" />
+          ) : (
+            <TrendingDown className="h-4 w-4 text-green-500" />
+          )}
+        </div>
+        <div className="text-right">
+          <p className="text-muted-foreground">{currentLabel}</p>
+          <p className="font-medium">{formatCurrency(currentValue)}</p>
+        </div>
+      </div>
     </div>
   );
 }

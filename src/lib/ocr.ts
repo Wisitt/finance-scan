@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import * as tf from '@tensorflow/tfjs';
@@ -5,8 +6,10 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { ReceiptData } from '@/types';
 
+
+let modelPromise: Promise<cocoSsd.ObjectDetection> | null = null;
 // Load COCO-SSD model in advance
-let detectionModel: cocoSsd.ObjectDetection | null = null;
+// let detectionModel: cocoSsd.ObjectDetection | null = null;
 
 // Initialize TensorFlow.js
 tf.setBackend('webgl').then(() => {
@@ -18,27 +21,28 @@ tf.setBackend('webgl').then(() => {
 });
 
 export async function loadModel() {
-  if (!detectionModel) {
-    try {
-      // ตรวจสอบว่า backend ได้รับการตั้งค่าแล้ว
-      if (!tf.getBackend()) {
-        console.warn('No backend found, setting to CPU');
+  if (!modelPromise) {
+    modelPromise = (async () => {
+      try {
+        // Force WebGL2 backend for better performance if available
+        await tf.setBackend('webgl');
+        
+        // Use quantized model for faster loading (smaller size)
+        const model = await cocoSsd.load({
+          base: 'lite_mobilenet_v2', // Use lighter model variant
+        });
+        
+        console.log('Model loaded successfully');
+        return model;
+      } catch (error) {
+        console.error('Error loading model:', error);
+        // Fallback to CPU if WebGL fails
         await tf.setBackend('cpu');
+        return cocoSsd.load({ base: 'lite_mobilenet_v2' });
       }
-      
-      console.log('Current TensorFlow.js backend:', tf.getBackend());
-      
-      detectionModel = await cocoSsd.load({
-        base: 'mobilenet_v2' // Using MobileNet v2 for better accuracy/speed balance
-      });
-      
-      console.log('Model loaded successfully');
-    } catch (error) {
-      console.error('Error loading model:', error);
-      throw error;
-    }
+    })();
   }
-  return detectionModel;
+  return modelPromise;
 }
 
 /**
@@ -58,7 +62,7 @@ async function preprocessImage(imageUrl: string): Promise<HTMLCanvasElement> {
       }
       
       // Determine optimal sizing (max dimension 1200px to keep reasonable performance)
-      const maxDimension = 1200;
+      const maxDimension = 800;
       let width = img.width;
       let height = img.height;
       
@@ -101,6 +105,11 @@ async function preprocessImage(imageUrl: string): Promise<HTMLCanvasElement> {
  */
 export async function detectReceipts(imageUrl: string): Promise<boolean> {
   try {
+
+    if (imageUrl.toLowerCase().includes('receipt') || imageUrl.toLowerCase().includes('slip')) {
+      return true;
+    }
+
     // Load model
     const model = await loadModel();
     
@@ -112,7 +121,7 @@ export async function detectReceipts(imageUrl: string): Promise<boolean> {
     
     const objectDetection = predictions.some(prediction => 
       ['book', 'paper', 'document', 'cell phone', 'laptop', 'keyboard'].includes(prediction.class) && 
-      prediction.score > 0.4
+      prediction.score > 0.3
     );
     
     if (objectDetection) return true;
@@ -129,6 +138,8 @@ export async function detectReceipts(imageUrl: string): Promise<boolean> {
     return true; // Default to treating as a receipt on error
   }
 }
+
+
 
 /**
  * Analyze text density to determine if image likely contains a receipt
@@ -201,39 +212,50 @@ function analyzeReceiptStructure(canvas: HTMLCanvasElement): boolean {
   return verticalLineCount > 2; // Multiple vertical lines suggest a receipt
 }
 
+
+/**
+ * Lazy-loaded Tesseract.js to prevent initial load delay
+ */
+let tesseractModule: any = null;
+async function getTesseract() {
+  if (!tesseractModule) {
+    tesseractModule = await import('tesseract.js');
+  }
+  return tesseractModule;
+}
+
+
 /**
  * Enhanced receipt scanning with detailed information extraction
  */
 export async function scanReceipt(file: File): Promise<ReceiptData> {
   try {
-    // Dynamically import Tesseract.js only in browser environment
-    const Tesseract = await import('tesseract.js');
-    
-    // Create image URL
     const imageUrl = URL.createObjectURL(file);
-    
-    // Preprocess image
     const processedImage = await preprocessImage(imageUrl);
     
-    // Perform OCR with both Thai and English language support
+    // Lazy load Tesseract only when needed
+    const Tesseract = await getTesseract();
+    
+    // Perform OCR with optimized settings
     const result = await Tesseract.recognize(
       processedImage,
-      'tha+eng', // Thai and English language support
+      'tha+eng', 
       {
-        logger: m => console.log(m),
+        logger: (m: any) => console.log(m),
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0', // Use CDN path
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@4.0.3/dist/worker.min.js',
       }
     );
     
     const text = result.data.text;
     
-    // Extract detailed information
+    // Extract information with simplified algorithms
     const amount = extractAmount(text);
     const date = extractDate(text);
     const merchant = extractMerchant(text);
     const items = extractItems(text);
     const tax_id = extractTaxId(text);
     
-    // Clean up object URL
     URL.revokeObjectURL(imageUrl);
     
     return {
@@ -241,8 +263,8 @@ export async function scanReceipt(file: File): Promise<ReceiptData> {
       date: date || undefined,
       merchant: merchant || 'Unknown',
       items: items,
-      tax_id: tax_id, // แก้ taxId เป็น tax_id
-      details: text.substring(0, 300), // Keep more of the receipt text
+      tax_id: tax_id,
+      details: text.substring(0, 300),
       confidence: result.data.confidence / 100,
       created_at: new Date().toISOString(),
     };
@@ -257,6 +279,7 @@ export async function scanReceipt(file: File): Promise<ReceiptData> {
     };
   }
 }
+
 
 /**
  * Extract amount from text with enhanced patterns for Thai receipts
