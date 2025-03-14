@@ -1,22 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/utils/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
+import { useSession } from 'next-auth/react';
 import {
-  Home,
-  Wallet,
-  ScanLine,
-  Settings,
-  User,
-  Bell,
-  Menu,
-  LogOut,
-  ArrowRightLeft,
-  HelpCircle,
-//   X,
+  Wallet, Settings, User, Bell,
+  Menu, LogOut, HelpCircle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -35,48 +26,28 @@ import {
   SheetTrigger,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'; // เพิ่มการ import SheetHeader, SheetTitle
+} from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-import { useSession } from 'next-auth/react';
-
-interface NavItem {
-  name: string;
-  href?: string;
-  icon: React.ElementType;
-  isDialog?: boolean;
-}
-
-const navItems: NavItem[] = [
-  { name: 'หน้าแรก', href: '/', icon: Home },
-  { name: 'ธุรกรรม', href: '/transactions', icon: ArrowRightLeft },
-  { name: 'สแกนใบเสร็จ', href: '/scan', icon: ScanLine },
-];
+import { navItems as navConstants} from '@/constants/navitem';
+import { formatThaiFullDate } from '@/utils/dateUtils';
 
 export default function MobileNavigation() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentDateTime] = useState(new Date('2025-03-07 09:57:24'));
+  const navItems = useMemo(() => navConstants, []);
+
   const currentUser = session?.user;
 
-  const userInitial = currentUser?.name
-    ? currentUser.name.charAt(0).toUpperCase()
-    : 'W';
-
-  // Format date for display
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('th-TH', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  const userName = currentUser?.name || 'ผู้ใช้';
+  const userEmail = currentUser?.email || '';
+  const userAvatar = currentUser?.avatar_url || currentUser?.image || '';
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-40 lg:hidden bg-background border-b">
-      <div className="container flex items-center justify-between h-14 px-4">
+      <div className="container flex items-center justify-between h-16 px-4">
         <div className="flex items-center">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -84,12 +55,10 @@ export default function MobileNavigation() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            {/* เพิ่ม SheetHeader + SheetTitle ภายใน SheetContent */}
+
             <SheetContent side="left" className="p-0">
               <SheetHeader>
-                <SheetTitle className="sr-only">
-                  เมนูมือถือ
-                </SheetTitle>
+                <SheetTitle className="sr-only">เมนูมือถือ</SheetTitle>
                 <div className="border-b p-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="bg-primary p-1 rounded text-white">
@@ -97,31 +66,21 @@ export default function MobileNavigation() {
                     </div>
                     <h2 className="font-bold text-lg">FinScan</h2>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {/* <X className="h-5 w-5" /> */}
-                  </Button>
                 </div>
               </SheetHeader>
+
               <div className="flex flex-col h-full">
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-3 mb-4">
                     <Avatar>
-                      <AvatarImage src={currentUser?.avatar_url || ''} />
+                      <AvatarImage src={userAvatar} />
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {userInitial}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">
-                        {currentUser?.name || 'unknow'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {currentUser?.email || 'unknow'}
-                      </p>
+                      <p className="font-medium">{userName}</p>
+                      <p className="text-xs text-muted-foreground">{userEmail}</p>
                     </div>
                   </div>
                 </div>
@@ -129,22 +88,10 @@ export default function MobileNavigation() {
                 <ScrollArea className="flex-1 p-4">
                   <nav className="space-y-1">
                     {navItems.map((item) =>
-                      item.isDialog ? (
-                        <Button
-                          key={item.name}
-                          variant="ghost"
-                          className="w-full justify-start text-muted-foreground"
-                         
-                        >
-                          <item.icon className="h-4 w-4 mr-3" />
-                          {item.name}
-                        </Button>
-                      ) : item.href ? (
+                      item.href ? (
                         <Link href={item.href} key={item.name} passHref>
                           <Button
-                            variant={
-                              pathname === item.href ? 'secondary' : 'ghost'
-                            }
+                            variant={pathname === item.href ? 'secondary' : 'ghost'}
                             className={cn(
                               'w-full justify-start',
                               pathname === item.href
@@ -166,7 +113,7 @@ export default function MobileNavigation() {
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">
                       <div>เวอร์ชัน 1.5.2</div>
-                      <div>{formatDate(currentDateTime)}</div>
+                      <div>{formatThaiFullDate(currentDateTime)}</div>
                     </div>
                     <Button variant="ghost" size="icon">
                       <HelpCircle className="h-4 w-4" />
@@ -194,7 +141,7 @@ export default function MobileNavigation() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser?.avatar_url || ''} />
+                  <AvatarImage src={userAvatar} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
                     {userInitial}
                   </AvatarFallback>

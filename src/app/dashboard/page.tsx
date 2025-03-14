@@ -61,14 +61,14 @@ import { cn } from '@/utils/utils';
 import TransactionCharts from '../components/TransactionCharts';
 import ReceiptScanner from '@/app/components/ReceiptScanner';
 import Link from 'next/dist/client/link';
-import { useCategoryStore } from '@/store/categoryStore';
+
 
 export default function DashBoardPage() {
   const { data: session } = useSession();
   const currentUser = session?.user;
 
   const { transactions } = useTransactionStore();
-  const { fetchCategories } = useCategoryStore();
+
 
   // ตัวอย่างกำหนดวันเวลาปัจจุบัน (จำลอง)
   const [currentDateTime] = useState(new Date('2025-03-06 08:15:47'));
@@ -77,10 +77,9 @@ export default function DashBoardPage() {
 
   // โหลดข้อมูล categories และ transactions
   useEffect(() => {
-    fetchCategories();
     const timer = setTimeout(() => setLoading(false), 700);
     return () => clearTimeout(timer);
-  }, [fetchCategories, currentUser,transactions.length]);
+  }, [currentUser,transactions.length]);
 
   // ฟอร์แมตสกุลเงิน
   const formatCurrency = (amount: number) => {
@@ -428,7 +427,6 @@ export default function DashBoardPage() {
                     </CardContent>
                     <CardFooter className="border-t p-3">
                       <Link href="/transactions" className="w-full">
-                        {/* ตรงนี้ใช้ปุ่ม normal หรือจะใช้ Button + asChild ก็ได้ */}
                         <Button variant="outline" className="w-full justify-center">
                           <ExternalLink className="h-3.5 w-3.5 mr-1" />
                           ดูทั้งหมด

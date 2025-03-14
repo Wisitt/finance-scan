@@ -66,6 +66,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Transaction } from '@/types';
+import { formatToShortDate } from '@/utils/dateUtils';
 
 // Define props interface
 type TransactionListProps = object
@@ -82,11 +83,6 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// Helper: Format date เป็นรูปแบบ dd MMM yyyy (เช่น 08 มี.ค. 2025)
-const formatDate = (dateString: string) => {
-  const date = parseISO(dateString);
-  return format(date, 'dd MMM yyyy');
-};
 
 export default function TransactionList({}: TransactionListProps) {
   const { user } = useAuthUser();
@@ -520,7 +516,7 @@ export default function TransactionList({}: TransactionListProps) {
                         </Badge>
                       ) : null}
                     </div>
-                    <p className="text-sm text-muted-foreground">{formatDate(tx.date)}</p>
+                    <p className="text-sm text-muted-foreground">{formatToShortDate(tx.date)}</p>
                     {tx.description && (
                       <p className="text-sm mt-1 max-w-[300px] truncate">{tx.description}</p>
                     )}
@@ -675,7 +671,7 @@ export default function TransactionList({}: TransactionListProps) {
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div>
                   <p className="text-sm text-muted-foreground">วันที่</p>
-                  <p className="font-medium">{formatDate(selectedTransaction.date)}</p>
+                  <p className="font-medium">{formatToShortDate(selectedTransaction.date)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">หมวดหมู่</p>

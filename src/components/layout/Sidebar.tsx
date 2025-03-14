@@ -1,56 +1,26 @@
 'use client';
 
-import { cn } from '@/utils/utils';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
-
+import Link from 'next/link';
+import { cn } from '@/utils/utils';
 import {
-  Home,
-  Wallet,
-  ScanLine,
-  Settings,
-  User,
-  Menu,
-  ChevronRight,
-  LogOut,
-  ChevronDown,
-  ArrowRightLeft,
+  Wallet, Settings, User,
+  Menu, ChevronRight, LogOut, ChevronDown
 } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { navItems as navConstants } from '@/constants/navitem';
+import { useMemo } from 'react';
 
-// **** 1) ลบ useDialogStore และการ import store ออกไปหมด ****
-// import { useDialogStore } from '@/store/dialogStore';
-
-interface NavItem {
-  name: string;
-  href: string;          // ตัด isDialog ออก (ไม่มี property isDialog อีกต่อไป)
-  icon: React.ElementType;
-}
-
-// **** 2) กำหนดรายการเมนูตามต้องการ (เฉพาะ href) ****
-const navItems: NavItem[] = [
-  { name: 'หน้าแรก', href: '/', icon: Home },
-  { name: 'ธุรกรรม', href: '/transactions', icon: ArrowRightLeft },
-  { name: 'สแกนใบเสร็จ', href: '/scan', icon: ScanLine },
-];
 
 export default function Sidebar({
   isSidebarCollapsed,
@@ -60,23 +30,21 @@ export default function Sidebar({
   setSidebarCollapsed: (value: boolean) => void;
 }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const navItems = useMemo(() => navConstants, []);
 
-  const userName = session?.user?.name || 'ผู้ใช้';
-  const userEmail = session?.user?.email || '';
-  const userImage = session?.user?.image || session?.user?.avatar_url;
-  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
+  if (status === 'loading' || !session?.user) {
+    return null;
+  }
+
+  const userName = session.user.name || 'ผู้ใช้';
+  const userEmail = session.user.email || '';
+  const userImage = session.user.image || session.user.avatar_url;
+  const userInitial = userName.charAt(0).toUpperCase();
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
   };
-
-  // **** 3) ลบฟังก์ชัน handleNavItemClick เพราะไม่เรียก openDialog ****
-  // const handleNavItemClick = (item: { isDialog?: boolean }) => {
-  //   if (item.isDialog) {
-  //     openDialog();
-  //   }
-  // };
 
   return (
     <aside
@@ -85,8 +53,7 @@ export default function Sidebar({
         isSidebarCollapsed ? 'w-[70px]' : 'w-[250px]'
       )}
     >
-      {/* Sidebar header */}
-      <div className="flex h-14 items-center border-b px-4">
+      <div className="flex h-16 items-center border-b px-4">
         <div className="flex items-center gap-2">
           <div className="bg-primary p-1 rounded text-white">
             <Wallet className="h-5 w-5" />
@@ -99,15 +66,10 @@ export default function Sidebar({
           className="ml-auto"
           onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
         >
-          {isSidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <Menu className="h-4 w-4" />
-          )}
+          {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </Button>
       </div>
 
-      {/* Navigation */}
       <ScrollArea className="flex-1 py-4">
         <div className="px-3 space-y-1">
           {navItems.map((item) => (
@@ -125,29 +87,19 @@ export default function Sidebar({
                         isSidebarCollapsed && 'px-2 justify-center'
                       )}
                     >
-                      <item.icon
-                        className={cn('h-5 w-5', !isSidebarCollapsed && 'mr-3')}
-                      />
+                      <item.icon className={cn('h-5 w-5', !isSidebarCollapsed && 'mr-3')} />
                       {!isSidebarCollapsed && <span>{item.name}</span>}
                     </Button>
                   </Link>
                 </TooltipTrigger>
-                {isSidebarCollapsed && (
-                  <TooltipContent side="right">{item.name}</TooltipContent>
-                )}
+                {isSidebarCollapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
               </Tooltip>
             </TooltipProvider>
           ))}
         </div>
       </ScrollArea>
 
-      {/* User profile */}
-      <div
-        className={cn(
-          'border-t p-3',
-          isSidebarCollapsed ? 'flex justify-center py-4' : ''
-        )}
-      >
+      <div className={cn('border-t p-3', isSidebarCollapsed ? 'flex justify-center py-4' : '')}>
         {isSidebarCollapsed ? (
           <TooltipProvider>
             <Tooltip>
@@ -180,9 +132,7 @@ export default function Sidebar({
                   </Avatar>
                   <div className="flex-1 overflow-hidden">
                     <p className="font-medium text-sm truncate">{userName}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {userEmail}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
                   </div>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </div>
@@ -190,18 +140,11 @@ export default function Sidebar({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>บัญชีของฉัน</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <User className="h-4 w-4 mr-2" />
-                โปรไฟล์
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="h-4 w-4 mr-2" />
-                ตั้งค่า
-              </DropdownMenuItem>
+              <DropdownMenuItem><User className="h-4 w-4 mr-2" />โปรไฟล์</DropdownMenuItem>
+              <DropdownMenuItem><Settings className="h-4 w-4 mr-2" />ตั้งค่า</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                ออกจากระบบ
+                <LogOut className="h-4 w-4 mr-2" />ออกจากระบบ
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

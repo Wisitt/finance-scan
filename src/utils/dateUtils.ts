@@ -35,14 +35,19 @@ export function formatToThaiDate(date: Date | string): string {
 /**
  * แปลงวันที่ให้อยู่ในรูปแบบที่กำหนด
  */
-export function formatDate(date: Date | string, formatStr: string, options?: any): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
-  
-  if (!isValid(d)) return 'Invalid Date';
-  
-  return format(d, formatStr, options);
-}
+export const formatToShortDate = (dateString: string) => {
+  const date = parseISO(dateString);
+  return format(date, 'dd MMM yyyy');
+};
 
+export const formatThaiFullDate = (date: Date): string => {
+  return date.toLocaleDateString('th-TH', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
 /**
  * คำนวณช่วงวันที่ในเดือนปัจจุบัน
  */
