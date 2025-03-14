@@ -7,7 +7,7 @@ import { supabase, uploadImage } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import ImageUploader from './ImageUploader';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 import { 
   Loader2, 
@@ -66,13 +66,15 @@ import toast from 'react-hot-toast';
 import { signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuthUser } from '@/hook/useAuthUser';
+import { useCategoryStore } from '@/store/categoryStore';
 
 let modelLoadInitiated = false;
 
 
 export default function ReceiptScanner() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuthUser();
-  const { categories, addTransaction } = useTransactionStore();
+  const { addTransaction } = useTransactionStore();
+  const { categories } = useCategoryStore();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
@@ -577,7 +579,7 @@ export default function ReceiptScanner() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>เคล็ดลับการสแกนใบเสร็จให้แม่นยำ</p>
+                    <div>เคล็ดลับการสแกนใบเสร็จให้แม่นยำ</div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

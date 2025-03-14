@@ -1,83 +1,95 @@
-// /app/api/transactions/route.ts
-import { NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '../_libs/supabaseServerClient';  // <- path อ้างอิงตามจริง
+// app/api/transactions/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { createSupabaseServerClient } from "../_libs/supabaseServerClient";
+import { getSessionUser } from "../_libs/authHelpers";
 
-// GET /api/transactions?user_id=...
-export async function GET(request: Request) {
-  // รับค่า user_id จาก query string
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('user_id');
-
-  if (!userId) {
-    return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+// GET /api/transactions
+export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    // Properly await the supabase client
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
-
-    if (error) throw error;
-    return NextResponse.json(data || []);
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
-  }
-}
-
-// POST /api/transactions
-export async function POST(request: Request) {
-  try {
-    const transaction = await request.json();
-
-    // เช็คว่ามี user_id ไหม
-    if (!transaction.user_id) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    // ถ้าไม่ได้ส่ง created_at มา ก็ set ให้เป็น now
-    if (!transaction.created_at) {
-      transaction.created_at = new Date().toISOString();
-    }
-
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert(transaction)
-      .select()
-      .single();
+      .from("transactions")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("date", { ascending: false });
 
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error adding transaction:', error);
-    return NextResponse.json({ error: 'Failed to add transaction' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch transactions" }, { status: 500 });
   }
 }
 
-// DELETE /api/transactions?id=...
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+// POST /api/transactions
+export async function POST(request: NextRequest) {
+  console.log("📌 Request received at /api/transactions");
+  
+  const { user, error } = await getSessionUser();
+  console.log("🔍 Session User:", user, "Error:", error);
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const transaction = await request.json();
+
+  if (!transaction.amount || !transaction.category || !transaction.date) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  transaction.user_id = user.id;
+  transaction.created_at = new Date().toISOString();
+
+  // Properly await the supabase client
+  const supabase = await createSupabaseServerClient();
+  const { data, error: insertError } = await supabase
+    .from("transactions")
+    .insert(transaction)
+    .select()
+    .single();
+
+  if (insertError) {
+    console.error("❌ Supabase Insert Error:", insertError);
+    return NextResponse.json({ error: "Failed to insert transaction", details: insertError.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}
+
+// DELETE /api/transactions
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json({ error: 'Transaction ID is required' }, { status: 400 });
+    return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 });
   }
 
   try {
+    // Properly await the supabase client
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
-      .from('transactions')
+      .from("transactions")
       .delete()
-      .eq('id', id);
+      .eq("id", id)
+      .eq("user_id", session.user.id);
 
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting transaction:', error);
-    return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete transaction" }, { status: 500 });
   }
 }

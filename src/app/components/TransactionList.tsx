@@ -1,14 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */ // Consider removing this later
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { parseISO, format, isToday, isSameWeek, isSameMonth } from 'date-fns';
 import { useAuthUser } from '@/hook/useAuthUser';
 import { useTransactionStore } from '@/store/transactionStore';
 import toast from 'react-hot-toast';
 
 // UI Components (shadcn)
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -17,20 +18,33 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogAction,
-  AlertDialogCancel
+  AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -49,23 +63,14 @@ import {
   FileText,
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
+import { Transaction } from '@/types';
 
-type FilterType = 'all' | 'income' | 'expense';
-type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
-type DateRangeOption = 'all' | 'today' | 'week' | 'month';
+// Define props interface
+type TransactionListProps = object
 
-interface Transaction {
-  id: string;
-  userId: string;
-  type: 'income' | 'expense';
-  category: string;
-  description?: string;
-  date: string;
-  amount: number;
-  receipt_images?: string[];
-}
+
 
 // Helper: Format currency (บาท)
 const formatCurrency = (amount: number): string => {
@@ -73,7 +78,7 @@ const formatCurrency = (amount: number): string => {
     style: 'currency',
     currency: 'THB',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(amount);
 };
 
@@ -83,79 +88,77 @@ const formatDate = (dateString: string) => {
   return format(date, 'dd MMM yyyy');
 };
 
-export default function TransactionList() {
+export default function TransactionList({}: TransactionListProps) {
   const { user } = useAuthUser();
-  const {
-    transactions,
-    loading: transactionsLoading,
-    deleteTransaction
-  } = useTransactionStore();
+  const { transactions, loading: transactionsLoading, deleteTransaction } =
+    useTransactionStore();
 
-  // ฟิลเตอร์
+  // Filters state
   const [filters, setFilters] = useState<{
-    type: FilterType;
+    type: 'all' | 'income' | 'expense';
     category: string;
-    dateRange: DateRangeOption;
-    sortOption: SortOption;
+    dateRange: 'all' | 'today' | 'week' | 'month';
+    sortOption: 'newest' | 'oldest' | 'highest' | 'lowest';
     searchTerm: string;
   }>({
     type: 'all',
     category: 'all',
     dateRange: 'all',
     sortOption: 'newest',
-    searchTerm: ''
+    searchTerm: '',
   });
 
-  // จัดการหน้าปัจจุบันสำหรับแบ่งหน้า
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // สถานะเปิด/ปิด Dialog ต่าง ๆ
+  // Dialog states
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
-  // ดึงค่า category ทั้งหมดจากรายการที่มี
+  // Unique categories
   const uniqueCategories = useMemo(() => {
     if (!transactions.length) return ['all'];
-    const distinct = Array.from(new Set(transactions.map(tx => tx.category)));
+    const distinct = Array.from(new Set(transactions.map((tx) => tx.category)));
     return ['all', ...distinct];
   }, [transactions]);
 
-  // ฟังก์ชันอัปเดตฟิลเตอร์
+  // Update filter function
   const updateFilter = (key: keyof typeof filters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setCurrentPage(1);
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ฟังก์ชันรีเซ็ตฟิลเตอร์
+  // Reset filters
   const resetFilters = () => {
     setFilters({
       type: 'all',
       category: 'all',
       dateRange: 'all',
       sortOption: 'newest',
-      searchTerm: ''
+      searchTerm: '',
     });
     setCurrentPage(1);
   };
 
+  // Reset currentPage when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  // Process transactions
   const processedTransactions = useMemo(() => {
     if (!transactions.length) return [];
     const { type, category, dateRange, sortOption, searchTerm } = filters;
-    const filtered = transactions.filter(tx => {
-      // filter type
+    let filtered = transactions.filter((tx) => {
       if (type !== 'all' && tx.type !== type) return false;
-      // filter category
       if (category !== 'all' && tx.category !== category) return false;
-      // search
       if (searchTerm) {
         const lowerSearch = searchTerm.toLowerCase();
         const inCat = tx.category.toLowerCase().includes(lowerSearch);
         const inDesc = tx.description?.toLowerCase().includes(lowerSearch);
         if (!inCat && !inDesc) return false;
       }
-      // date range
       const txDate = parseISO(tx.date);
       const today = new Date();
       if (dateRange === 'today' && !isToday(txDate)) return false;
@@ -164,41 +167,41 @@ export default function TransactionList() {
       return true;
     });
 
-    // เรียงลำดับ
-    switch (sortOption) {
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        break;
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        break;
-      case 'highest':
-        filtered.sort((a, b) => b.amount - a.amount);
-        break;
-      case 'lowest':
-        filtered.sort((a, b) => a.amount - b.amount);
-        break;
-    }
+    // Sort transactions
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case 'newest':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case 'oldest':
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case 'highest':
+          return b.amount - a.amount;
+        case 'lowest':
+          return a.amount - b.amount;
+        default:
+          return 0;
+      }
+    });
 
     return filtered;
   }, [transactions, filters]);
 
-  // คำนวน Summary
+  // Calculate summary
   const summary = useMemo(() => {
     let totalIncome = 0;
     let totalExpense = 0;
-    processedTransactions.forEach(tx => {
+    processedTransactions.forEach((tx) => {
       if (tx.type === 'income') totalIncome += tx.amount;
       else totalExpense += tx.amount;
     });
     return {
       totalIncome,
       totalExpense,
-      balance: totalIncome - totalExpense
+      balance: totalIncome - totalExpense,
     };
   }, [processedTransactions]);
 
-  // แบ่งหน้า
+  // Pagination logic
   const totalItems = processedTransactions.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -206,7 +209,7 @@ export default function TransactionList() {
     return processedTransactions.slice(startIndex, startIndex + itemsPerPage);
   }, [processedTransactions, startIndex, itemsPerPage]);
 
-  // ลบรายการ
+  // Handle delete
   const handleDelete = async (id: string) => {
     try {
       await deleteTransaction(id);
@@ -227,7 +230,7 @@ export default function TransactionList() {
     }
     const header = 'วันที่,ประเภท,หมวดหมู่,รายละเอียด,จำนวนเงิน\n';
     const rows = processedTransactions
-      .map(tx => {
+      .map((tx) => {
         const date = format(parseISO(tx.date), 'yyyy-MM-dd');
         const type = tx.type === 'income' ? 'รายรับ' : 'รายจ่าย';
         const desc = tx.description?.replace(/"/g, '""') || '';
@@ -243,7 +246,7 @@ export default function TransactionList() {
     toast.success('ส่งออกข้อมูลสำเร็จ');
   };
 
-  // Loading Skeleton (ถ้ากำลังโหลด)
+  // Loading state
   if (transactionsLoading) {
     return (
       <div className="space-y-6">
@@ -252,7 +255,7 @@ export default function TransactionList() {
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <Card key={i} className="bg-muted/20">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -274,7 +277,10 @@ export default function TransactionList() {
           <Separator />
           <CardContent className="p-6 space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={i}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center space-x-3">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="space-y-2">
@@ -293,7 +299,7 @@ export default function TransactionList() {
 
   return (
     <div className="space-y-6">
-      {/* ส่วนหัว + ปุ่มต่าง ๆ */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold flex items-center">
           <FileText className="mr-2 h-6 w-6 text-primary" />
@@ -311,7 +317,7 @@ export default function TransactionList() {
         </div>
       </div>
 
-      {/* สรุปรายรับ-รายจ่าย-ยอดคงเหลือ */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-muted/20">
           <CardContent className="pt-6">
@@ -375,7 +381,7 @@ export default function TransactionList() {
         </Card>
       </div>
 
-      {/* บล็อกหลัก แสดงฟิลเตอร์ + ตารางรายการธุรกรรม */}
+      {/* Main Content */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -385,10 +391,7 @@ export default function TransactionList() {
                 ทั้งหมด {processedTransactions.length} รายการ
               </CardDescription>
             </div>
-
-            {/* ส่วนฟิลเตอร์ (แสดงตลอด) */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* ช่องค้นหา */}
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -398,8 +401,6 @@ export default function TransactionList() {
                   onChange={(e) => updateFilter('searchTerm', e.target.value)}
                 />
               </div>
-
-              {/* ประเภท (รายรับ/รายจ่าย) */}
               <Select
                 value={filters.type}
                 onValueChange={(value) => updateFilter('type', value)}
@@ -413,8 +414,6 @@ export default function TransactionList() {
                   <SelectItem value="expense">รายจ่าย</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* หมวดหมู่ */}
               <Select
                 value={filters.category}
                 onValueChange={(value) => updateFilter('category', value)}
@@ -430,8 +429,6 @@ export default function TransactionList() {
                   ))}
                 </SelectContent>
               </Select>
-
-              {/* ช่วงเวลา */}
               <Select
                 value={filters.dateRange}
                 onValueChange={(value) => updateFilter('dateRange', value)}
@@ -446,8 +443,6 @@ export default function TransactionList() {
                   <SelectItem value="month">เดือนนี้</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* เรียงลำดับ */}
               <Select
                 value={filters.sortOption}
                 onValueChange={(value) => updateFilter('sortOption', value)}
@@ -462,8 +457,6 @@ export default function TransactionList() {
                   <SelectItem value="lowest">ยอดต่ำสุดก่อน</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* ปุ่มรีเซ็ต */}
               <Button variant="outline" size="sm" onClick={resetFilters}>
                 <Filter className="mr-1.5 h-3.5 w-3.5" />
                 รีเซ็ต
@@ -472,8 +465,6 @@ export default function TransactionList() {
           </div>
         </CardHeader>
         <Separator />
-
-        {/* ส่วนแสดงรายการธุรกรรม */}
         <CardContent className="p-4">
           {!processedTransactions.length ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -487,7 +478,7 @@ export default function TransactionList() {
             </div>
           ) : (
             <div className="space-y-3">
-              {currentTransactions.map(tx => (
+              {currentTransactions.map((tx) => (
                 <div
                   key={tx.id}
                   className={cn(
@@ -495,15 +486,13 @@ export default function TransactionList() {
                     'hover:bg-muted/30 focus-within:bg-muted/30 focus-within:ring-1 focus-within:ring-primary'
                   )}
                 >
-                  {/* แถบสีด้านซ้าย (indicater ประเภท) */}
                   <div
                     className={cn(
-                      'absolute left-[-9999px]', // ซ่อนด้วยวิธีนี้เพื่อลดความซับซ้อน (หรือจะใช้ before: ได้)
+                      'absolute left-[-9999px]',
                       'sm:static sm:w-1 sm:h-full sm:rounded-l-lg',
                       tx.type === 'income' ? 'sm:bg-green-500' : 'sm:bg-red-500'
                     )}
                   />
-                  {/* ส่วนข้อมูลซ้าย */}
                   <div className="flex-1 sm:ml-2">
                     <div className="flex items-center gap-2 mb-1">
                       <div
@@ -520,27 +509,22 @@ export default function TransactionList() {
                           <ArrowDownCircle className="h-4 w-4" />
                         )}
                       </div>
-                      <p className="font-medium">
-                        {tx.category}
-                      </p>
-                      {tx.receipt_images && tx.receipt_images.length > 0 && (
-                        <Badge variant="outline" className="text-xs flex items-center gap-1 px-1.5 py-0.5">
+                      <p className="font-medium">{tx.category}</p>
+                      {tx.receipt_images?.length ? (
+                        <Badge
+                          variant="outline"
+                          className="text-xs flex items-center gap-1 px-1.5 py-0.5"
+                        >
                           <ImageIcon className="h-3 w-3" />
                           <span>ใบเสร็จ</span>
                         </Badge>
-                      )}
+                      ) : null}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(tx.date)}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{formatDate(tx.date)}</p>
                     {tx.description && (
-                      <p className="text-sm mt-1 max-w-[300px] truncate">
-                        {tx.description}
-                      </p>
+                      <p className="text-sm mt-1 max-w-[300px] truncate">{tx.description}</p>
                     )}
                   </div>
-
-                  {/* ส่วนข้อมูลขวา */}
                   <div className="mt-3 sm:mt-0 flex items-center gap-3">
                     <span
                       className={cn(
@@ -551,21 +535,23 @@ export default function TransactionList() {
                       {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
                     </span>
                     <div className="flex items-center gap-1">
-                      {tx.receipt_images && tx.receipt_images.length > 0 && (
+                      {tx.receipt_images?.length ? (
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 rounded-full hover:bg-muted"
                           onClick={() => setShowImageModal(tx.receipt_images![0])}
+                          title="ดูใบเสร็จ"
                         >
                           <ImageIcon className="h-4 w-4" />
                         </Button>
-                      )}
+                      ) : null}
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-full hover:bg-muted"
-                        onClick={() => setSelectedTransaction}
+                        onClick={() => setSelectedTransaction(tx)}
+                        title="ดูรายละเอียด"
                       >
                         <Filter className="h-4 w-4" />
                       </Button>
@@ -574,6 +560,7 @@ export default function TransactionList() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground rounded-full hover:bg-red-50 hover:text-red-500"
                         onClick={() => setDeleteId(tx.id)}
+                        title="ลบรายการ"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -584,18 +571,17 @@ export default function TransactionList() {
             </div>
           )}
         </CardContent>
-
-        {/* ส่วนแสดง pagination */}
         {processedTransactions.length > 0 && (
           <CardFooter className="border-t p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
             <div className="text-xs text-muted-foreground">
-              แสดง {startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด {totalItems} รายการ
+              แสดง {startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
+              {totalItems} รายการ
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -606,7 +592,7 @@ export default function TransactionList() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
@@ -616,7 +602,7 @@ export default function TransactionList() {
         )}
       </Card>
 
-      {/* Dialog: ดูใบเสร็จ */}
+      {/* Image Modal */}
       <Dialog open={!!showImageModal} onOpenChange={() => setShowImageModal(null)}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
@@ -634,7 +620,6 @@ export default function TransactionList() {
           </DialogHeader>
           {showImageModal && (
             <div className="flex justify-center p-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={showImageModal}
                 alt="Receipt"
@@ -658,7 +643,7 @@ export default function TransactionList() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: รายละเอียดธุรกรรม */}
+      {/* Transaction Details Modal */}
       <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -700,7 +685,7 @@ export default function TransactionList() {
                   <p className="text-sm text-muted-foreground">รายละเอียด</p>
                   <p className="font-medium">{selectedTransaction.description || '-'}</p>
                 </div>
-                {selectedTransaction.receipt_images && selectedTransaction.receipt_images.length > 0 && (
+                {selectedTransaction.receipt_images?.length ? (
                   <div className="col-span-2 space-y-2">
                     <p className="text-sm text-muted-foreground">ใบเสร็จ</p>
                     <div className="flex gap-2 flex-wrap">
@@ -708,24 +693,23 @@ export default function TransactionList() {
                         <div
                           key={idx}
                           className="relative h-20 w-20 rounded-md overflow-hidden border hover:opacity-80 cursor-pointer"
+                          onClick={() => setShowImageModal(img)}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={img}
                             alt={`Receipt ${idx + 1}`}
                             className="object-cover w-full h-full"
-                            onClick={() => setShowImageModal(img)}
                           />
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
               <Separator />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <p>ID: {selectedTransaction.id.substring(0, 8)}...</p>
-                <p>รายการโดย: {user?.name || 'ไม่ระบุ'}</p>
+                <div>ID: {selectedTransaction.id.substring(0, 8)}...</div>
+                <div>รายการโดย: {user?.name || 'ไม่ระบุ'}</div>
               </div>
             </div>
           )}
@@ -749,7 +733,7 @@ export default function TransactionList() {
         </DialogContent>
       </Dialog>
 
-      {/* AlertDialog: ยืนยันลบ */}
+      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -761,11 +745,7 @@ export default function TransactionList() {
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (deleteId) {
-                  handleDelete(deleteId);
-                }
-              }}
+              onClick={() => deleteId && handleDelete(deleteId)}
               className="bg-red-600 hover:bg-red-700"
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />

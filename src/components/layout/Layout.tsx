@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
@@ -29,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-pulse text-center">
-          <p>กำลังโหลด...</p>
+          <div>กำลังโหลด...</div>
         </div>
       </div>
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -162,8 +162,8 @@ export default function Sidebar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>{userName}</p>
-                <p className="text-xs text-muted-foreground">{userEmail}</p>
+                <div>{userName}</div>
+                <div className="text-xs text-muted-foreground">{userEmail}</div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

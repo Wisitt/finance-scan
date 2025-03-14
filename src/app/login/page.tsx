@@ -37,7 +37,7 @@ function ActualLoginPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-pulse text-center">
-          <p>กำลังโหลด...</p>
+          <div>กำลังโหลด...</div>
         </div>
       </div>
     );
@@ -68,8 +68,8 @@ function ActualLoginPage() {
           </Button>
 
           <div className="text-center text-xs text-muted-foreground">
-            <p>การเข้าสู่ระบบถือว่าคุณยอมรับ</p>
-            <p>ข้อกำหนดในการใช้งานและนโยบายความเป็นส่วนตัวของเรา</p>
+            <div>การเข้าสู่ระบบถือว่าคุณยอมรับ</div>
+            <div>ข้อกำหนดในการใช้งานและนโยบายความเป็นส่วนตัวของเรา</div>
           </div>
         </div>
       </div>

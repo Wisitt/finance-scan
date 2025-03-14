@@ -6,9 +6,8 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import toast from 'react-hot-toast';
-import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
 
 // UI Components
@@ -41,6 +40,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { signIn } from 'next-auth/react';
 import { useAuthUser } from '@/hook/useAuthUser';
+import { useCategoryStore } from '@/store/categoryStore';
+import { useTransactionStore } from '@/store/transactionStore';
 
 // Schema for form validation
 const transactionSchema = z.object({
@@ -65,7 +66,9 @@ const formatCurrency = (value: number) => {
 
 export default function AddTransactionForm() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuthUser();
-  const { categories, addTransaction } = useTransactionStore();
+  const { addTransaction } = useTransactionStore();
+  const { categories } = useCategoryStore();
+
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formattedAmount, setFormattedAmount] = useState('');
@@ -112,11 +115,12 @@ export default function AddTransactionForm() {
   }, [form]);
 
   // Handle form submission
-  const onSubmit = async (data: TransactionFormValues) => {
-    if (!isAuthenticated || !user?.id) {
-      toast.error('กรุณาเลือกผู้ใช้ก่อนเพิ่มรายการ');
-      return;
-    }
+const onSubmit = async (data: TransactionFormValues) => {
+  if (!isAuthenticated || !user?.id) {
+    toast.error('กรุณาเลือกผู้ใช้ก่อนเพิ่มรายการ');
+    console.log("❌ User not authenticated:", { isAuthenticated, user });
+    return;
+  }
     
     setIsSubmitting(true);
     
@@ -130,6 +134,8 @@ export default function AddTransactionForm() {
         type: transactionType,
         created_at: ''
       };
+      console.log("📌 Sending Transaction Data:", newTransaction);
+
       
       await addTransaction(newTransaction);
       toast.success(`เพิ่มรายการ${transactionType === 'expense' ? 'รายจ่าย' : 'รายรับ'}สำเร็จแล้ว`);

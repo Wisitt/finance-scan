@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -38,7 +38,6 @@ import {
 } from '@/components/ui/sheet'; // เพิ่มการ import SheetHeader, SheetTitle
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { useDialogStore } from '@/store/dialogStore';
 import { useSession } from 'next-auth/react';
 
 interface NavItem {
@@ -59,19 +58,11 @@ export default function MobileNavigation() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentDateTime] = useState(new Date('2025-03-07 09:57:24'));
-  const { openDialog } = useDialogStore();
   const currentUser = session?.user;
 
   const userInitial = currentUser?.name
     ? currentUser.name.charAt(0).toUpperCase()
     : 'W';
-
-  const handleNavItemClick = (item: { isDialog?: boolean }) => {
-    if (item.isDialog) {
-      openDialog();
-      setIsMobileMenuOpen(false);
-    }
-  };
 
   // Format date for display
   const formatDate = (date: Date): string => {
@@ -143,7 +134,7 @@ export default function MobileNavigation() {
                           key={item.name}
                           variant="ghost"
                           className="w-full justify-start text-muted-foreground"
-                          onClick={() => handleNavItemClick(item)}
+                         
                         >
                           <item.icon className="h-4 w-4 mr-3" />
                           {item.name}
@@ -174,8 +165,8 @@ export default function MobileNavigation() {
                 <div className="border-t p-4">
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">
-                      <p>เวอร์ชัน 1.5.2</p>
-                      <p>{formatDate(currentDateTime)}</p>
+                      <div>เวอร์ชัน 1.5.2</div>
+                      <div>{formatDate(currentDateTime)}</div>
                     </div>
                     <Button variant="ghost" size="icon">
                       <HelpCircle className="h-4 w-4" />

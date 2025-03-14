@@ -56,18 +56,19 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 import TransactionCharts from '../components/TransactionCharts';
 import ReceiptScanner from '@/app/components/ReceiptScanner';
 import Link from 'next/dist/client/link';
+import { useCategoryStore } from '@/store/categoryStore';
 
 export default function DashBoardPage() {
   const { data: session } = useSession();
   const currentUser = session?.user;
 
-  const { fetchCategories, fetchTransactions, transactions } =
-    useTransactionStore();
+  const { transactions } = useTransactionStore();
+  const { fetchCategories } = useCategoryStore();
 
   // ตัวอย่างกำหนดวันเวลาปัจจุบัน (จำลอง)
   const [currentDateTime] = useState(new Date('2025-03-06 08:15:47'));
@@ -77,12 +78,9 @@ export default function DashBoardPage() {
   // โหลดข้อมูล categories และ transactions
   useEffect(() => {
     fetchCategories();
-    if (currentUser) {
-      fetchTransactions(currentUser.id);
-    }
     const timer = setTimeout(() => setLoading(false), 700);
     return () => clearTimeout(timer);
-  }, [fetchCategories, fetchTransactions, currentUser]);
+  }, [fetchCategories, currentUser,transactions.length]);
 
   // ฟอร์แมตสกุลเงิน
   const formatCurrency = (amount: number) => {
@@ -176,7 +174,7 @@ export default function DashBoardPage() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>เรียนรู้วิธีใช้งานแดชบอร์ด</p>
+                      <div>เรียนรู้วิธีใช้งานแดชบอร์ด</div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -424,7 +422,7 @@ export default function DashBoardPage() {
                       ) : (
                         <div className="p-4 text-center text-muted-foreground">
                           <Receipt className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                          <p>ไม่มีรายการธุรกรรมล่าสุด</p>
+                          <div>ไม่มีรายการธุรกรรมล่าสุด</div>
                         </div>
                       )}
                     </CardContent>

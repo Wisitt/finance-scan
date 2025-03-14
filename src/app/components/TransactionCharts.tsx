@@ -33,7 +33,7 @@ import {
 } from 'chart.js';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import {
   ArrowDown,
   BarChart3, 

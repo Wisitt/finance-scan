@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, CheckCircle, X, Loader2, RotateCw } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 interface CameraCaptureProps {
   onCapture: (file: File) => void;
@@ -123,7 +123,7 @@ export default function CameraCapture({ onCapture, onCancel, isProcessing = fals
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [cameraFacing]); // ให้ useEffect ทำงานอีกครั้งเมื่อ cameraFacing เปลี่ยน
+  }, [cameraFacing]);
 
   return (
     <Card className="w-full max-w-xl mx-auto overflow-hidden">
