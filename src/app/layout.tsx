@@ -6,7 +6,7 @@ import { AuthProvider } from '@/components/providers/AuthProvider';
 const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
-  title: 'FinScan - บันทึกรายรับรายจ่ายและสแกนใบเสร็จ',
+  title: 'FinTrack - บันทึกรายรับรายจ่ายและสแกนใบเสร็จ',
   description: 'บันทึกรายรับรายจ่ายและสแกนใบเสร็จอัตโนมัติด้วย OCR',
   icons: {
     icon: '/favicon.ico',
