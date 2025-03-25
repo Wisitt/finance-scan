@@ -1,21 +1,36 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { PROTECTED_ROUTES, APP_ROUTES, PUBLIC_ROUTES } from '@/constants/routes';
 
-export default withAuth(
-  async function middleware(req) {
-    const token = req.nextauth.token;
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token, // อนุญาตเฉพาะผู้ใช้ที่มี Token
-    },
+/**
+ * Middleware to protect routes that require authentication
+ */
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // Check if the user is logged in via cookie
+  const isAuthenticated = request.cookies.has('next-auth.session-token') || 
+                         request.cookies.has('__Secure-next-auth.session-token');
+
+  // Check if the requested path is protected
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
+  
+  // If protected route and not authenticated, redirect to login
+  if (isProtectedRoute && !isAuthenticated) {
+    const loginUrl = new URL(APP_ROUTES.LOGIN, request.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(loginUrl);
   }
-);
 
+  // Continue with the request
+  return NextResponse.next();
+}
+
+/**
+ * Configure which paths should be processed by this middleware
+ */
 export const config = {
-  matcher: ["/api/:path*"], // ใช้ Middleware เฉพาะ API Routes
-};
+  matcher: [
+    // All routes except for API, _next, static files, etc.
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+}; 

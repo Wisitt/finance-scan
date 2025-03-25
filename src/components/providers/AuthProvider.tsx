@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { usePathname } from 'next/navigation';
-import Layout from '@/components/layout/Layout';
+import Layout from '@/app/layout';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({

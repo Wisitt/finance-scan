@@ -1,0 +1,107 @@
+/* Layout styles 
+ * Contains styles for the application layout structure
+ */
+
+/* Sidebar styles */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  border-right: 1px solid var(--border);
+  background-color: var(--background);
+  transition: width 0.3s ease-in-out;
+  z-index: 50;
+}
+
+.sidebar-collapsed {
+  width: 70px;
+}
+
+.sidebar-expanded {
+  width: 250px;
+}
+
+.sidebar-nav-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* Main content area */
+.main-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.main-content-collapsed {
+  margin-left: 70px;
+}
+
+.main-content-expanded {
+  margin-left: 250px;
+}
+
+/* Header styles */
+.main-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  background-color: var(--background);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+/* Mobile navigation */
+.mobile-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  background-color: var(--background);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+}
+
+/* Responsive layouts */
+@media (min-width: 1024px) {
+  .mobile-header {
+    display: none;
+  }
+  
+  .main-content {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding-top: 64px; /* Space for mobile header */
+  }
+  
+  .main-header {
+    display: none;
+  }
+} 

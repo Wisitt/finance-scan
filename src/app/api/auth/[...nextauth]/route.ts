@@ -1,25 +1,29 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { createSupabaseServerClient } from "../../_libs/supabaseServerClient";
 
-export const authOptions: AuthOptions = {
+// สร้าง authOptions สำหรับ NextAuth.js
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "google" && user.email) {
-        try {
-          // Properly await the supabase client
+      try {
+        if (account?.provider === "google" && user.email) {
+          console.log("Google sign in success for:", user.email);
+
           const supabase = await createSupabaseServerClient();
           
-          // Check if user exists in Supabase
+          // Check if user exists
           const { data: existingUser, error } = await supabase
             .from("users")
             .select("id")
@@ -35,6 +39,7 @@ export const authOptions: AuthOptions = {
 
           // Create new user if doesn't exist
           if (!existingUser) {
+            console.log("Creating new user:", user.email);
             const { data: newUser, error: insertError } = await supabase
               .from("users")
               .insert({
@@ -52,16 +57,17 @@ export const authOptions: AuthOptions = {
             }
 
             userId = newUser.id;
+            console.log("New user created with ID:", userId);
           }
 
           user.id = userId;
           return true;
-        } catch (error) {
-          console.error("SignIn error:", error);
-          return false;
         }
+        return true;
+      } catch (error) {
+        console.error("SignIn error:", error);
+        return false;
       }
-      return true;
     },
 
     async session({ session, token }) {
@@ -77,12 +83,28 @@ export const authOptions: AuthOptions = {
       }
       return token;
     },
+
+    async redirect({ url, baseUrl }) {
+      console.log("NextAuth redirect called:", { url, baseUrl });
+      
+      // ถ้าเป็น URL ภายนอก ให้กลับไปที่ baseUrl
+      if (!url.startsWith(baseUrl) && !url.startsWith('/')) {
+        return baseUrl;
+      }
+
+      // กรณีหลังจาก login สำเร็จ ให้ไปที่ dashboard
+      return `${baseUrl}/dashboard`;
+    },
   },
   pages: {
     signIn: "/login",
+    error: "/error",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // เปิด debug mode
 };
 
-export const handler = NextAuth(authOptions);
+// สร้าง handler
+const handler = NextAuth(authOptions);
+
+// สำหรับ App Router
 export { handler as GET, handler as POST };

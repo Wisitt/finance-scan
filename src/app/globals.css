@@ -125,6 +125,36 @@
   }
 }
 
+/* Fix for sidebar and UI overlapping issues */
+@layer components {
+  .sidebar-layer {
+    z-index: 50;
+    pointer-events: all;
+  }
+  
+  .main-content-layer {
+    z-index: 40;
+  }
+  
+  /* Fix for navigation links */
+  .sidebar-layer a {
+    position: relative;
+    z-index: 60;
+  }
+  
+  @media (min-width: 1024px) {
+    #main-content {
+      width: calc(100% - 250px);
+      margin-left: 250px;
+    }
+    
+    #main-content.collapsed {
+      width: calc(100% - 70px);
+      margin-left: 70px;
+    }
+  }
+}
+
 /* Custom styles for the calendar navigation buttons */
 .rdp-nav_button svg {
   width: 16px;
