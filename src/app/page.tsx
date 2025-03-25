@@ -124,7 +124,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="text-center text-sm text-muted-foreground">
-          <p>© 2025 FinanceScan</p>
+          <p>© 2025 FinanceTrack</p>
         </footer>
       </div>
     </div>

@@ -14,11 +14,10 @@ export function middleware(request: NextRequest) {
   // Check if the requested path is protected
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
   
-  // If protected route and not authenticated, redirect to login
+  // If protected route and not authenticated, redirect to home page
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL(APP_ROUTES.LOGIN, request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    const homeUrl = new URL('/', request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   // Continue with the request

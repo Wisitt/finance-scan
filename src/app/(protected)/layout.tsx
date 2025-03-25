@@ -22,8 +22,9 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       </aside>
       
       {/* Main content area */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="flex items-center h-14 border-b px-4">
+      <main className="flex-1 overflow-y-auto flex flex-col">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-10 bg-background flex items-center h-14 border-b px-4">
           {/* Mobile navigation - visible on mobile only */}
           <div className="md:hidden">
             <MobileNav />
@@ -33,7 +34,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
           <Header />
         </div>
         
-        <div className="p-4 md:p-6">
+        <div className="p-4 md:p-6 flex-1">
           {children}
         </div>
       </main>
