@@ -16,13 +16,13 @@ export default function LoginPage() {
 
   // If user is authenticated, redirect to dashboard or callback URL
   useEffect(() => {
-    if (status === 'authenticated' && session) {
-      router.push(callbackUrl);
+    if (status === 'authenticated') {
+      router.push('/dashboard');
     }
-  }, [session, status, router, callbackUrl]);
+  }, [status, router]);
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl });
+    signIn('google', { callbackUrl: '/dashboard' })
   };
 
   if (status === 'loading') {

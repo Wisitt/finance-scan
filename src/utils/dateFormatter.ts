@@ -27,12 +27,13 @@ export const formatThaiShortDate = (date: Date): string => {
 };
 
 // Format currency consistently
-export const formatCurrency = (amount: number): string => {
+const formatCurrency = (amount: number): string => {
+  // Don't multiply by 100 or 1000 - use the amount directly as it comes from the API
   return new Intl.NumberFormat('th-TH', {
     style: 'currency',
     currency: 'THB',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(amount);
 };
 

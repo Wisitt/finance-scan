@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { createUser, fetchUsers, getUserById, updateUser } from '@/services/usersApi';
 
 interface UserState {
   users: User[];
@@ -27,9 +27,7 @@ export const useUserStore = create<UserState>()(
       fetchUsers: async () => {
         set({ isLoading: true, error: null });
         try {
-          const { data, error } = await supabase.from('users').select('*').order('name');
-
-          if (error) throw error;
+          const data = await fetchUsers();
           set({ users: data, isLoading: false });
         } catch (error: any) {
           set({ error: error.message, isLoading: false });
@@ -50,53 +48,47 @@ export const useUserStore = create<UserState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { data: existingUser, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+          // เรียก NestJS เพื่อเช็คว่า user มีจริงไหม
+          // ถ้าไม่เจอ => error หรือจะสร้างใหม่ก็แล้วแต่ logic
+          const existingUser = await getUserById(user.id);
 
-          if (error && error.code === 'PGRST116') {
-            // User not found, create new one
+          // ถ้าต้องการอัปเดตบาง field
+          let shouldUpdate = false;
+          const updates: Partial<User> = {};
+
+          // สมมติอยากเช็ค field name, email, avatar_url
+          if (user.name && user.name !== existingUser.name) {
+            updates.name = user.name;
+            shouldUpdate = true;
+          }
+          if (user.email && user.email !== existingUser.email) {
+            updates.email = user.email;
+            shouldUpdate = true;
+          }
+          if (user.avatar_url && user.avatar_url !== existingUser.avatar_url) {
+            updates.avatar_url = user.avatar_url;
+            shouldUpdate = true;
+          }
+
+          let updatedOrExisting = existingUser;
+          if (shouldUpdate) {
+            updatedOrExisting = await updateUser(user.id, updates);
+          }
+
+          set({ currentUser: updatedOrExisting, isLoading: false });
+        } catch (error: any) {
+          // ถ้า user ไม่เจอใน DB อาจสร้างใหม่
+          if (error?.response?.status === 404) {
+            // กรณี NestJS เขียน logic ถ้าไม่เจอจะ return 404
             const newUser = await get().createUser(
               user.name || 'New User',
               user.email,
               user.avatar_url
             );
-
             set({ currentUser: newUser, isLoading: false });
             return;
-          } else if (error) {
-            throw error;
           }
 
-          // Update existing user if needed
-          const updates: Partial<User> = {};
-          let shouldUpdate = false;
-
-          ['name', 'email', 'avatar_url'].forEach((field) => {
-            if (user[field as keyof User] && user[field as keyof User] !== existingUser[field]) {
-              updates[field as keyof User] = user[field as keyof User];
-              shouldUpdate = true;
-            }
-          });
-
-          if (shouldUpdate) {
-            const { data: updatedUser, error: updateError } = await supabase
-              .from('users')
-              .update(updates)
-              .eq('id', existingUser.id)
-              .select()
-              .single();
-
-            if (updateError) throw updateError;
-
-            set({ currentUser: updatedUser, isLoading: false });
-            return;
-          }
-
-          set({ currentUser: existingUser, isLoading: false });
-        } catch (error: any) {
           console.error('Error in setCurrentUser:', error);
           set({ error: error.message, isLoading: false });
         }
@@ -107,45 +99,37 @@ export const useUserStore = create<UserState>()(
         if (!currentUser) return;
 
         try {
-          const { data, error } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', currentUser.id)
-            .single();
-
-          if (error || !data) {
+          // เรียก NestJS getUserById
+          const check = await getUserById(currentUser.id);
+          if (!check) {
+            // ถ้า Nest บอกไม่เจอ user
             set({ currentUser: null });
           }
         } catch (error: any) {
           console.error('Error validating current user:', error);
+          set({ currentUser: null });
         }
       },
 
-      createUser: async (name: string, email?: string, avatar_url?: string) => {
-        set({ isLoading: true, error: null });
 
-        try {
-          const { data, error } = await supabase
-            .from('users')
-            .insert([{ name, email, avatar_url }])
-            .select()
-            .single();
+     // 3) Create user via Nest
+     createUser: async (name, email, avatar_url) => {
+      set({ isLoading: true, error: null });
 
-          if (error) throw error;
-
-          set((state) => ({
-            users: [...state.users, data],
-            currentUser: data,
-            isLoading: false,
-          }));
-
-          return data;
-        } catch (error: any) {
-          set({ error: error.message, isLoading: false });
-          throw error;
-        }
-      },
-    }),
+      try {
+        const data = await createUser(name, email, avatar_url);
+        set((state) => ({
+          users: [...state.users, data],
+          currentUser: data,
+          isLoading: false,
+        }));
+        return data;
+      } catch (error: any) {
+        set({ error: error.message, isLoading: false });
+        throw error;
+      }
+    },
+  }),
     {
       name: 'user-store',
       partialize: (state) => ({ currentUser: state.currentUser }),
@@ -155,3 +139,4 @@ export const useUserStore = create<UserState>()(
     }
   )
 );
+

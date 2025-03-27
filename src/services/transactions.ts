@@ -1,57 +1,27 @@
+// services/transactionsApi.ts (ใหม่)
 import axios from 'axios';
 import { Transaction } from '@/types';
-import { getSession } from 'next-auth/react';
 
 const api = axios.create({
-  baseURL: '/api', // กำหนด base URL
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: process.env.NEXT_PUBLIC_NEST_API_URL, // หรือใช้ env เช่น process.env.NEXT_PUBLIC_API_BASE_URL
 });
 
-// ✅ ฟังก์ชันช่วยดึง Token จาก Cookies
-const getAuthToken = async (): Promise<string | null> => {
-  const session = await getSession();
-  return session?.user?.id || null;
-};
-
-// ✅ ดึงธุรกรรมของผู้ใช้
-export const fetchTransactionsAPI = async (userId: string): Promise<Transaction[]> => {
-  const token = await getAuthToken();
-  if (!token) throw new Error('No auth token found');
-
-  const { data } = await api.get(`/transactions?user_id=${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+// GET
+export async function fetchTransactionsAPI(userId: string): Promise<Transaction[]> {
+  const { data } = await api.get(`/transactions?userId=${userId}`);
+  if (data.error) throw new Error(data.error);
   return data;
-};
+}
 
-// ✅ เพิ่มธุรกรรมใหม่
-export const addTransactionAPI = async (transaction: Omit<Transaction, 'id'> | Transaction): Promise<Transaction> => {
-  const token = await getAuthToken();
-  if (!token) throw new Error('No auth token found');
-
-  const { data } = await api.post('/transactions', transaction, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+// POST
+export async function addTransactionAPI(transaction: Omit<Transaction, 'id' | 'created_at'>): Promise<Transaction> {
+  const { data } = await api.post('/transactions', transaction);
+  if (data.error) throw new Error(data.error);
   return data;
-};
+}
 
-// ✅ ลบธุรกรรม
-export const deleteTransactionAPI = async (id: string): Promise<void> => {
-  const token = await getAuthToken();
-  if (!token) throw new Error('No auth token found');
-
-  await api.delete(`/transactions?id=${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
-
-
-
+// DELETE
+export async function deleteTransactionAPI(id: string, userId: string): Promise<void> {
+  const { data } = await api.delete(`/transactions/${id}?userId=${userId}`);
+  if (data.error) throw new Error(data.error);
+}

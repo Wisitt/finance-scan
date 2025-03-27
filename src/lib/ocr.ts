@@ -27,8 +27,9 @@ export async function loadModel() {
     modelPromise = (async () => {
       try {
         // ลองใช้ backend webgl2 (ถ้ารองรับ)
-        await tf.setBackend('webgl');
-        // บังคับให้รีจิสเตอร์ op ต่าง ๆ
+        await tf.setBackend('webgl').catch(async () => {
+          await tf.setBackend('cpu');
+        });
         await tf.ready();
 
         // * ใช้ base = 'lite_mobilenet_v2' จะเล็กและเบา (fast load)
@@ -80,22 +81,17 @@ async function preprocessImage(imageUrl: string): Promise<HTMLCanvasElement> {
       canvas.height = height;
 
       // * ปรับฟิลเตอร์ (Canvas 2D) เพื่อปรับ contrast/brightness ช่วย OCR
-      //   ใช้ได้บนเบราว์เซอร์รุ่นใหม่ ๆ
-      //   (ถ้า browser เก่าไม่รองรับ อาจต้องใช้การประมวลผล imageData แทน)
       ctx.filter = 'brightness(1.1) contrast(1.3) grayscale(0.1)';
-
-      // * วาดภาพหลัง apply filter
       ctx.drawImage(img, 0, 0, width, height);
 
+      /*
       // * ถ้าต้องการปรับแต่ง pixel-level เอง ให้คอมเมนต์ filter ข้างบน แล้วใช้วิธี ImageData
       //   ตย.เช่น การปรับ threshold หรือ sharpening
-      /*
       const imageData = ctx.getImageData(0, 0, width, height);
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
         // ตัวอย่างปรับ contrast แบบ Manual
         const avg = (data[i] + data[i+1] + data[i+2]) / 3;
-        // สุ่ม logic เช่น brighten หรือ darken
         const newVal = avg < 120 ? avg * 0.85 : Math.min(255, avg * 1.15);
         data[i] = data[i+1] = data[i+2] = newVal;
       }
@@ -173,7 +169,7 @@ async function performTextDensityAnalysis(canvas: HTMLCanvasElement): Promise<bo
           tessedit_pageseg_mode: '6',
           tessedit_ocr_engine_mode: '1',
         },
-      } as any // <-- ตรงนี้ cast เป็น any
+      } as any
     );
     const text = result.data.text || '';
 
@@ -248,11 +244,14 @@ export async function scanReceipt(file: File): Promise<ReceiptData> {
     const result = await Tesseract.recognize(processedImage, 'tha+eng', {
       logger: (m: any) => console.log(m),
       langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-      workerPath:
-        'https://cdn.jsdelivr.net/npm/tesseract.js@4.0.3/dist/worker.min.js',
-      tessedit_pageseg_mode: '3', 
+      workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@4.0.3/dist/worker.min.js',
+      tessedit_pageseg_mode: '3',
       tessedit_ocr_engine_mode: '1',
+    }).catch((err:any) => {
+      console.error("OCR error:", err);
+      throw new Error("OCR failed");
     });
+    
 
     const text = result.data.text;
 
@@ -272,7 +271,7 @@ export async function scanReceipt(file: File): Promise<ReceiptData> {
       items,
       tax_id,
       details: text.substring(0, 300),
-      confidence: (result.data.confidence || 0) / 100,
+      confidence: result?.data?.confidence ? result.data.confidence / 100 : 0,
       created_at: new Date().toISOString(),
     };
   } catch (error) {
@@ -418,11 +417,12 @@ function extractMerchant(text: string): string | null {
 
   for (let i = 0; i < Math.min(5, lines.length); i++) {
     const line = lines[i];
-    if (line.length < 3 || (line.match(/\d/g)?.length || 0) > line.length * 0.3)
+    // ถ้ามีตัวเลขเยอะเกินไป ไม่น่าใช่ชื่อร้าน
+    if (line.length < 3 || (line.match(/\d/g)?.length || 0) > line.length * 0.3) continue;
+    // ถ้ามีรูปแบบวันที่หรือเวลาในบรรทัดนั้น ให้ข้าม
+    if (line.match(/\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/) || line.match(/\d{1,2}:\d{2}/)) {
       continue;
-    if (line.match(/\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/) || line.match(/\d{1,2}:\d{2}/))
-      continue;
-
+    }
     return line;
   }
 
@@ -501,6 +501,7 @@ function extractItems(text: string): Array<{ name: string; price: number }> {
         const priceStr = match[match.length - 1].replace(/,/g, '');
         let price = parseFloat(priceStr);
 
+        // ถ้าเจอราคาสูงผิดปกติ เช่น 123000 แล้วสงสัยว่า OCR ผิด
         if (price > 100000) {
           const correctedPrice = price / 1000;
           if (correctedPrice < 1000) {

@@ -1,9 +1,10 @@
 'use client';
 
-import { Bell, LogOut, Settings } from 'lucide-react';
+import { Bell, LogOut, Settings, User } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/theme/mode-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { useTransactionStore } from '@/store/transactionStore';
 
 /**
  * Header component for app navigation
@@ -20,53 +23,114 @@ export default function Header() {
   const { data: session } = useSession();
   
   const userName = session?.user?.name || '';
+  const userEmail = session?.user?.email || '';
   const userImage = session?.user?.image || '';
   const userInitial = userName.charAt(0).toUpperCase();
   
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
+    useTransactionStore.getState().resetTransactionState();
   };
   
   return (
-    <div className="fixed top-0 right-0 left-64 h-14 flex items-center justify-between px-4 border-b bg-background z-10">
-      <div className="md:block hidden">
-        <h1 className="text-lg font-semibold">FinanceTrack</h1>
-      </div>
-
-      {/* Right side - User and settings */}
-      <div className="flex items-center gap-2 ml-auto">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-muted-foreground hover:text-foreground"
-          aria-label="การแจ้งเตือน"
-        >
-          <Bell className="h-5 w-5" />
-        </Button>
+    <header className="ml-auto flex items-center gap-3 md:gap-4">
+      {/* Theme Toggle */}
+      <ThemeToggle />
+      
+      {/* Notifications */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative rounded-full hover:bg-primary/10 transition-all"
+            aria-label="การแจ้งเตือน"
+          >
+            <Bell className="h-5 w-5" />
+            <Badge 
+              className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-primary text-[10px]"
+            >
+              2
+            </Badge>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuLabel className="flex items-center justify-between">
+            <span>การแจ้งเตือน</span>
+            <Badge variant="outline" className="text-xs">ใหม่ 2 รายการ</Badge>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <div className="max-h-80 overflow-y-auto py-1">
+            {/* Notification Items */}
+            <div className="px-3 py-2 hover:bg-muted/50 cursor-pointer transition-colors rounded-md mx-1 my-1 border-l-2 border-primary">
+              <div className="flex items-start gap-2">
+                <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <Bell className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">พบรายจ่ายผิดปกติ</p>
+                  <p className="text-xs text-muted-foreground">รายจ่ายล่าสุดของคุณสูงกว่าค่าเฉลี่ย 35%</p>
+                  <p className="text-xs text-muted-foreground mt-1">1 ชั่วโมง</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-3 py-2 hover:bg-muted/50 cursor-pointer transition-colors rounded-md mx-1 my-1 border-l-2 border-primary">
+              <div className="flex items-start gap-2">
+                <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <Bell className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">อัพเดทความปลอดภัย</p>
+                  <p className="text-xs text-muted-foreground">เราได้อัพเดทระบบความปลอดภัยของบัญชีคุณ</p>
+                  <p className="text-xs text-muted-foreground mt-1">1 วัน</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <div className="p-2">
+            <Button variant="outline" size="sm" className="w-full">ดูทั้งหมด</Button>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="p-0 h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={userImage} alt={userName} />
-                <AvatarFallback>{userInitial}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{userName}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>ตั้งค่า</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>ออกจากระบบ</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+      {/* User Profile */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full overflow-hidden p-0 hover:ring-2 hover:ring-primary/30 transition-all">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={userImage} alt={userName} />
+              <AvatarFallback className="bg-primary/20 text-primary">
+                {userInitial}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <div className="flex flex-col p-2 space-y-1">
+            <p className="text-sm font-medium">{userName}</p>
+            <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span>บัญชีของฉัน</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span>ตั้งค่า</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem 
+            onClick={handleSignOut}
+            className="text-destructive focus:text-destructive flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>ออกจากระบบ</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
   );
 } 

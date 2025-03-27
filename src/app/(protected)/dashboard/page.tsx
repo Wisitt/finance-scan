@@ -58,38 +58,48 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/utils/utils';
 
-import Link from 'next/dist/client/link';
+import Link from 'next/link';
 import { TransactionCharts } from '../transactions';
-import { ReceiptScanner } from '../scan';
+import ReceiptScanner from '../scan/page';
+import { useRouter } from 'next/navigation';
+import { formatCurrency } from '@/lib/utils';
 
 
 export default function DashBoardPage() {
-  const { data: session } = useSession();
-  const currentUser = session?.user;
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  const { transactions } = useTransactionStore();
+  const { transactions , fetchTransactions } = useTransactionStore();
 
 
   // ตัวอย่างกำหนดวันเวลาปัจจุบัน (จำลอง)
-  const [currentDateTime] = useState(new Date('2025-03-06 08:15:47'));
+  const [currentDateTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // โหลดข้อมูล categories และ transactions
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(timer);
-  }, [currentUser,transactions.length]);
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    } else if (status === 'authenticated' && session?.user?.id) {
+      async function loadData() {
+        try {
+          await fetchTransactions();
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+      
+      loadData();
+    }
+  }, [status, router, session, fetchTransactions]);
 
-  // ฟอร์แมตสกุลเงิน
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  if (status === 'loading') {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
+
 
   // คำนวณรายรับ-รายจ่าย-ยอดคงเหลือ
   const income = transactions
@@ -136,19 +146,23 @@ export default function DashBoardPage() {
         </div>
 
       {/* การ์ดต้อนรับผู้ใช้งาน */}
-      <Card className="mb-6 border bg-primary text-white">
+      <Card className="mb-6 border-0 bg-gradient-to-r from-primary to-primary-dark text-white overflow-hidden relative shadow-lg">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/3 blur-lg"></div>
+        
         <CardContent className="p-6 relative">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Badge variant="secondary" className="bg-white/20 hover:bg-white/30">
+              <Badge variant="secondary" className="bg-white/20 hover:bg-white/30 border-0">
                 <Clock className="h-3 w-3 mr-1" />
                 {format(currentDateTime, 'd MMM yyyy', { locale: th })} •{' '}
                 {format(currentDateTime, 'HH:mm')}
               </Badge>
               <h2 className="mt-2 text-lg sm:text-xl font-bold">
-                {getGreeting()}, {currentUser ? currentUser.name : 'ผู้ใช้'}
+                {getGreeting()}, {session?.user.name ? session.user.name : 'ผู้ใช้'}
               </h2>
-              <p className="opacity-90 text-sm sm:text-base mt-1">
+              <p className="text-white/80 text-sm sm:text-base mt-1">
                 ยินดีต้อนรับกลับมาที่ระบบจัดการการเงินของคุณ
               </p>
 
@@ -156,7 +170,7 @@ export default function DashBoardPage() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="bg-white text-primary hover:bg-white/90"
+                  className="bg-white text-primary hover:bg-white/90 shadow-md"
                 >
                   <ArrowRight className="h-3.5 w-3.5 mr-1" />
                   เริ่มจัดการเงินของคุณ
@@ -167,7 +181,7 @@ export default function DashBoardPage() {
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="h-8 w-8 bg-white/20 hover:bg-white/30 text-white"
+                        className="h-8 w-8 bg-white/20 hover:bg-white/30 text-white shadow-sm backdrop-blur-sm"
                       >
                         <Info className="h-4 w-4" />
                       </Button>
@@ -182,7 +196,7 @@ export default function DashBoardPage() {
 
             {/* แสดงยอดคงเหลือสั้น ๆ */}
             <div className="hidden sm:block">
-              <div className="bg-white/10 rounded-md p-4 text-center">
+              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 text-center shadow-md">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="bg-white/20 p-1.5 rounded-full">
                     <LayoutDashboard className="h-5 w-5" />
@@ -191,7 +205,7 @@ export default function DashBoardPage() {
                 </div>
                 <Separator className="mb-2 bg-white/20" />
                 <p className="text-xl font-bold">{formatCurrency(balance)}</p>
-                <p className="text-xs opacity-90">ยอดสุทธิ</p>
+                <p className="text-xs text-white/70">ยอดสุทธิ</p>
               </div>
             </div>
           </div>
@@ -201,14 +215,16 @@ export default function DashBoardPage() {
       {/* สรุปสถิติหลัก (Balance, Income, Expense) */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {/* บัตรแสดงยอดคงเหลือ */}
-        <Card className="shadow-sm hover:shadow-md transition-all">
+        <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <CardDescription className="flex items-center gap-1">
-                <Wallet className="h-4 w-4 text-primary" />
+              <CardDescription className="flex items-center gap-1 font-medium">
+                <div className="bg-primary/10 p-1 rounded-full">
+                  <Wallet className="h-3.5 w-3.5 text-primary" />
+                </div>
                 <span>ยอดคงเหลือ</span>
               </CardDescription>
-              <Badge variant="outline" className="font-normal">
+              <Badge variant="outline" className="font-normal border-primary/20 bg-primary/5 text-primary">
                 ปัจจุบัน
               </Badge>
             </div>
@@ -226,10 +242,10 @@ export default function DashBoardPage() {
                   className={cn(
                     'font-medium',
                     income > 0 && balance / income >= 0.2
-                      ? 'text-green-600'
+                      ? 'text-success'
                       : balance < 0
-                      ? 'text-red-600'
-                      : 'text-amber-600'
+                      ? 'text-destructive'
+                      : 'text-warning'
                   )}
                 >
                   {income > 0 ? Math.round((balance / income) * 100) : 0}%
@@ -237,75 +253,61 @@ export default function DashBoardPage() {
               </div>
               <Progress
                 value={income > 0 ? Math.min((balance / income) * 100, 100) : 0}
-                className="h-1.5"
+                className="h-1.5 bg-muted"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* บัตรแสดงรายรับ */}
-        <Card className="shadow-sm hover:shadow-md transition-all">
+        <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4 text-green-500" />
+            <CardDescription className="flex items-center gap-1 font-medium">
+              <div className="bg-success/10 p-1 rounded-full">
+                <TrendingUp className="h-3.5 w-3.5 text-success" />
+              </div>
               <span>รายรับ</span>
             </CardDescription>
             {loading ? (
               <Skeleton className="h-8 w-32 mt-1" />
             ) : (
-              <CardTitle className="text-xl font-bold text-green-600">
-                {formatCurrency(income)}
-              </CardTitle>
+              <CardTitle className="text-2xl font-bold">{formatCurrency(income)}</CardTitle>
             )}
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <Skeleton className="h-4 w-3/4" />
-            ) : (
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-muted-foreground flex items-center gap-1.5">
-                  <Receipt className="h-4 w-4" />
-                  {transactions.filter((t) => t.type === 'income').length} รายการ
-                </p>
-                <Badge variant="outline" className="text-green-600 bg-green-50">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  +12%
-                </Badge>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">เทียบกับเดือนก่อน</span>
+                <span className="font-medium text-success">+12%</span>
               </div>
-            )}
+              <Progress value={75} className="h-1.5 bg-muted" />
+            </div>
           </CardContent>
         </Card>
 
         {/* บัตรแสดงรายจ่าย */}
-        <Card className="shadow-sm hover:shadow-md transition-all">
+        <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1">
-              <TrendingDown className="h-4 w-4 text-red-500" />
+            <CardDescription className="flex items-center gap-1 font-medium">
+              <div className="bg-destructive/10 p-1 rounded-full">
+                <TrendingDown className="h-3.5 w-3.5 text-destructive" />
+              </div>
               <span>รายจ่าย</span>
             </CardDescription>
             {loading ? (
               <Skeleton className="h-8 w-32 mt-1" />
             ) : (
-              <CardTitle className="text-xl font-bold text-red-600">
-                {formatCurrency(expense)}
-              </CardTitle>
+              <CardTitle className="text-2xl font-bold">{formatCurrency(expense)}</CardTitle>
             )}
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <Skeleton className="h-4 w-3/4" />
-            ) : (
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-muted-foreground flex items-center gap-1.5">
-                  <CreditCard className="h-4 w-4" />
-                  {transactions.filter((t) => t.type === 'expense').length} รายการ
-                </p>
-                <Badge variant="outline" className="text-red-600 bg-red-50">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  +5%
-                </Badge>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">เทียบกับเดือนก่อน</span>
+                <span className="font-medium text-destructive">+8%</span>
               </div>
-            )}
+              <Progress value={65} className="h-1.5 bg-muted" />
+            </div>
           </CardContent>
         </Card>
       </section>
@@ -339,7 +341,7 @@ export default function DashBoardPage() {
 
         {/* 1) Tab แดชบอร์ด */}
         <TabsContent value="dashboard" className="space-y-4">
-          {currentUser ? (
+          {session?.user.name ? (
             <>
               {/* กราฟ + รายการล่าสุด */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -439,13 +441,13 @@ export default function DashBoardPage() {
                   <Card>
                     <CardHeader className="pb-2 flex items-center gap-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={currentUser?.avatar_url || ''} />
+                        <AvatarImage src={session?.user.avatar_url || ''} />
                         <AvatarFallback className="bg-primary/10 text-primary">
-                          {currentUser?.name ? currentUser.name[0] : 'U'}
+                          {session?.user.name ? session?.user.name[0] : 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle>{currentUser?.name ?? 'ไม่ทราบชื่อ'}</CardTitle>
+                        <CardTitle>{session?.user.name ?? 'ไม่ทราบชื่อ'}</CardTitle>
                         <CardDescription>รายงานส่วนบุคคล</CardDescription>
                       </div>
                     </CardHeader>
@@ -482,7 +484,7 @@ export default function DashBoardPage() {
                     </span>
                   </div>
                   <span className="text-xs sm:text-sm text-muted-foreground">
-                    ผู้ใช้: {currentUser?.name} | เวอร์ชัน: 1.5.2
+                    ผู้ใช้: {session?.user.name} | เวอร์ชัน: 1.5.2
                   </span>
                 </CardContent>
               </Card>

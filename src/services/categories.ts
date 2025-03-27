@@ -1,29 +1,26 @@
-import { Category } from '@/types';
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+import { Category } from '@/types';
 
-
+// ตั้ง baseURL ไปที่ NestJS server
 const api = axios.create({
-    baseURL: '/api', // กำหนด base URL
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  
-  const getAuthToken = async (): Promise<string | null> => {
-    const session = await getSession();
-    return session?.user?.id || null;
-  };
+  baseURL: process.env.NEXT_PUBLIC_NEST_API_URL, // หรือใช้ process.env.NEXT_PUBLIC_API_BASE_URL
+});
 
-// ✅ ดึงหมวดหมู่
-export const fetchCategoriesAPI = async (): Promise<Category[]> => {
-    const token = getAuthToken();
-    if (!token) throw new Error('No auth token found');
-  
-    const { data } = await api.get('/categories', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return data;
-  };
+export async function fetchCategoriesAPI(): Promise<Category[]> {
+  const res = await api.get('/categories');
+  return res.data;
+}
+
+export async function addCategoryAPI(category: Omit<Category, 'id'>): Promise<Category> {
+  const res = await api.post('/categories', category);
+  return res.data;
+}
+
+export async function updateCategoryAPI(id: string, partial: Partial<Category>): Promise<Category> {
+  const res = await api.put(`/categories/${id}`, partial);
+  return res.data;
+}
+
+export async function deleteCategoryAPI(id: string): Promise<void> {
+  await api.delete(`/categories/${id}`);
+}

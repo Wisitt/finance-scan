@@ -42,6 +42,7 @@ import { signIn } from 'next-auth/react';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCategoryStore } from '@/store/categoryStore';
 import { useTransactionStore } from '@/store/transactionStore';
+import { formatCurrency } from '@/lib/utils';
 
 // Schema for form validation
 const transactionSchema = z.object({
@@ -55,19 +56,12 @@ const transactionSchema = z.object({
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
-// Custom number formatter for currency
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('th-TH', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
-};
+
 
 export default function AddTransactionForm() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuthUser();
   const { addTransaction } = useTransactionStore();
-  const { categories } = useCategoryStore();
+  const { categories,fetchCategories  } = useCategoryStore();
 
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,7 +77,10 @@ export default function AddTransactionForm() {
       date: new Date(),
     },
   });
-  
+  useEffect(() => {
+    fetchCategories(); // ← เรียกตอน mount
+  }, [fetchCategories]);
+
   // Filter categories based on transaction type
   const filteredCategories = categories.filter(cat => cat.type === transactionType);
   
@@ -115,12 +112,12 @@ export default function AddTransactionForm() {
   }, [form]);
 
   // Handle form submission
-const onSubmit = async (data: TransactionFormValues) => {
-  if (!isAuthenticated || !user?.id) {
-    toast.error('กรุณาเลือกผู้ใช้ก่อนเพิ่มรายการ');
-    console.log("❌ User not authenticated:", { isAuthenticated, user });
-    return;
-  }
+  const onSubmit = async (data: TransactionFormValues) => {
+    if (!isAuthenticated || !user?.id) {
+      toast.error('กรุณาเลือกผู้ใช้ก่อนเพิ่มรายการ');
+      return;
+    }
+      
     
     setIsSubmitting(true);
     
@@ -130,9 +127,8 @@ const onSubmit = async (data: TransactionFormValues) => {
         amount: data.amount,
         category: data.category,  
         description: data.description || '',
-        date: format(data.date, 'yyyy-MM-dd'),
+        date: new Date(data.date).toISOString(),
         type: transactionType,
-        created_at: ''
       };
       console.log("📌 Sending Transaction Data:", newTransaction);
 

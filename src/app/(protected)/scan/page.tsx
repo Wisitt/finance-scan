@@ -67,6 +67,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCategoryStore } from '@/store/categoryStore';
 import ImageUploader from '@/app/components/ImageUploader';
+import { formatCurrency } from '@/lib/utils';
 
 let modelLoadInitiated = false;
 
@@ -204,9 +205,16 @@ export default function ReceiptScanner() {
         setCurrentFileIndex(i);
         const file = selectedFiles[i];
         
-        // Upload image to Supabase Storage
         setProcessingProgress(5);
-        const imageUrl = await uploadImage(file, userId);
+        let imageUrl;
+        try {
+          imageUrl = await uploadImage(file, userId);
+        } catch (error) {
+          console.error('Image upload error:', error);
+          // Fall back to a temporary URL or blob URL if Supabase upload fails
+          imageUrl = URL.createObjectURL(file);
+          toast.error('รูปภาพถูกประมวลผลแต่ไม่ได้จัดเก็บในระบบคลาวด์');
+        }
         setProcessingProgress(15);
         
         if (!imageUrl) {
@@ -321,29 +329,19 @@ export default function ReceiptScanner() {
     setIsScanning(true);
     
     try {
-      // Check if user exists in database
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (userError || !userData) {
-        toast.error('ไม่พบข้อมูลผู้ใช้ กรุณาลองใหม่อีกครั้ง');
-        setIsScanning(false);
-        return;
-      }
+      // Remove the Supabase user check and proceed directly with the NextAuth user
       const userId = user.id;
-      for (const result of scanResults) {
+      
+      for (const data of scanResults) {
         // Create new transaction
         const newTransaction = {
           user_id: userId,
-          amount: result.amount,
+          amount: data.amount,
           type: transactionType,
-          category: result.category,
-          description: result.merchant || result.description,
-          date: result.date,
-          receipt_images: result.imageUrl ? [result.imageUrl] : []
+          category: data.category,
+          description: data.merchant || data.description,
+          date: new Date(data.date).toISOString(),
+          receipt_images: data.imageUrl ? [data.imageUrl] : []
         };
         
         // Save transaction
@@ -373,14 +371,6 @@ export default function ReceiptScanner() {
     }
   };
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
 
   // Get confidence level color
   const getConfidenceColor = (confidence: number) => {

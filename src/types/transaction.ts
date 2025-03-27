@@ -6,7 +6,7 @@ export interface Transaction {
     category: string;
     description?: string;
     date: string;
-    created_at: string;
+    // created_at: string;
     updated_at?: string;
     deleted_at?: string;
     receipt_images?: string[];

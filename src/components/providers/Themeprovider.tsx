@@ -1,15 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+import { ReactNode } from 'react';
+import { Inter } from 'next/font/google';
 
-import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+// Choose the font
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
-export function ThemeProvider({ 
-  children,
-  ...props
-}: {
-  children: React.ReactNode;
-  [key: string]: any;
-}) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+interface ThemeProviderProps {
+  children: ReactNode;
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  return (
+    <div className={`${inter.variable} font-sans`}>
+      {children}
+    </div>
+  );
 }

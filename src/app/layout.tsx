@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { AppProvider } from '@/components/providers/AppProvider';
 
 import '@/styles/layout.css';
 import './globals.css';
+import Providers from '@/components/providers/AppProvider';
 
 const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
@@ -15,18 +15,15 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Root layout สำหรับทั้งแอปพลิเคชัน
- */
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="th" suppressHydrationWarning>
       <body className={inter.className}>
-        <AppProvider>{children}</AppProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

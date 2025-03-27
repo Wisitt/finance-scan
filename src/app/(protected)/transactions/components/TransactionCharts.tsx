@@ -2,9 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTransactionStore } from '@/store/transactionStore';
 import { useAuthUser } from '@/hooks/useAuthUser';
+import { useSession } from 'next-auth/react';
 
 import { 
   format, 
@@ -61,6 +62,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { formatCurrency } from '@/lib/utils';
 
 // Chart.js register
 ChartJS.register(
@@ -90,33 +92,47 @@ const formatThaiShortDate = (date: Date): string => {
   return `${day} ${month}`;
 };
 
-// ฟังก์ชัน format สกุลเงินแบบไทย
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('th-TH', {
-    style: 'currency',
-    currency: 'THB',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
-};
 
 export default function TransactionCharts() {
-  const { transactions } = useTransactionStore();
+  const { transactions, fetchTransactions, loading: storeLoading } = useTransactionStore();
   const { user } = useAuthUser();
+  const { data: session } = useSession();
 
-  // ฟิลเตอร์ & UI States
+  // State for filters and UI
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [chartType, setChartType] = useState<'overview' | 'category' | 'trend' | 'comparison'>('overview');
   const [isLoading, setIsLoading] = useState(true);
+  const [dataFetched, setDataFetched] = useState(false); // Track if data has been fetched
 
-  // Loading state จำลอง
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, [timeRange, chartType]);
+    const loadData = async () => {
+      if (session?.user?.id) {
+        try {
+          await fetchTransactions();
+        } catch (error) {
+          console.error("Error fetching transaction data:", error);
+        }
+      }
+    };
+    
+    loadData();
+  }, [session?.user?.id, fetchTransactions]);
 
-  // แปลง TimeRange เป็น label ภาษาไทย
+  useEffect(() => {
+    return () => {
+      setDataFetched(false);
+    };
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (storeLoading) {
+      setIsLoading(true);
+    } else {
+      const timer = setTimeout(() => setIsLoading(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [storeLoading, timeRange, chartType]);
+  
   const getTimeRangeLabel = (range: TimeRange): string => {
     switch (range) {
       case '7days':    return '7 วันล่าสุด';

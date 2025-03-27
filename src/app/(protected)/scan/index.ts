@@ -1,1 +1,0 @@
-export { default as ReceiptScanner } from './components/ReceiptScanner'; 

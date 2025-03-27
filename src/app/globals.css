@@ -4,6 +4,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@import '../styles/themes.css';
+@import '../styles/layout.css';
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

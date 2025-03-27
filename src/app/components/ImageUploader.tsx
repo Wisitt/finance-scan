@@ -8,11 +8,12 @@ import Image from 'next/image';
 import { cn } from '@/utils/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import CameraCapture from './Camera';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface ImageUploaderProps {
   onImagesSelected: (files: File[]) => void;
@@ -367,6 +368,11 @@ export default function ImageUploader({
                         </div>
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl p-1 sm:p-2">
+                        <DialogTitle>
+                          <VisuallyHidden>
+                            {`รูปภาพ ${index + 1} - ${image.file.name}`}
+                          </VisuallyHidden>
+                        </DialogTitle>
                         <div className="relative aspect-auto h-full max-h-[70vh] w-full">
                           <Image
                             src={image.preview}

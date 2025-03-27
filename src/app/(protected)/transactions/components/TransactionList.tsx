@@ -67,21 +67,13 @@ import {
 } from 'lucide-react';
 import { Transaction } from '@/types';
 import { formatToShortDate } from '@/utils/dateUtils';
+import { formatCurrency } from '@/lib/utils';
 
 // Define props interface
 type TransactionListProps = object
 
 
 
-// Helper: Format currency (บาท)
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('th-TH', {
-    style: 'currency',
-    currency: 'THB',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
 
 
 export default function TransactionList({}: TransactionListProps) {
@@ -116,7 +108,11 @@ export default function TransactionList({}: TransactionListProps) {
   // Unique categories
   const uniqueCategories = useMemo(() => {
     if (!transactions.length) return ['all'];
-    const distinct = Array.from(new Set(transactions.map((tx) => tx.category)));
+    // Filter out any empty category strings before creating the distinct set
+    const distinct = Array.from(new Set(transactions
+      .map((tx) => tx.category)
+      .filter(category => category && category.trim() !== '')
+    ));
     return ['all', ...distinct];
   }, [transactions]);
 
@@ -419,8 +415,8 @@ export default function TransactionList({}: TransactionListProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {uniqueCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat === 'all' ? 'ทั้งหมด' : cat}
+                    <SelectItem key={cat} value={cat || 'uncategorized'}>
+                      {cat === 'all' ? 'ทั้งหมด' : (cat || 'ไม่มีหมวดหมู่')}
                     </SelectItem>
                   ))}
                 </SelectContent>
