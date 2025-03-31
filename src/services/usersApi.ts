@@ -1,10 +1,7 @@
 // services/usersApi.ts
-import axios from 'axios';
 import { User } from '@/types';
+import api from './instance';
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_NEST_API_URL, // หรือ process.env.NEXT_PUBLIC_API_BASE_URL
-});
 
 export async function fetchUsers(): Promise<User[]> {
   const res = await api.get('/users');

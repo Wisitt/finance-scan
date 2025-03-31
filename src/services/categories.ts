@@ -1,10 +1,7 @@
-import axios from 'axios';
 import { Category } from '@/types';
+import api from './instance';
 
-// ตั้ง baseURL ไปที่ NestJS server
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_NEST_API_URL, // หรือใช้ process.env.NEXT_PUBLIC_API_BASE_URL
-});
+
 
 export async function fetchCategoriesAPI(): Promise<Category[]> {
   const res = await api.get('/categories');

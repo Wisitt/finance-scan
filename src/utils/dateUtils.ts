@@ -61,3 +61,21 @@ export function getCurrentMonthRange(): { start: string, end: string } {
     end: formatToISODate(end)
   };
 }
+
+export function formatDisplayDate(dateString: string | null | undefined): string {
+  if (!dateString) return '-'; // Handle null/undefined
+  try {
+    const dateObj = parseISO(dateString); // Best for YYYY-MM-DD
+    if (isValid(dateObj)) {
+      return format(dateObj, "d MMM yy", { locale: th });
+    }
+  } catch (e) {}
+  // Fallback for potentially different formats or invalid strings
+  try {
+    const dateObj = new Date(dateString);
+     if (isValid(dateObj)) {
+       return format(dateObj, "d MMM yy", { locale: th });
+     }
+  } catch (e) {}
+  return 'Invalid Date'; // Or return the original string: dateString
+}

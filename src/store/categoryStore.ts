@@ -19,13 +19,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   error: null,
 
   fetchCategories: async () => {
-    set({ loading: true, error: null });
-    try {
-      const data = await fetchCategoriesAPI();
-      set({ categories: data, loading: false });
-    } catch (err: any) {
-      set({ error: err, loading: false });
-    }
+    const data = await fetchCategoriesAPI();
+    set({ categories: data });
   },
 
   addCategory: async (payload) => {

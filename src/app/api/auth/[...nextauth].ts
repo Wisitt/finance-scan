@@ -21,7 +21,7 @@
 //           console.log('Google sign in success for:', user.email);
 
 //           // 1) เรียก Nest API เช็ค user by email
-//           const nestApiBase = process.env.NEXT_PUBLIC_NEST_API_URL;
+//           const nestApiBase = process.env.NEXT_PUBLIC_API_URL;
 //           const checkRes = await fetch(`${nestApiBase}/users?email=${user.email}`);
 //           if (!checkRes.ok) {
 //             console.error('Check user by email failed:', checkRes.status);

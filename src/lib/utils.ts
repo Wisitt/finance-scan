@@ -11,3 +11,4 @@ export function formatCurrency(amount: number): string {
     currency: 'THB',
   }).format(amount);
 } 
+

@@ -133,6 +133,7 @@ export default function TransactionList({}: TransactionListProps) {
     setCurrentPage(1);
   };
 
+  
   // Reset currentPage when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -159,6 +160,7 @@ export default function TransactionList({}: TransactionListProps) {
       return true;
     });
 
+    
     // Sort transactions
     filtered = [...filtered].sort((a, b) => {
       switch (sortOption) {
@@ -183,8 +185,9 @@ export default function TransactionList({}: TransactionListProps) {
     let totalIncome = 0;
     let totalExpense = 0;
     processedTransactions.forEach((tx) => {
-      if (tx.type === 'income') totalIncome += tx.amount;
-      else totalExpense += tx.amount;
+      const amount = Number(tx.amount);
+      if (tx.type === 'income') totalIncome += amount;
+      else totalExpense += amount;
     });
     return {
       totalIncome,
@@ -201,6 +204,11 @@ export default function TransactionList({}: TransactionListProps) {
     return processedTransactions.slice(startIndex, startIndex + itemsPerPage);
   }, [processedTransactions, startIndex, itemsPerPage]);
 
+  // 💡 DEBUG LOG
+useEffect(() => {
+  console.log('[DEBUG] จำนวนธุรกรรมทั้งหมดจาก store:', transactions.length);
+  console.log('[DEBUG] หลังกรอง (processedTransactions):', processedTransactions.length);
+}, [transactions, processedTransactions]);
   // Handle delete
   const handleDelete = async (id: string) => {
     try {

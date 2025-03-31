@@ -43,6 +43,8 @@ import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCategoryStore } from '@/store/categoryStore';
 import { useTransactionStore } from '@/store/transactionStore';
 import { formatCurrency } from '@/lib/utils';
+import { NumericFormat } from 'react-number-format';
+
 
 // Schema for form validation
 const transactionSchema = z.object({
@@ -122,20 +124,17 @@ export default function AddTransactionForm() {
     setIsSubmitting(true);
     
     try {
-      const newTransaction: Omit<Transaction, 'id'> = {
+      const newTransaction = {
         user_id: user.id,
         amount: data.amount,
-        category: data.category,  
+        category: data.category,
         description: data.description || '',
         date: new Date(data.date).toISOString(),
         type: transactionType,
       };
-      console.log("📌 Sending Transaction Data:", newTransaction);
-
       
       await addTransaction(newTransaction);
-      toast.success(`เพิ่มรายการ${transactionType === 'expense' ? 'รายจ่าย' : 'รายรับ'}สำเร็จแล้ว`);
-
+      toast.success(`บันทึก${transactionType === 'expense' ? 'รายจ่าย' : 'รายรับ'}: ฿${data.amount.toFixed(2)} (${data.category}) สำเร็จ`);
       // Reset form
       form.reset({
         amount: undefined,
@@ -151,6 +150,7 @@ export default function AddTransactionForm() {
       setIsSubmitting(false);
     }
   };
+  
   if (authLoading) {
     return (
       <Card className="w-full shadow-lg">
@@ -173,6 +173,7 @@ export default function AddTransactionForm() {
       </Card>
     );
   }
+  
   return (
     <Card className="w-full shadow-lg border-t-4 border-t-primary">
       <CardHeader className="space-y-1">
@@ -235,31 +236,39 @@ export default function AddTransactionForm() {
               <FormField
                 control={form.control}
                 name="amount"
-                render={({  }) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>จำนวนเงิน</FormLabel>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-bold">
                         ฿
                       </span>
-                      <FormControl>
-                        <Input
-                          placeholder="0.00"
-                          className={cn(
-                            "pl-8 text-lg font-medium",
-                            transactionType === 'expense' 
-                              ? "focus-visible:ring-red-500" 
-                              : "focus-visible:ring-green-500"
-                          )}
-                          onChange={handleAmountChange}
-                          value={formattedAmount}
-                        />
-                      </FormControl>
+                    <FormControl>
+                      <NumericFormat
+                        thousandSeparator
+                        decimalScale={2}
+                        fixedDecimalScale
+                        allowNegative={false}
+                        allowLeadingZeros={false}
+                        placeholder="0.00"
+                        className={cn(
+                          'pl-8 pr-3 py-2 text-lg font-medium w-full rounded-md border focus:outline-none focus:ring-2',
+                          transactionType === 'expense'
+                            ? 'focus:ring-red-500'
+                            : 'focus:ring-green-500'
+                        )}
+                        value={field.value ?? ''}
+                        onValueChange={(values: { floatValue: number | undefined }) => {
+                          field.onChange(values.floatValue ?? undefined);
+                        }}
+                      />
+                    </FormControl>
                     </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
 
               {/* Category Selection */}
               <FormField

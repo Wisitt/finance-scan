@@ -26,17 +26,6 @@ export const formatThaiShortDate = (date: Date): string => {
   return `${day} ${month} ${year.toString().substring(2)}`;
 };
 
-// Format currency consistently
-const formatCurrency = (amount: number): string => {
-  // Don't multiply by 100 or 1000 - use the amount directly as it comes from the API
-  return new Intl.NumberFormat('th-TH', {
-    style: 'currency',
-    currency: 'THB',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
-
 // Group transactions by date
 export const getGroupTitle = (date: Date): string => {
   const today = new Date();

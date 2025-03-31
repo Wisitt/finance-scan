@@ -79,13 +79,15 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       // สร้าง transaction ใหม่
       // (ใน NestJS ตัวอย่างอาจให้ Nest gen id เองก็ได้ แต่จะ gen ที่ Front-end ก็ไม่ผิด)
-      const newTransaction = {
+      const finalTransaction = {
         ...transactionData,
         user_id: userId,
-      } as Omit<Transaction, 'id' | 'created_at'> & { user_id: string };
+      };
+      
+      if (!finalTransaction.user_id) throw new Error('user_id is required');
 
       // เรียก Nest API
-      const savedTransaction = await addTransactionAPI(newTransaction);
+      const savedTransaction = await addTransactionAPI(finalTransaction);
 
       // Update state
       set({ transactions: [...get().transactions, savedTransaction] });

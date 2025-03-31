@@ -19,9 +19,9 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === 'google' && user.email) {
           console.log('Google sign in success for:', user.email);
 
-          const nestApiBase = process.env.NEXT_PUBLIC_NEST_API_URL;
+          const nestApiBase = process.env.NEXT_PUBLIC_API_URL;
           if (!nestApiBase) {
-            console.error('NEXT_PUBLIC_NEST_API_URL is not set');
+            console.error('NEXT_PUBLIC_API_URL is not set');
             // Rather than failing, assign a temporary ID and log the issue
             user.id = `temp-${Date.now()}`;
             return true;
