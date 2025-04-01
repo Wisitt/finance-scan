@@ -17,6 +17,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface ImageUploaderProps {
   onImagesSelected: (files: File[]) => void;
+  resetKey?: string;
   maxFiles?: number;
   isProcessing?: boolean;
   acceptedFileTypes?: Record<string, string[]>;
@@ -25,6 +26,7 @@ interface ImageUploaderProps {
 
 export default function ImageUploader({ 
   onImagesSelected, 
+  resetKey,
   maxFiles = 100, 
   isProcessing = false,
   acceptedFileTypes = {
@@ -45,10 +47,19 @@ export default function ImageUploader({
   useEffect(() => {
     setIsClient(true);
   }, []);
+  useEffect(() => {
+    setPreviewImages([]);
+    setErrorMessage(null);
+    setUploadProgress(0);
+    setCurrentPreviewIndex(null);
+  }, [resetKey]);
+  
   // Notify parent component when previewImages changes
   useEffect(() => {
     if (previewImages.length > 0) {
       onImagesSelected(previewImages.map(item => item.file));
+    } else {
+      onImagesSelected([]);
     }
   }, [previewImages, onImagesSelected]);
   
@@ -77,10 +88,8 @@ export default function ImageUploader({
   }, [previewImages]);
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
-    // Reset error message
     setErrorMessage(null);
-    
-    // Handle file rejections
+
     if (fileRejections.length > 0) {
       const rejection = fileRejections[0];
       if (rejection.errors[0]?.code === 'file-too-large') {
@@ -93,28 +102,20 @@ export default function ImageUploader({
       return;
     }
 
-    // Check if adding more files would exceed the limit
     if (previewImages.length + acceptedFiles.length > maxFiles) {
       setErrorMessage(`สามารถอัปโหลดได้ไม่เกิน ${maxFiles} ไฟล์`);
-      // Take only the files that fit within the limit
       acceptedFiles = acceptedFiles.slice(0, maxFiles - previewImages.length);
       if (acceptedFiles.length === 0) return;
     }
 
-    // Start progress animation
     setUploadProgress(10);
-    
-    // Create previews for selected images
+
     const newPreviewImages = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
     }));
-    
-    // Update preview images state
-    setPreviewImages(prev => {
-      // Combine with existing images but don't exceed maxFiles
-      return [...prev, ...newPreviewImages].slice(0, maxFiles);
-    });
+
+    setPreviewImages(prev => [...prev, ...newPreviewImages].slice(0, maxFiles));
   }, [maxFiles, maxSizeInMB, previewImages.length]);
   
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
@@ -128,12 +129,9 @@ export default function ImageUploader({
   
   const removeImage = useCallback((index: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
+
     setPreviewImages(prev => {
-      // Clean up the URL object for the removed image
       URL.revokeObjectURL(prev[index].preview);
-      
-      // Create a new array without the removed image
       const updated = [...prev];
       updated.splice(index, 1);
       return updated;
@@ -147,17 +145,13 @@ export default function ImageUploader({
   }, [currentPreviewIndex]);
 
   const handleCameraCapture = (file: File) => {
-    // Create a preview for the captured image
     const imagePreview = {
       file,
       preview: URL.createObjectURL(file)
     };
-    
-    // Add to preview images
+
     setPreviewImages(prev => {
-      // Check if adding would exceed the limit
       if (prev.length >= maxFiles) {
-        // Replace the first image
         URL.revokeObjectURL(prev[0].preview);
         const updated = [...prev];
         updated.shift();
@@ -165,7 +159,7 @@ export default function ImageUploader({
       }
       return [...prev, imagePreview];
     });
-    
+
     setShowCamera(false);
   };
   

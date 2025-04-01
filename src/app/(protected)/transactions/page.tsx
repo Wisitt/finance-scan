@@ -7,11 +7,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCard, PieChart, Plus, RefreshCw } from 'lucide-react';
 import TransactionCharts from './components/TransactionCharts';
-import TransactionList from './components/TransactionList';
 import AddTransactionForm from './components/form/AddTransactionForm';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/utils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import TransactionList from './components/list/TransactionList';
 
 export default function TransactionsPage() {
   const { data: session } = useSession();

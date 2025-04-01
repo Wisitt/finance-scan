@@ -1,21 +1,13 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTransactionStore } from '@/store/transactionStore';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useSession } from 'next-auth/react';
 
 import { 
   format, 
-  subDays, 
   parseISO, 
-  isWithinInterval,
-  startOfMonth, 
-  endOfMonth, 
-  subMonths, 
-  addDays 
 } from 'date-fns';
 import { th } from 'date-fns/locale';
 
@@ -61,8 +53,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/lib/utils';
+import { SummaryCard } from '@/components/shared/SummaryCard';
+import { useTransactionCharts } from '@/hooks/useTransactionCharts';
 
 // Chart.js register
 ChartJS.register(
@@ -103,6 +96,19 @@ export default function TransactionCharts() {
   const [chartType, setChartType] = useState<'overview' | 'category' | 'trend' | 'comparison'>('overview');
   const [isLoading, setIsLoading] = useState(true);
   const [dataFetched, setDataFetched] = useState(false); // Track if data has been fetched
+  const {
+    filteredTransactions,
+    totalIncome,
+    totalExpense,
+    savingsRate,
+    incomesByCategory,
+    expensesByCategory,
+    dailyData,
+    sortedExpenseCategories,
+    sortedIncomeCategories,
+    comparisonData
+  } = useTransactionCharts(transactions, timeRange);
+  
 
   useEffect(() => {
     const loadData = async () => {
@@ -145,136 +151,7 @@ export default function TransactionCharts() {
     }
   };
 
-  // คัดกรองธุรกรรมตามช่วงเวลา
-  const filteredTransactions = useMemo(() => {
-    if (!transactions.length) return [];
-    if (timeRange === 'all') return transactions;
-
-    const today = new Date();
-    let startDate: Date;
-    let endDate: Date = today;
-
-    switch (timeRange) {
-      case '7days':
-        startDate = subDays(today, 7);
-        break;
-      case '30days':
-        startDate = subDays(today, 30);
-        break;
-      case '90days':
-        startDate = subDays(today, 90);
-        break;
-      case 'thisMonth':
-        startDate = startOfMonth(today);
-        endDate = endOfMonth(today);
-        break;
-      case 'lastMonth':
-        const lastMonth = subMonths(today, 1);
-        startDate = startOfMonth(lastMonth);
-        endDate = endOfMonth(lastMonth);
-        break;
-      default:
-        startDate = subDays(today, 30);
-    }
-
-    return transactions.filter(tx => {
-      const txDate = parseISO(tx.date);
-      return isWithinInterval(txDate, { start: startDate, end: endDate });
-    });
-  }, [transactions, timeRange]);
-
-  // สรุปข้อมูล
-  const {
-    totalIncome, 
-    totalExpense, 
-    incomesByCategory, 
-    expensesByCategory, 
-    dailyData
-  } = useMemo(() => {
-    const result = {
-      totalIncome: 0,
-      totalExpense: 0,
-      incomesByCategory: {} as Record<string, number>,
-      expensesByCategory: {} as Record<string, number>,
-      dailyData: {} as Record<string, { income: number; expense: number }>,
-    };
-
-    if (!filteredTransactions.length) return result;
-
-    // เตรียม dailyData (เฉพาะถ้าไม่ใช่ all)
-    const today = new Date();
-    let daysToShow = 30;
-
-    switch (timeRange) {
-      case '7days':    daysToShow = 7; break;
-      case '30days':   daysToShow = 30; break;
-      case '90days':   daysToShow = 90; break;
-      case 'thisMonth':{
-        daysToShow = endOfMonth(today).getDate() - startOfMonth(today).getDate() + 1;
-        break;
-      }
-      case 'lastMonth':{
-        const last = subMonths(today, 1);
-        daysToShow = endOfMonth(last).getDate() - startOfMonth(last).getDate() + 1;
-        break;
-      }
-    }
-
-    if (timeRange !== 'all') {
-      let startDate: Date;
-      if (timeRange === 'thisMonth') {
-        startDate = startOfMonth(today);
-      } else if (timeRange === 'lastMonth') {
-        startDate = startOfMonth(subMonths(today, 1));
-      } else {
-        startDate = subDays(today, daysToShow - 1);
-      }
-
-      for (let i = 0; i < daysToShow; i++) {
-        const date = addDays(startDate, i);
-        const dateStr = format(date, 'yyyy-MM-dd');
-        result.dailyData[dateStr] = { income: 0, expense: 0 };
-      }
-    }
-
-    // รวมข้อมูล
-    filteredTransactions.forEach(tx => {
-      const dateStr = tx.date.split('T')[0];
-
-      if (tx.type === 'income') {
-        result.totalIncome += tx.amount;
-        result.incomesByCategory[tx.category] = (result.incomesByCategory[tx.category] || 0) + tx.amount;
-        if (result.dailyData[dateStr]) {
-          result.dailyData[dateStr].income += tx.amount;
-        }
-      } else {
-        result.totalExpense += tx.amount;
-        result.expensesByCategory[tx.category] = (result.expensesByCategory[tx.category] || 0) + tx.amount;
-        if (result.dailyData[dateStr]) {
-          result.dailyData[dateStr].expense += tx.amount;
-        }
-      }
-    });
-
-    return result;
-  }, [filteredTransactions, timeRange]);
-
-  // คำนวณอัตราการออม
-  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
-
-  // จัดเรียง Top หมวดหมู่
-  const sortedExpenseCategories = useMemo(() => {
-    return Object.entries(expensesByCategory)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-  }, [expensesByCategory]);
-
-  const sortedIncomeCategories = useMemo(() => {
-    return Object.entries(incomesByCategory)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-  }, [incomesByCategory]);
-
+  
   // ฟังก์ชันสร้าง gradient ให้กราฟ
   const generateGradient = (ctx: CanvasRenderingContext2D, color1: string, color2: string) => {
     if (!ctx) return '#fff';
@@ -452,66 +329,6 @@ export default function TransactionCharts() {
     animation: { duration: 800 },
   };
 
-  // **3) เปรียบเทียบ (Comparison)**
-  const comparisonData = useMemo(() => {
-    const today = new Date();
-    const currentMonthStart = startOfMonth(today);
-    const currentMonthEnd = endOfMonth(today);
-
-    const lastMonthDate = subMonths(today, 1);
-    const lastMonthStart = startOfMonth(lastMonthDate);
-    const lastMonthEnd = endOfMonth(lastMonthDate);
-
-    const currentMonthTxs = transactions.filter(tx => {
-      const d = parseISO(tx.date);
-      return isWithinInterval(d, { start: currentMonthStart, end: currentMonthEnd });
-    });
-    const lastMonthTxs = transactions.filter(tx => {
-      const d = parseISO(tx.date);
-      return isWithinInterval(d, { start: lastMonthStart, end: lastMonthEnd });
-    });
-
-    const currentIncome = currentMonthTxs.filter(tx => tx.type === 'income').reduce((s, x) => s + x.amount, 0);
-    const currentExpense = currentMonthTxs.filter(tx => tx.type === 'expense').reduce((s, x) => s + x.amount, 0);
-
-    const lastIncome = lastMonthTxs.filter(tx => tx.type === 'income').reduce((s, x) => s + x.amount, 0);
-    const lastExpense = lastMonthTxs.filter(tx => tx.type === 'expense').reduce((s, x) => s + x.amount, 0);
-
-    const incomeGrowth = lastIncome ? ((currentIncome - lastIncome) / lastIncome) * 100 : 100;
-    const expenseGrowth = lastExpense ? ((currentExpense - lastExpense) / lastExpense) * 100 : 100;
-
-    return {
-      months: {
-        current: format(today, 'MMMM', { locale: th }),
-        last: format(lastMonthDate, 'MMMM', { locale: th }),
-      },
-      data: {
-        currentMonthIncome: currentIncome,
-        currentMonthExpense: currentExpense,
-        lastMonthIncome: lastIncome,
-        lastMonthExpense: lastExpense,
-        incomeGrowth,
-        expenseGrowth,
-      },
-      chartData: {
-        labels: ['รายรับ', 'รายจ่าย'],
-        datasets: [
-          {
-            label: format(lastMonthDate, 'MMM', { locale: th }),
-            data: [lastIncome, lastExpense],
-            backgroundColor: 'rgba(156, 163, 175, 0.6)',
-            borderWidth: 1,
-          },
-          {
-            label: format(today, 'MMM', { locale: th }),
-            data: [currentIncome, currentExpense],
-            backgroundColor: 'rgba(59, 130, 246, 0.6)',
-            borderWidth: 1,
-          },
-        ],
-      }
-    };
-  }, [transactions]);
 
   const barOptions = {
     responsive: true,
@@ -549,8 +366,28 @@ export default function TransactionCharts() {
     },
     animation: { duration: 800 },
   };
-
-  // **คำแนะนำ (Insights) เรียบง่าย**
+  const barChartData = {
+    labels: ['รายรับ', 'รายจ่าย'],
+    datasets: [
+      {
+        label: comparisonData.months.last,
+        data: [
+          comparisonData.data.lastMonthIncome,
+          comparisonData.data.lastMonthExpense,
+        ],
+        backgroundColor: 'rgba(234, 88, 12, 0.6)',
+      },
+      {
+        label: comparisonData.months.current,
+        data: [
+          comparisonData.data.currentMonthIncome,
+          comparisonData.data.currentMonthExpense,
+        ],
+        backgroundColor: 'rgba(34, 197, 94, 0.6)',
+      },
+    ],
+  };
+  
   const financialInsights = useMemo(() => {
     const result: string[] = [];
     if (filteredTransactions.length < 3) {
@@ -623,59 +460,34 @@ export default function TransactionCharts() {
           <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* รายรับ */}
-              <Card className="border">
-                <CardHeader className="pb-2">
-                  <CardDescription>รายรับทั้งหมด</CardDescription>
-                  <CardTitle className="text-2xl font-bold text-green-600 mt-1">
-                    {formatCurrency(totalIncome)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-xs text-muted-foreground">
-                    {getTimeRangeLabel(timeRange)}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* รายจ่าย */}
-              <Card className="border">
-                <CardHeader className="pb-2">
-                  <CardDescription>รายจ่ายทั้งหมด</CardDescription>
-                  <CardTitle className="text-2xl font-bold text-red-600 mt-1">
-                    {formatCurrency(totalExpense)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-xs text-muted-foreground">
-                    {getTimeRangeLabel(timeRange)}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* คงเหลือ + อัตราออม */}
-              <Card className="border">
-                <CardHeader className="pb-2">
-                  <CardDescription>ยอดคงเหลือ</CardDescription>
-                  <CardTitle 
-                    className={cn(
-                      "text-2xl font-bold mt-1",
-                      (totalIncome - totalExpense) >= 0 ? "text-green-600" : "text-red-600"
-                    )}
-                  >
-                    {formatCurrency(totalIncome - totalExpense)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">อัตราออม</span>
-                    <span className="text-xs font-medium">
-                      {savingsRate.toFixed(1)}%
-                    </span>
-                  </div>
-                  <Progress value={Math.min(savingsRate, 100)} className="h-1.5" />
-                </CardContent>
-              </Card>
+              <SummaryCard
+                title="รายรับทั้งหมด"
+                value={totalIncome}
+                icon={TrendingUp}
+                color="text-success"
+                bgColor="bg-success/10"
+                compareText={getTimeRangeLabel(timeRange)}
+                compareColor="text-muted-foreground"
+              />
+              <SummaryCard
+                title="รายจ่ายทั้งหมด"
+                value={totalExpense}
+                icon={TrendingDown}
+                color="text-destructive"
+                bgColor="bg-destructive/10"
+                compareText={getTimeRangeLabel(timeRange)}
+                compareColor="text-muted-foreground"
+              />
+              <SummaryCard
+                title="ยอดคงเหลือ"
+                value={totalIncome - totalExpense}
+                icon={Wallet}
+                color={(totalIncome - totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'}
+                bgColor={(totalIncome - totalExpense) >= 0 ? 'bg-green-100' : 'bg-red-100'}
+                compareText={`${savingsRate.toFixed(1)}%`}
+                compareColor="text-muted-foreground"
+                progressValue={Math.min(savingsRate, 100)}
+              />
             </div>
 
             {/* Donut Chart สัดส่วนรายรับ-รายจ่าย และคำแนะนำ */}
@@ -736,7 +548,6 @@ export default function TransactionCharts() {
                     <NoCategoryData text="ไม่มีหมวดหมู่รายจ่าย" />
                   )}
                 </div>
-                {/* รายจ่ายสูงสุด */}
                 {sortedExpenseCategories.length > 0 && (
                   <CategoryList title="หมวดหมู่ที่ใช้จ่ายสูง" items={sortedExpenseCategories} />
                 )}
@@ -762,7 +573,6 @@ export default function TransactionCharts() {
                     <NoCategoryData text="ไม่มีหมวดหมู่รายรับ" />
                   )}
                 </div>
-                {/* รายรับสูงสุด */}
                 {sortedIncomeCategories.length > 0 && (
                   <CategoryList title="หมวดหมู่ที่รับสูง" items={sortedIncomeCategories} />
                 )}
@@ -798,7 +608,6 @@ export default function TransactionCharts() {
       case 'comparison':
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Bar Chart เปรียบเทียบเดือน */}
             <Card className="border">
               <CardHeader>
                 <CardTitle className="text-sm flex items-center">
@@ -811,12 +620,11 @@ export default function TransactionCharts() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <Bar data={comparisonData.chartData} options={barOptions} />
+                  <Bar data={barChartData} options={barOptions} />
                 </div>
               </CardContent>
             </Card>
 
-            {/* รายรับ-รายจ่ายเดือนที่แล้ว/เดือนนี้ */}
             <Card className="border">
               <CardHeader>
                 <CardTitle className="text-sm">สรุปการเปลี่ยนแปลง</CardTitle>

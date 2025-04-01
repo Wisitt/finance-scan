@@ -89,7 +89,10 @@ export default function TransactionTable({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full hover:bg-muted"
-                  onClick={() => onViewImage(transaction.receipt_images[0])}
+                  onClick={() => {
+                    const firstImage = transaction.receipt_images?.[0];
+                    if (firstImage) onViewImage(firstImage);
+                  }}
                   title="ดูใบเสร็จ"
                 >
                   <ImageIcon className="h-4 w-4" />

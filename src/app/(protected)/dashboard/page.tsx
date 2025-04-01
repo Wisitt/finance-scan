@@ -63,6 +63,8 @@ import { TransactionCharts } from '../transactions';
 import ReceiptScanner from '../scan/page';
 import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/utils';
+import { SummaryCard } from '@/components/shared/SummaryCard';
+import { useTransactionFilters } from '@/hooks/useTransactionFilters';
 
 
 export default function DashBoardPage() {
@@ -70,7 +72,14 @@ export default function DashBoardPage() {
   const router = useRouter();
 
   const { transactions , fetchTransactions } = useTransactionStore();
-
+  const {
+    filters,
+    updateFilter,
+    resetFilters,
+    processedTransactions,
+    uniqueCategories,
+    summary,
+  } = useTransactionFilters(transactions);
 
   // ตัวอย่างกำหนดวันเวลาปัจจุบัน (จำลอง)
   const [currentDateTime] = useState(new Date());
@@ -212,104 +221,46 @@ export default function DashBoardPage() {
         </CardContent>
       </Card>
 
-      {/* สรุปสถิติหลัก (Balance, Income, Expense) */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {/* บัตรแสดงยอดคงเหลือ */}
-        <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardDescription className="flex items-center gap-1 font-medium">
-                <div className="bg-primary/10 p-1 rounded-full">
-                  <Wallet className="h-3.5 w-3.5 text-primary" />
-                </div>
-                <span>ยอดคงเหลือ</span>
-              </CardDescription>
-              <Badge variant="outline" className="font-normal border-primary/20 bg-primary/5 text-primary">
-                ปัจจุบัน
-              </Badge>
-            </div>
-            {loading ? (
-              <Skeleton className="h-8 w-32 mt-1" />
-            ) : (
-              <CardTitle className="text-2xl font-bold">{formatCurrency(balance)}</CardTitle>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">อัตราการออม</span>
-                <span
-                  className={cn(
-                    'font-medium',
-                    income > 0 && balance / income >= 0.2
-                      ? 'text-success'
-                      : balance < 0
-                      ? 'text-destructive'
-                      : 'text-warning'
-                  )}
-                >
-                  {income > 0 ? Math.round((balance / income) * 100) : 0}%
-                </span>
-              </div>
-              <Progress
-                value={income > 0 ? Math.min((balance / income) * 100, 100) : 0}
-                className="h-1.5 bg-muted"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* บัตรแสดงรายรับ */}
-        <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1 font-medium">
-              <div className="bg-success/10 p-1 rounded-full">
-                <TrendingUp className="h-3.5 w-3.5 text-success" />
-              </div>
-              <span>รายรับ</span>
-            </CardDescription>
-            {loading ? (
-              <Skeleton className="h-8 w-32 mt-1" />
-            ) : (
-              <CardTitle className="text-2xl font-bold">{formatCurrency(income)}</CardTitle>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">เทียบกับเดือนก่อน</span>
-                <span className="font-medium text-success">+12%</span>
-              </div>
-              <Progress value={75} className="h-1.5 bg-muted" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* บัตรแสดงรายจ่าย */}
-        <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1 font-medium">
-              <div className="bg-destructive/10 p-1 rounded-full">
-                <TrendingDown className="h-3.5 w-3.5 text-destructive" />
-              </div>
-              <span>รายจ่าย</span>
-            </CardDescription>
-            {loading ? (
-              <Skeleton className="h-8 w-32 mt-1" />
-            ) : (
-              <CardTitle className="text-2xl font-bold">{formatCurrency(expense)}</CardTitle>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">เทียบกับเดือนก่อน</span>
-                <span className="font-medium text-destructive">+8%</span>
-              </div>
-              <Progress value={65} className="h-1.5 bg-muted" />
-            </div>
-          </CardContent>
-        </Card>
+        <SummaryCard
+          title="รายรับ"
+          value={summary.totalIncome}
+          icon={TrendingUp}
+          color="text-success"
+          bgColor="bg-success/10"
+          loading={loading}
+          compareText="+12%"
+          compareColor="text-success"
+          progressValue={75}
+        />
+        <SummaryCard
+          title="รายจ่าย"
+          value={summary.totalExpense}
+          icon={TrendingDown}
+          color="text-destructive"
+          bgColor="bg-destructive/10"
+          loading={loading}
+          compareText="+8%"
+          compareColor="text-destructive"
+          progressValue={65}
+        />
+                <SummaryCard
+          title="ยอดคงเหลือ"
+          value={summary.balance}
+          icon={Wallet}
+          color={(summary.totalIncome - summary.totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'}
+          bgColor={(summary.totalIncome - summary.totalExpense) >= 0 ? 'bg-green-100' : 'bg-red-100'}
+          loading={loading}
+          compareText={`${summary.totalIncome > 0 ? Math.round((summary.balance / summary.totalIncome) * 100) : 0}%`}
+          compareColor={
+            summary.totalIncome > 0 && summary.balance / summary.totalIncome >= 0.2
+              ? 'text-success'
+              : summary.balance < 0
+              ? 'text-destructive'
+              : 'text-warning'
+          }
+          progressValue={summary.totalIncome > 0 ? Math.min((summary.balance / summary.totalIncome) * 100, 100) : 0}
+        />
       </section>
 
       {/* Tabs หลัก: Dashboard / Scanner / Settings */}

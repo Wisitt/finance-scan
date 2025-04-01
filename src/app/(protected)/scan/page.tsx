@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTransactionStore } from '@/store/transactionStore';
-import { uploadImage } from '@/lib/supabase';
+import { deleteImageFromUrl, uploadImage } from '@/lib/supabase';
 import { format, isValid, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { cn } from '@/utils/utils';
@@ -79,6 +79,7 @@ export default function ReceiptScanner() {
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
   const [scanningCompleted, setScanningCompleted] = useState(false);
+  const [uploaderResetKey, setUploaderResetKey] = useState<string>('initial');
 
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
 
@@ -354,7 +355,24 @@ export default function ReceiptScanner() {
   } finally {
     }
   };
-
+  const handleResetScan = async () => {
+    await Promise.all(scanResults.map(async (r) => {
+      if (r.imageUrl && !r.imageUrl.startsWith('blob:')) {
+        await deleteImageFromUrl(r.imageUrl);
+      }
+    }));
+  
+    // ล้างทุก state
+    setSelectedFiles([]);
+    setScanResults([]);
+    setCurrentStep(1);
+    setOverallProgress(0);
+    setProcessingProgress(0);
+    setScanningCompleted(false);
+  
+    setUploaderResetKey(Date.now().toString());
+  };
+  
   // Remove a scan result card
   const removeResult = (index: number) => {
     setScanResults(prev => prev.filter((_, i) => i !== index));
@@ -479,11 +497,12 @@ export default function ReceiptScanner() {
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="p-4 md:p-6 pb-0">
-              <ImageUploader
-                onImagesSelected={handleImagesSelected}
-                isProcessing={isScanning}
-                maxFiles={100}
-              />
+            <ImageUploader
+              onImagesSelected={handleImagesSelected}
+              isProcessing={isScanning}
+              maxFiles={100}
+              resetKey={uploaderResetKey}
+            />
             </div>
 
 
@@ -550,7 +569,7 @@ export default function ReceiptScanner() {
             <div className="flex gap-2 w-full sm:w-auto">
                 <Button
                     variant="outline"
-                    onClick={() => handleImagesSelected([])}
+                    onClick={handleResetScan}
                     disabled={selectedFiles.length === 0 || isScanning}
                     className="flex-1 sm:flex-none"
                 >
