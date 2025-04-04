@@ -46,6 +46,19 @@ export function useTransactionFilters(transactions: Transaction[]) {
     setFilters(DEFAULT_FILTERS);
   };
 
+  // Calculate the number of active filters (non-default values)
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    
+    if (filters.type !== DEFAULT_FILTERS.type) count++;
+    if (filters.category !== DEFAULT_FILTERS.category) count++;
+    if (filters.dateRange !== DEFAULT_FILTERS.dateRange) count++;
+    if (filters.searchTerm !== DEFAULT_FILTERS.searchTerm && filters.searchTerm.trim() !== '') count++;
+    // We don't count sortOption as a "filter" since it's just ordering
+    
+    return count;
+  }, [filters]);
+
   // Apply filters to transactions
   const processedTransactions = useMemo(() => {
     if (!transactions.length) return [];
@@ -63,8 +76,8 @@ export function useTransactionFilters(transactions: Transaction[]) {
       // Filter by search term
       if (searchTerm) {
         const lowerSearch = searchTerm.toLowerCase();
-        const inCategory = tx.category.toLowerCase().includes(lowerSearch);
-        const inDescription = tx.description?.toLowerCase().includes(lowerSearch);
+        const inCategory = tx.category?.toLowerCase().includes(lowerSearch) || false;
+        const inDescription = tx.description?.toLowerCase().includes(lowerSearch) || false;
         if (!inCategory && !inDescription) return false;
       }
       
@@ -124,6 +137,7 @@ export function useTransactionFilters(transactions: Transaction[]) {
     resetFilters,
     uniqueCategories,
     processedTransactions,
-    summary
+    summary,
+    activeFilterCount
   };
 }

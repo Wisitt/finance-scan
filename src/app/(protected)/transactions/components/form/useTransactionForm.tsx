@@ -16,7 +16,12 @@ const transactionSchema = z.object({
     required_error: "กรุณาระบุวันที่",
   }),
 });
-
+const defaultValues = {
+  amount: undefined,
+  category: '',
+  date: new Date(),
+  description: '',
+};
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export function useTransactionForm() {
@@ -27,16 +32,15 @@ export function useTransactionForm() {
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formattedAmount, setFormattedAmount] = useState('');
+  const [formState, setFormState] = useState({
+    isSuccess: false,
+    error: null
+  });
 
   // Initialize form with react-hook-form
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      amount: undefined,
-      category: '',
-      description: '',
-      date: new Date(),
-    },
+    defaultValues,
   });
 
   useEffect(() => {
@@ -74,7 +78,8 @@ export function useTransactionForm() {
     }
     
     setIsSubmitting(true);
-    
+    setFormState({ isSuccess: false, error: null });
+
     try {
       const newTransaction = {
         user_id: user.id,
@@ -106,7 +111,10 @@ export function useTransactionForm() {
 
   // Also include onSubmit for consistency with your previous implementation
   const onSubmit = form.handleSubmit(handleSubmit);
-
+  const resetForm = () => {
+    form.reset(defaultValues);
+    setFormState({ isSuccess: false, error: null });
+  };
   return {
     form,
     onSubmit,
@@ -120,6 +128,8 @@ export function useTransactionForm() {
     isAuthenticated,
     user,
     handleTransactionTypeChange,
-    handleSubmit
+    handleSubmit,
+    formState,
+    resetForm
   };
 }

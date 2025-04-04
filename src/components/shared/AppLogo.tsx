@@ -8,10 +8,6 @@ interface AppLogoProps {
   showText?: boolean;
 }
 
-/**
- * Component แสดงโลโก้ของแอพพลิเคชัน
- * สามารถเลือกแสดงเฉพาะไอคอนหรือพร้อมข้อความได้
- */
 export function AppLogo({ className = '', showText = true }: AppLogoProps) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>

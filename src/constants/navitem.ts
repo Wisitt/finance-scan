@@ -1,17 +1,12 @@
 import { Home, ArrowRightLeft, ScanLine, User, Settings } from "lucide-react";
 import { APP_ROUTES } from "./routes";
 
-/**
- * Navigation item interface
- */
 export interface NavItem {
     name: string;
     href: string;
     icon: React.ElementType;
-    // รูปแบบเพื่อตรวจสอบว่าเส้นทางปัจจุบันอยู่ในเมนูนี้หรือไม่ (regex pattern)
     pattern?: RegExp;
     /**
-     * Whether this item should show in the navigation menu
      * @default true
      */
     showInNav?: boolean;

@@ -13,18 +13,18 @@ import { Button } from '@/components/ui/button';
 interface ImagePreviewModalProps {
   imageUrl: string | null;
   onClose: () => void;
-  open: boolean;
+  isOpen: boolean;
 }
 
 export default function ImagePreviewModal({
   imageUrl,
   onClose,
-  open,
+  isOpen,
 }: ImagePreviewModalProps) {
   if (!imageUrl) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex justify-between">

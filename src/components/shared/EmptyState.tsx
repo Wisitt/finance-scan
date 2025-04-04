@@ -1,15 +1,45 @@
-import { FileText } from 'lucide-react';
+'use client';
 
-export default function EmptyState({ title = 'ไม่พบข้อมูล', message }: { title?: string; message?: string }) {
+import { ReactNode } from 'react';
+import { InboxIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+
+interface EmptyStateProps {
+  icon?: ReactNode;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  className?: string;
+}
+
+export function EmptyState({
+  icon = <InboxIcon className="h-10 w-10 text-muted-foreground" />,
+  title,
+  description,
+  action,
+  className
+}: EmptyStateProps) {
   return (
-    <div className="text-center py-12 px-4">
-      <div className="mx-auto h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4">
-        <FileText className="h-10 w-10 text-muted-foreground opacity-50" />
+    <motion.div 
+      className={cn(
+        "flex flex-col items-center justify-center py-12 px-4 text-center",
+        className
+      )}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="bg-muted/50 p-4 rounded-full mb-4">
+        {icon}
       </div>
       <h3 className="text-lg font-medium mb-2">{title}</h3>
-      <p className="text-muted-foreground max-w-md mx-auto">
-        {message || 'ไม่มีรายการตรงกับเงื่อนไข ลองเปลี่ยนตัวกรองดูนะ'}
-      </p>
-    </div>
+      {description && (
+        <p className="text-muted-foreground max-w-sm mb-6">
+          {description}
+        </p>
+      )}
+      {action && action}
+    </motion.div>
   );
 }

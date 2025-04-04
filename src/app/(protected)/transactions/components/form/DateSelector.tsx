@@ -22,38 +22,48 @@ interface DateSelectorProps {
   transactionType: 'expense' | 'income';
 }
 
-export default function DateSelector({ form, transactionType }: DateSelectorProps) {
+export function DateSelector({ form, transactionType }: DateSelectorProps) {
   return (
     <FormField
       control={form.control}
       name="date"
       render={({ field }) => (
         <FormItem className="flex flex-col w-full">
-          <FormLabel className="text-base">วันที่</FormLabel>
+          <FormLabel className="text-base font-medium">วันที่</FormLabel>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "w-full pl-3 text-left font-normal transition-all duration-300 py-3 h-auto",
+                    "w-full pl-3 text-left font-normal transition-all duration-300 py-3 h-auto shadow-sm",
+                    "focus:ring-2 focus:ring-offset-0",
                     transactionType === 'expense' 
                       ? "focus-visible:ring-red-400 hover:border-red-200" 
-                      : "focus-visible:ring-green-400 hover:border-green-200"
+                      : "focus-visible:ring-green-400 hover:border-green-200",
+                    field.value && "border-slate-300 font-medium"
                   )}
                 >
-                  {field.value ? (
-                    format(
-                      // Ensure field.value is a Date object by parsing it if it's a string
-                      typeof field.value === 'string' 
-                        ? parseISO(field.value) 
-                        : field.value, 
-                      "d MMMM yyyy"
-                    )
-                  ) : (
-                    <span>เลือกวันที่</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon 
+                      className={cn(
+                        "h-4 w-4",
+                        field.value 
+                          ? transactionType === 'expense' ? "text-red-500" : "text-green-500"
+                          : "text-muted-foreground"
+                      )} 
+                    />
+                    {field.value ? (
+                      format(
+                        typeof field.value === 'string' 
+                          ? parseISO(field.value) 
+                          : field.value, 
+                        "d MMMM yyyy"
+                      )
+                    ) : (
+                      <span>เลือกวันที่</span>
+                    )}
+                  </div>
                 </Button>
               </FormControl>
             </PopoverTrigger>
@@ -64,6 +74,7 @@ export default function DateSelector({ form, transactionType }: DateSelectorProp
                 onSelect={field.onChange}
                 initialFocus
                 disabled={(date) => date > new Date()}
+                className={transactionType === 'expense' ? "accent-red-600" : "accent-green-600"}
               />
             </PopoverContent>
           </Popover>

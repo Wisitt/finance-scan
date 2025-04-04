@@ -20,6 +20,10 @@ interface ThemeOption {
   label: string;
   icon: typeof Sun;
   description: string;
+  iconClass: string;
+  bgClass: string;
+  activeBgClass: string;
+  activeTextClass: string;
 }
 
 export const ThemeToggle = () => {
@@ -27,25 +31,37 @@ export const ThemeToggle = () => {
   const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Theme options configuration
+  // Enhanced theme options configuration
   const themeOptions: ThemeOption[] = [
     {
       value: "light",
       label: "สว่าง",
       icon: Sun,
       description: "ใช้ธีมสว่างสำหรับการใช้งานในพื้นที่มีแสง",
+      iconClass: "text-amber-500",
+      bgClass: "bg-gradient-to-br from-amber-50 to-amber-100",
+      activeBgClass: "bg-gradient-to-br from-amber-100 to-amber-200",
+      activeTextClass: "text-amber-600",
     },
     {
       value: "dark",
-      label: "มืด",
       icon: Moon,
+      label: "มืด",
       description: "ใช้ธีมมืดเพื่อลดแสงจอและถนอมสายตา",
+      iconClass: "text-violet-400",
+      bgClass: "bg-gradient-to-br from-violet-400/20 to-indigo-400/20",
+      activeBgClass: "bg-gradient-to-br from-violet-400/30 to-indigo-400/30",
+      activeTextClass: "text-violet-300",
     },
     {
       value: "system",
-      label: "ระบบ",
       icon: Monitor,
+      label: "ระบบ",
       description: "ปรับตามการตั้งค่าของระบบ",
+      iconClass: "text-sky-500",
+      bgClass: "bg-slate-100 dark:bg-slate-800/40",
+      activeBgClass: "bg-gradient-to-br from-sky-400/20 to-sky-500/20",
+      activeTextClass: "text-sky-400",
     },
   ];
 
@@ -61,18 +77,23 @@ export const ThemeToggle = () => {
   };
 
   const displayTheme = getCurrentDisplayTheme();
-  const ThemeIcon = themeOptions.find(t => t.value === (theme === "system" ? displayTheme : theme))?.icon || Sun;
+  const currentThemeOption = themeOptions.find(t => t.value === (theme === "system" ? displayTheme : theme)) 
+    || themeOptions.find(t => t.value === theme) 
+    || themeOptions[0];
+  
+  const ThemeIcon = currentThemeOption.icon;
+  const iconClass = currentThemeOption.iconClass;
 
   // Initialize theme on component mount
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    if (savedTheme) {
+    if (savedTheme && (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system")) {
       setTheme(savedTheme);
     }
   }, []);
 
-  // Apply theme to document and save preference
+  // Apply theme to document and save preference with enhanced transitions
   useEffect(() => {
     if (!mounted) return;
 
@@ -83,10 +104,17 @@ export const ThemeToggle = () => {
         ? (mediaQuery.matches ? "dark" : "light") 
         : theme;
         
+      const root = document.documentElement;
+      
+      // Add theme transition class for smooth changes
+      if (!root.classList.contains('theme-transition')) {
+        root.classList.add('theme-transition');
+      }
+      
       if (resolvedTheme === "dark") {
-        document.documentElement.classList.add("dark");
+        root.classList.add("dark");
       } else {
-        document.documentElement.classList.remove("dark");
+        root.classList.remove("dark");
       }
     };
 
@@ -104,14 +132,14 @@ export const ThemeToggle = () => {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme, mounted]);
 
-  // Update theme and close dropdown
+  // Update theme
   const setThemeHandler = (newTheme: Theme) => {
     setTheme(newTheme);
   };
 
   if (!mounted) {
     // Render empty div with same dimensions to prevent layout shift
-    return <div className="w-9 h-9" />;
+    return <div className="w-10 h-10" />;
   }
 
   return (
@@ -124,34 +152,37 @@ export const ThemeToggle = () => {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "relative rounded-full w-9 h-9 overflow-hidden transition-all",
-                  isHovered && "bg-primary/10"
+                  "relative rounded-full w-10 h-10 overflow-hidden transition-all border",
+                  isHovered && displayTheme === "dark" 
+                    ? "bg-violet-500/10 border-violet-500/30" 
+                    : isHovered 
+                    ? "bg-amber-500/10 border-amber-500/30" 
+                    : "border-transparent"
                 )}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 aria-label={`เปลี่ยนธีม (ปัจจุบัน: ${theme === "system" ? "ระบบ" : theme === "dark" ? "มืด" : "สว่าง"})`}
               >
-                {/* Background glow effect */}
+                {/* Enhanced background effect */}
                 <div className={cn(
                   "absolute inset-0 opacity-0 transition-opacity duration-300",
-                  displayTheme === "dark" ? "bg-blue-500/10" : "bg-amber-500/10",
-                  isHovered && "opacity-30"
+                  displayTheme === "dark" 
+                    ? "bg-gradient-to-r from-violet-500/20 to-indigo-500/20" 
+                    : "bg-gradient-to-r from-amber-500/20 to-orange-500/20",
+                  isHovered && "opacity-40"
                 )} />
                 
-                {/* Icon container with animation */}
+                {/* Icon container with enhanced animation */}
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={displayTheme}
-                    initial={{ y: -20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 20, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    key={displayTheme + theme}
+                    initial={{ scale: 0.5, rotate: -10, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    exit={{ scale: 0.5, rotate: 10, opacity: 0 }}
+                    transition={{ duration: 0.25, type: "spring", stiffness: 200 }}
                     className="relative z-10 flex items-center justify-center"
                   >
-                    <ThemeIcon className={cn(
-                      "h-5 w-5",
-                      displayTheme === "dark" ? "text-blue-200" : "text-amber-500"
-                    )} />
+                    <ThemeIcon className={cn("h-5 w-5", iconClass)} />
                   </motion.div>
                 </AnimatePresence>
               </Button>
@@ -159,12 +190,12 @@ export const ThemeToggle = () => {
           </TooltipTrigger>
           
           <TooltipContent side="bottom" className="font-medium">
-            <p>เปลี่ยนธีม</p>
+            <div>เปลี่ยนธีม</div>
           </TooltipContent>
         </Tooltip>
 
         <DropdownMenuContent align="end" className="w-56 p-1.5">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             {themeOptions.map((option) => {
               const Icon = option.icon;
               const isActive = theme === option.value;
@@ -175,20 +206,30 @@ export const ThemeToggle = () => {
                   onClick={() => setThemeHandler(option.value)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg transition-all",
-                    isActive && "bg-primary/10"
+                    isActive 
+                      ? option.value === "dark" 
+                        ? "bg-violet-500/20 dark:bg-violet-500/20" 
+                        : option.value === "light" 
+                        ? "bg-amber-500/20" 
+                        : "bg-sky-500/20"
+                      : "hover:bg-background-hover"
                   )}
                 >
-                  <div className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all",
-                    option.value === "dark" && "bg-blue-950/10",
-                    option.value === "light" && "bg-amber-100",
-                    option.value === "system" && "bg-slate-100 dark:bg-slate-800",
-                    isActive && option.value === "dark" && "bg-blue-100 text-blue-900",
-                    isActive && option.value === "light" && "bg-amber-100 text-amber-900",
-                    isActive && option.value === "system" && "bg-primary/20 text-primary"
-                  )}>
-                    <Icon className="h-5 w-5" />
-                  </div>
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all",
+                      option.bgClass,
+                      isActive && option.activeBgClass
+                    )}
+                  >
+                    <Icon className={cn(
+                      "h-5 w-5", 
+                      option.iconClass,
+                      isActive && option.activeTextClass
+                    )} />
+                  </motion.div>
                   
                   <div className="flex-1">
                     <p className="text-sm font-medium">{option.label}</p>
@@ -196,7 +237,19 @@ export const ThemeToggle = () => {
                   </div>
                   
                   {isActive && (
-                    <Check className="h-4 w-4 text-primary" />
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                      className={cn(
+                        "flex h-5 w-5 items-center justify-center rounded-full",
+                        option.value === "dark" ? "bg-violet-500 text-navy-900" :
+                        option.value === "light" ? "bg-amber-500 text-white" :
+                        "bg-sky-500 text-white"
+                      )}
+                    >
+                      <Check className="h-3 w-3" />
+                    </motion.div>
                   )}
                 </DropdownMenuItem>
               );

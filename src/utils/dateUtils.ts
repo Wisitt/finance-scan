@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, formatDistance } from 'date-fns';
 import { th } from 'date-fns/locale';
 
 /**
@@ -35,10 +35,54 @@ export function formatToThaiDate(date: Date | string): string {
 /**
  * แปลงวันที่ให้อยู่ในรูปแบบที่กำหนด
  */
-export const formatToShortDate = (dateString: string) => {
-  const date = parseISO(dateString);
-  return format(date, 'dd MMM yyyy');
-};
+export function formatToShortDate(dateString: string): string {
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
+    return format(date, 'd MMM yyyy', { locale: th });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+}
+
+export function timeAgo(date: Date | string, addSuffix = true): string {
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid date';
+    }
+    
+    return formatDistance(dateObj, new Date(), {
+      addSuffix,
+      locale: th
+    });
+  } catch (error) {
+    console.error('Error formatting time ago:', error);
+    return 'Unknown time';
+  }
+}
+
+export function formatThaiDate(date: Date | string, formatStr = 'PPP'): string {
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, formatStr, { locale: th });
+  } catch (error) {
+    console.error('Error formatting Thai date:', error);
+    return 'Invalid date';
+  }
+}
+
+export function isToday(date: Date | string): boolean {
+  const today = new Date();
+  const checkDate = typeof date === 'string' ? new Date(date) : date;
+  
+  return (
+    checkDate.getDate() === today.getDate() &&
+    checkDate.getMonth() === today.getMonth() &&
+    checkDate.getFullYear() === today.getFullYear()
+  );
+}
 
 export const formatThaiFullDate = (date: Date): string => {
   return date.toLocaleDateString('th-TH', {

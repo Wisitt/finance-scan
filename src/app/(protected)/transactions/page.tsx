@@ -11,7 +11,7 @@ import AddTransactionForm from './components/form/AddTransactionForm';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/utils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import TransactionList from './components/list/TransactionList';
+import { TransactionList } from './components/list/TransactionList';
 
 export default function TransactionsPage() {
   const { data: session } = useSession();
@@ -61,13 +61,13 @@ export default function TransactionsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button 
+            {/* <Button 
               variant="outline" 
               size="sm"
               onClick={() => fetchTransactions()}
               className="hidden md:flex items-center"
             >
-            </Button>
+            </Button> */}
             
             <Button 
               onClick={() => setShowMobileForm(true)} 

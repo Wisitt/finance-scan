@@ -13,28 +13,28 @@ import {
 import { Button } from '@/components/ui/button';
 
 interface ConfirmDialogProps {
-  open: boolean;
-  title?: string;
-  description?: string;
-  confirmText?: string;
-  cancelText?: string;
-  loading?: boolean;
-  onConfirm: () => void;
-  onClose: () => void;
+    isOpen: boolean;
+    title?: string;
+    description?: string;
+    confirmText?: string;
+    cancelText?: string;
+    loading?: boolean;
+    onConfirm: () => void;
+    onClose: () => void;
 }
 
 export function ConfirmDialog({
-  open,
-  title = 'ยืนยัน',
-  description = 'คุณแน่ใจหรือไม่?',
-  confirmText = 'ตกลง',
-  cancelText = 'ยกเลิก',
-  loading,
-  onConfirm,
-  onClose,
+    isOpen,
+    title = 'ยืนยัน',
+    description = 'คุณแน่ใจหรือไม่?',
+    confirmText = 'ตกลง',
+    cancelText = 'ยกเลิก',
+    loading,
+    onConfirm,
+    onClose,
 }: ConfirmDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

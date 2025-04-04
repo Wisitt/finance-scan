@@ -78,7 +78,7 @@ export default function HomePage() {
   // Optimized loading state with memoization
   const loadingView = useMemo(() => (
     <motion.div
-      className="flex min-h-screen items-center justify-center bg-gradient-radial from-background to-background/80"
+      className="flex min-h-screen items-center justify-center bg-80"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}

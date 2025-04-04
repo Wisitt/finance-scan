@@ -4,21 +4,27 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function TransactionListSkeleton() {
+export function TransactionListSkeleton() {
   return (
     <div className="space-y-6">
+      {/* Header Skeleton */}
       <div className="flex justify-between items-center">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-10 w-32" />
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-44" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-9 w-28" />
       </div>
+
+      {/* Summary Cards Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="bg-muted/20">
-            <CardContent className="pt-6">
+          <Card key={i} className="bg-muted/10">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-8 w-32" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-7 w-32" />
                 </div>
                 <Skeleton className="h-10 w-10 rounded-full" />
               </div>
@@ -26,14 +32,23 @@ export default function TransactionListSkeleton() {
           </Card>
         ))}
       </div>
+
+      {/* Filters Skeleton */}
       <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-32" />
+        <CardHeader className="pb-0">
+          <Skeleton className="h-7 w-40 mb-1" />
+          <Skeleton className="h-4 w-60" />
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Skeleton className="h-10 w-[200px]" />
+            <Skeleton className="h-10 w-[120px]" />
+            <Skeleton className="h-10 w-[120px]" />
+          </div>
         </CardHeader>
-        <Separator />
+        
+        <Separator className="my-4" />
+        
         <CardContent className="p-6 space-y-4">
-          {[1, 2, 3, 4].map((i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
               className="flex items-center justify-between p-4 border rounded-lg"
@@ -45,9 +60,19 @@ export default function TransactionListSkeleton() {
                   <Skeleton className="h-3 w-16" />
                 </div>
               </div>
-              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-6 w-24" />
             </div>
           ))}
+          
+          {/* Pagination skeleton */}
+          <div className="flex justify-between items-center pt-4">
+            <Skeleton className="h-4 w-40" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-8" />
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

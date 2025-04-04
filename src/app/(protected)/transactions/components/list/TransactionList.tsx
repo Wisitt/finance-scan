@@ -1,15 +1,12 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
-
-// Components
-
-
-// UI
 import { format } from 'date-fns';
+
+// UI Components
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,25 +18,46 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
+import { 
+  FileText, 
+  ChevronLeft, 
+  ChevronRight, 
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Search,
+  Filter,
+} from 'lucide-react';
 
-// Icons
-import { Calendar, Download, FileText, ChevronLeft, ChevronRight, CreditCard, ArrowUpCircle, Wallet } from 'lucide-react';
-import { exportTransactionsToCSV } from './exportTransactionsToCSV';
-import TransactionDetailModal from './TransactionDetailModal';
-import TransactionFilters from './TransactionFilters';
-import TransactionListSkeleton from './TransactionListSkeleton';
-import TransactionTable from './TransactionTable';
+// Components
+
+import { TransactionFilters } from './TransactionFilters';
+
+import { TransactionListSkeleton } from './TransactionListSkeleton';
+
+// Hooks and Utilities
 import { useTransactionFilters } from '@/hooks/useTransactionFilters';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { ImageModal } from '@/components/shared/ImageModal';
-import { SummaryCard } from '@/components/shared/SummaryCard';
-import EmptyState from '@/components/shared/EmptyState';
+import { exportTransactionsToCSV, exportTransactionsToJSON } from '@/utils/exportUtils';
 
-// Utils
+import { EmptyState } from '@/components/shared/EmptyState';
+import { TransactionDetailModal } from '@/components/ui/transaction-detail-modal';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ImageModal } from '@/components/ui/image-modal';
+import TransactionTable from './TransactionTable';
 
+interface TransactionListProps {
+  showFilters?: boolean;
+  showExport?: boolean;
+  showHeader?: boolean;
+  limitCount?: number;
+}
 
-export default function TransactionList() {
+export function TransactionList({
+  showFilters = true,
+  showHeader = true,
+  limitCount,
+}: TransactionListProps) {
   const { user } = useAuthUser();
   const { transactions, loading: transactionsLoading, deleteTransaction } = useTransactionStore();
   
@@ -47,6 +65,7 @@ export default function TransactionList() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
   
   // Filters and pagination
   const {
@@ -56,6 +75,7 @@ export default function TransactionList() {
     processedTransactions,
     uniqueCategories,
     summary,
+    activeFilterCount
   } = useTransactionFilters(transactions);
   
   // Pagination
@@ -71,9 +91,15 @@ export default function TransactionList() {
   const totalItems = processedTransactions.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentTransactions = useMemo(() => {
-    return processedTransactions.slice(startIndex, startIndex + itemsPerPage);
-  }, [processedTransactions, startIndex]);
+  
+  // Apply limit if specified
+  const displayedTransactions = useMemo(() => {
+    let results = processedTransactions.slice(startIndex, startIndex + itemsPerPage);
+    if (limitCount && limitCount > 0) {
+      results = results.slice(0, limitCount);
+    }
+    return results;
+  }, [processedTransactions, startIndex, limitCount, itemsPerPage]);
 
   // Handle delete
   const handleDelete = async (id: string) => {
@@ -83,20 +109,30 @@ export default function TransactionList() {
       setDeleteId(null);
       setSelectedTransaction(null);
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาดในการลบรายการ');
+      toast.error('เกิดข้อผิดพลาดในการลบรายการ', {
+        description: 'โปรดลองอีกครั้งในภายหลัง',
+      });
       console.error(error);
     }
   };
 
   // Handle CSV export
-  const handleExportCSV = () => {
-    if (!processedTransactions.length) {
-      toast.error('ไม่มีข้อมูลที่จะส่งออก');
-      return;
+  const handleExport = async (type: 'csv' | 'json') => {
+    setIsExporting(true);
+    try {
+      if (type === 'csv') {
+        exportTransactionsToCSV(processedTransactions);
+      } else if (type === 'json') {
+        exportTransactionsToJSON(processedTransactions);
+      }
+    } catch (error) {
+      toast.error('เกิดข้อผิดพลาดในการส่งออกข้อมูล', {
+        description: 'โปรดลองอีกครั้งในภายหลัง',
+      });
+      console.error(error);
+    } finally {
+      setIsExporting(false);
     }
-    
-    exportTransactionsToCSV(processedTransactions);
-    toast.success('ส่งออกข้อมูลสำเร็จ');
   };
 
   // Loading state
@@ -104,81 +140,111 @@ export default function TransactionList() {
     return <TransactionListSkeleton />;
   }
 
+  // Empty state
+  if (!transactions.length) {
+    return (
+      <EmptyState 
+        icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+        title="ไม่มีรายการธุรกรรม"
+        description="คุณยังไม่มีรายการธุรกรรมใด ๆ เพิ่มรายการแรกของคุณเพื่อเริ่มต้น"
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold flex items-center">
-          <FileText className="mr-2 h-6 w-6 text-primary" />
-          รายการธุรกรรมทั้งหมด
-        </h2>
-        <div className="flex items-center flex-wrap gap-2">
-          <Badge variant="outline" className="font-normal">
-            <Calendar className="mr-1.5 h-3.5 w-3.5" />
-            {format(new Date(), 'dd MMM yyyy')}
-          </Badge>
-          <Button variant="outline" size="sm" onClick={handleExportCSV}>
-            <Download className="mr-1.5 h-3.5 w-3.5" />
-            ส่งออก
-          </Button>
+      {showHeader && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <Card className="border bg-green-50/30 hover:shadow-sm transition-shadow duration-200">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">รายรับทั้งหมด</p>
+                <p className="text-xl font-bold text-green-600 mt-1">{summary.totalIncome.toLocaleString('th-TH')} บาท</p>
+              </div>
+              <div className="p-2 bg-green-100 rounded-full">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border bg-red-50/30 hover:shadow-sm transition-shadow duration-200">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">รายจ่ายทั้งหมด</p>
+                <p className="text-xl font-bold text-red-600 mt-1">{summary.totalExpense.toLocaleString('th-TH')} บาท</p>
+              </div>
+              <div className="p-2 bg-red-100 rounded-full">
+                <TrendingDown className="h-5 w-5 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`border ${summary.balance >= 0 ? 'bg-blue-50/30' : 'bg-amber-50/30'} hover:shadow-sm transition-shadow duration-200`}>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">ยอดคงเหลือ</p>
+                <p className={`text-xl font-bold mt-1 ${summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                  {summary.balance.toLocaleString('th-TH')} บาท
+                </p>
+              </div>
+              <div className={`p-2 rounded-full ${summary.balance >= 0 ? 'bg-blue-100' : 'bg-amber-100'}`}>
+                <Wallet className={`h-5 w-5 ${summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'}`} />
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      {/* Summary Cards */}
-        <SummaryCard
-        title="รายรับทั้งหมด"
-        value={summary.totalIncome}
-        icon={Wallet}
-        color="text-green-600"
-        bgColor="bg-green-100"
-        />
-
-        <SummaryCard
-        title="รายจ่ายทั้งหมด"
-        value={summary.totalExpense}
-        icon={CreditCard}
-        color="text-red-600"
-        bgColor="bg-red-100"
-        />
-
-        <SummaryCard
-        title="ยอดคงเหลือ"
-        value={summary.balance}
-        icon={ArrowUpCircle}
-        color={summary.balance >= 0 ? 'text-primary' : 'text-red-600'}
-        bgColor={summary.balance >= 0 ? 'bg-primary/10' : 'bg-red-100'}
-        />
+      )}
 
       {/* Main Content */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <CardTitle>รายการธุรกรรม</CardTitle>
-              <CardDescription>
-                ทั้งหมด {processedTransactions.length} รายการ
-              </CardDescription>
+        {showFilters && (
+          <CardHeader className="pb-0">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    รายการธุรกรรม
+                    <Badge variant="secondary" className="ml-2">
+                      {processedTransactions.length}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
+                  </CardDescription>
+                </div>
+              </div>
+              
+              <TransactionFilters 
+                filters={filters}
+                updateFilter={updateFilter}
+                resetFilters={resetFilters}
+                uniqueCategories={uniqueCategories}
+                activeFilterCount={activeFilterCount}
+              />
             </div>
-            
-            <TransactionFilters 
-              filters={filters}
-              updateFilter={updateFilter}
-              resetFilters={resetFilters}
-              uniqueCategories={uniqueCategories}
-            />
-          </div>
-        </CardHeader>
+          </CardHeader>
+        )}
         
-        <Separator />
+        <Separator className="my-1" />
         
         <CardContent className="p-4">
           {!processedTransactions.length ? (
             <EmptyState 
-                title='ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหาของคุณ ลองเปลี่ยนตัวกรองหรือคำค้นหา' 
-                message='ไม่พบรายการธุรกรรม' />
+              icon={<Search className="h-8 w-8 text-muted-foreground" />}
+              title="ไม่พบรายการที่ตรงกับเงื่อนไข"
+              description="ลองเปลี่ยนตัวกรองหรือคำค้นหาเพื่อดูรายการธุรกรรมอื่น ๆ"
+              action={
+                <Button variant="outline" size="sm" onClick={resetFilters}>
+                  <Filter className="h-3.5 w-3.5 mr-1.5" />
+                  รีเซ็ตตัวกรอง
+                </Button>
+              }
+            />
           ) : (
             <TransactionTable 
-              transactions={currentTransactions} 
+              transactions={displayedTransactions} 
               onViewDetails={setSelectedTransaction}
               onViewImage={setShowImageModal}
               onDeleteClick={setDeleteId}
@@ -186,8 +252,8 @@ export default function TransactionList() {
           )}
         </CardContent>
         
-        {processedTransactions.length > 0 && (
-          <CardFooter className="border-t p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
+        {processedTransactions.length > itemsPerPage && !limitCount && (
+          <CardFooter className="border-t p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
             <div className="text-xs text-muted-foreground">
               แสดง {startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
               {totalItems} รายการ
@@ -199,10 +265,11 @@ export default function TransactionList() {
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">ก่อนหน้า</span>
               </Button>
-              <div className="text-sm font-medium">
-                หน้า {currentPage} / {totalPages}
+              <div className="text-sm font-medium bg-muted/30 px-3 py-1 rounded">
+                {currentPage} / {totalPages}
               </div>
               <Button
                 variant="outline"
@@ -210,13 +277,15 @@ export default function TransactionList() {
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
-                <ChevronRight className="h-4 w-4" />
+                <span className="hidden sm:inline">ถัดไป</span>
+                <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
           </CardFooter>
         )}
       </Card>
 
+      {/* Modals */}
       <ImageModal 
         imageUrl={showImageModal} 
         isOpen={!!showImageModal}
@@ -231,6 +300,7 @@ export default function TransactionList() {
           setDeleteId(id);
           setSelectedTransaction(null);
         }}
+        onViewImage={setShowImageModal}
         username={user?.name}
       />
       
@@ -239,9 +309,10 @@ export default function TransactionList() {
         onClose={() => setDeleteId(null)}
         onConfirm={() => deleteId && handleDelete(deleteId)}
         title="ยืนยันการลบรายการ"
-        description="การลบจะไม่สามารถย้อนกลับได้"
+        description="การลบจะไม่สามารถย้อนกลับได้ คุณแน่ใจหรือไม่ที่จะลบรายการนี้"
         confirmText="ลบรายการ"
-        />
+        intent="delete"
+      />
     </div>
   );
 }

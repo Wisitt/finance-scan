@@ -1,12 +1,185 @@
 @import "tailwindcss";
-
 @plugin "tailwindcss-animate";
-
 @custom-variant dark (&:is(.dark *));
-
 @import '../styles/themes.css';
 @import '../styles/layout.css';
 
+:root {
+  /* Light Mode - Rich Gold & Purple Theme (Stimulating) */
+  --background: 35 25% 97%;
+  --foreground: 265 30% 25%;
+  --card: 40 30% 98%;
+  --card-foreground: 265 30% 25%;
+  --popover: 40 30% 98%;
+  --popover-foreground: 265 30% 25%;
+  
+  /* Primary: Vibrant Gold (Optimism & Energy) */
+  --primary: 35 90% 55%;
+  --primary-foreground: 265 30% 25%;
+  --primary-light: 35 90% 65%;
+  --primary-dark: 35 95% 45%;
+  --primary-hover: 35 100% 60%;
+  --primary-focus: 35 95% 55%;
+  
+  /* Secondary: Soft Lavender (Calm & Focus) */
+  --secondary: 260 30% 92%;
+  --secondary-foreground: 265 35% 30%;
+  --secondary-light: 260 25% 95%;
+  --secondary-dark: 260 35% 88%;
+  --secondary-hover: 260 40% 85%;
+  
+  /* Accent: Royal Purple (Attention & Creativity) */
+  --accent: 270 70% 60%;
+  --accent-foreground: 40 30% 98%;
+  --accent-light: 270 65% 65%;
+  --accent-dark: 270 75% 55%;
+  --accent-hover: 270 80% 65%;
+
+  /* Status Colors (Keeping recognizable associations) */
+  --success: 145 65% 42%;
+  --success-foreground: 40 30% 98%;
+  --success-hover: 145 70% 38%;
+  
+  --warning: 38 95% 55%;
+  --warning-foreground: 265 30% 25%;
+  --warning-hover: 38 100% 50%;
+  
+  --destructive: 358 85% 52%;
+  --destructive-foreground: 40 30% 98%;
+  --destructive-hover: 358 90% 48%;
+  
+  /* Muted Colors */
+  --muted: 260 15% 90%;
+  --muted-foreground: 260 15% 45%;
+  --muted-background: 260 20% 94%;
+  
+  --border: 35 25% 85%;
+  --input: 35 25% 85%;
+  --ring: 35 90% 55%;
+
+  /* Chart colors - Complementary palette */
+  --chart-1: 35 90% 55%;  /* Gold */
+  --chart-2: 270 70% 60%; /* Royal Purple */
+  --chart-3: 330 75% 60%; /* Magenta */
+  --chart-4: 220 70% 50%; /* Blue */
+  --chart-5: 170 70% 45%; /* Teal */
+
+  /* Sidebar */
+  --sidebar-background: 260 30% 96%;
+  --sidebar-foreground: 265 30% 25%;
+  --sidebar-primary: 35 90% 55%;
+  --sidebar-primary-foreground: 265 30% 25%;
+  --sidebar-accent: 270 70% 60%;
+  --sidebar-accent-foreground: 40 30% 98%;
+  --sidebar-border: 260 20% 88%;
+  --sidebar-ring: 35 90% 55%;
+  
+  /* Radius */
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark Mode - Rich Navy & Teal Theme (Sophisticated & Engaging) */
+  --background: 220 40% 12%;
+  --foreground: 180 30% 90%;
+  --card: 220 35% 14%;
+  --card-foreground: 180 30% 90%;
+  --popover: 220 35% 14%;
+  --popover-foreground: 180 30% 90%;
+  
+  /* Primary: Vibrant Teal (Clarity & Focus) */
+  --primary: 175 85% 50%;
+  --primary-foreground: 220 40% 12%;
+  --primary-light: 175 80% 60%;
+  --primary-dark: 175 90% 40%;
+  --primary-hover: 175 95% 55%;
+  --primary-focus: 175 85% 50%;
+  
+  /* Secondary: Deep Navy (Stability & Trust) */
+  --secondary: 215 35% 22%;
+  --secondary-foreground: 180 25% 90%;
+  --secondary-light: 215 30% 28%;
+  --secondary-dark: 215 40% 18%;
+  --secondary-hover: 215 45% 25%;
+  
+  /* Accent: Electric Blue (Energy & Innovation) */
+  --accent: 195 95% 65%;
+  --accent-foreground: 220 40% 12%;
+  --accent-light: 195 90% 70%;
+  --accent-dark: 195 100% 60%;
+  --accent-hover: 195 100% 70%;
+  
+  /* Status Colors */
+  --success: 145 70% 45%;
+  --success-foreground: 220 40% 12%;
+  --success-hover: 145 75% 50%;
+  
+  --warning: 40 95% 55%;
+  --warning-foreground: 220 40% 12%;
+  --warning-hover: 40 100% 60%;
+  
+  --destructive: 0 90% 60%;
+  --destructive-foreground: 220 40% 12%;
+  --destructive-hover: 0 95% 65%;
+  
+  /* Muted Colors */
+  --muted: 220 30% 20%;
+  --muted-foreground: 180 15% 70%;
+  --muted-background: 220 35% 16%;
+  
+  --border: 215 30% 25%;
+  --input: 215 30% 25%;
+  --ring: 175 85% 50%;
+
+  /* Chart colors */
+  --chart-1: 175 85% 50%; /* Teal */
+  --chart-2: 195 95% 65%; /* Electric Blue */
+  --chart-3: 260 70% 65%; /* Purple */
+  --chart-4: 320 70% 60%; /* Magenta */
+  --chart-5: 40 95% 55%;  /* Gold */
+
+  /* Sidebar */
+  --sidebar-background: 220 45% 10%;
+  --sidebar-foreground: 180 30% 90%;
+  --sidebar-primary: 175 85% 50%;
+  --sidebar-primary-foreground: 220 40% 12%;
+  --sidebar-accent: 195 95% 65%;
+  --sidebar-accent-foreground: 220 40% 12%;
+  --sidebar-border: 215 40% 20%;
+  --sidebar-ring: 175 85% 50%;
+}
+
+/* Enhanced card hover effects */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+}
+
+.dark .card:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+/* Dashboard cards with subtle accent border */
+.dashboard-card {
+  border-top: 3px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.dashboard-card:hover {
+  border-top-color: hsl(var(--primary));
+}
+
+.dark .dashboard-card:hover {
+  border-top-color: hsl(var(--primary));
+}
+
+/* Keep the rest of your existing CSS styles... */
+
+/* ส่วนเดิมของ CSS */
 @layer base {
   * {
     @apply border-border;
@@ -16,129 +189,78 @@
   }
 }
 
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+/* Theme transition */
+.theme-transition {
+  transition: background-color 0.5s ease,
+              color 0.5s ease,
+              border-color 0.5s ease,
+              box-shadow 0.5s ease;
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+/* Neumorphic style */
+.neumorphic {
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1),
+              -6px -6px 12px rgba(255, 255, 255, 0.7);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+.dark .neumorphic {
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4),
+              -6px -6px 12px rgba(255, 255, 255, 0.05);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+.neumorphic-inset {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.1),
+              inset -4px -4px 8px rgba(255, 255, 255, 0.7);
 }
 
-/* Fix for sidebar and UI overlapping issues */
+.dark .neumorphic-inset {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.4),
+              inset -4px -4px 8px rgba(255, 255, 255, 0.05);
+}
+
+/* Updated gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(calc(var(--primary-h) + 10), var(--primary-s), var(--primary-l)));
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, hsl(var(--accent)), hsl(calc(var(--accent-h) - 10), var(--accent-s), var(--accent-l)));
+}
+
+.gradient-card {
+  background: linear-gradient(120deg, 
+    hsla(var(--card)), 
+    hsla(calc(var(--card-h) + 5), var(--card-s), var(--card-l)));
+}
+
+/* Enhanced glow effects */
+.glow-primary {
+  box-shadow: 0 0 15px hsla(var(--primary), 0.5);
+}
+
+.glow-accent {
+  box-shadow: 0 0 15px hsla(var(--accent), 0.5);
+}
+
+/* Premium effects */
+.premium-card {
+  background: linear-gradient(120deg, 
+    hsl(35, 90%, 97%), 
+    hsl(35, 85%, 94%)
+  );
+  border: 1px solid hsla(var(--primary), 0.3);
+  box-shadow: 0 4px 20px hsla(var(--primary), 0.15);
+}
+
+.dark .premium-card {
+  background: linear-gradient(120deg, 
+    hsl(220, 40%, 16%), 
+    hsl(220, 35%, 13%)
+  );
+  border: 1px solid hsla(var(--primary), 0.3);
+  box-shadow: 0 4px 20px hsla(var(--primary), 0.15);
+}
+/* ส่วนที่เหลือของ CSS เดิม */
 @layer components {
   .sidebar-layer {
     z-index: 50;
@@ -183,14 +305,6 @@
   justify-content: center;
 }
 
-/* Custom styling for the sidebar - import this in your global CSS */
-
-/* Premium gold colors */
-.badge-premium {
-  background: linear-gradient(to right, #d4af37, #f9d877);
-  color: #4a3800;
-}
-
 /* Custom scrollbar for the sidebar */
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
@@ -219,9 +333,4 @@
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
-}
-
-/* Premium badge styles */
-.badge-premium {
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
 }

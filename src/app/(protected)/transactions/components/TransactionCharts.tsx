@@ -604,60 +604,6 @@ export default function TransactionCharts() {
             </CardContent>
           </Card>
         );
-
-      case 'comparison':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="border">
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center">
-                  <BarChart3 className="h-4 w-4 mr-2 text-primary" />
-                  เปรียบเทียบรายเดือน
-                </CardTitle>
-                <CardDescription>
-                  {comparisonData.months.last} &amp; {comparisonData.months.current}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <Bar data={barChartData} options={barOptions} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border">
-              <CardHeader>
-                <CardTitle className="text-sm">สรุปการเปลี่ยนแปลง</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ComparisonRow 
-                  label="รายรับ"
-                  iconColor="text-green-600"
-                  lastValue={comparisonData.data.lastMonthIncome}
-                  currentValue={comparisonData.data.currentMonthIncome}
-                  growth={comparisonData.data.incomeGrowth}
-                  lastLabel={comparisonData.months.last}
-                  currentLabel={comparisonData.months.current}
-                />
-                <ComparisonRow 
-                  label="รายจ่าย"
-                  iconColor="text-red-600"
-                  lastValue={comparisonData.data.lastMonthExpense}
-                  currentValue={comparisonData.data.currentMonthExpense}
-                  growth={comparisonData.data.expenseGrowth}
-                  lastLabel={comparisonData.months.last}
-                  currentLabel={comparisonData.months.current}
-                />
-              </CardContent>
-              <CardFooter className="pt-2 border-t">
-                <Button variant="outline" size="sm" className="w-full">
-                  <RefreshCw className="h-4 w-4 mr-1.5" />
-                  อัปเดตข้อมูล
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        );
     }
   };
 
@@ -683,7 +629,7 @@ export default function TransactionCharts() {
             onValueChange={(v) => setChartType(v as any)}
             className="w-full sm:w-auto"
           >
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-3 w-full">
               <TabsTrigger value="overview" className="text-xs">
                 <LayoutDashboard className="h-3.5 w-3.5 mr-1" />
                 ภาพรวม
@@ -695,10 +641,6 @@ export default function TransactionCharts() {
               <TabsTrigger value="trend" className="text-xs">
                 <LineChart className="h-3.5 w-3.5 mr-1" />
                 แนวโน้ม
-              </TabsTrigger>
-              <TabsTrigger value="comparison" className="text-xs">
-                <BarChart3 className="h-3.5 w-3.5 mr-1" />
-                เปรียบเทียบ
               </TabsTrigger>
             </TabsList>
           </Tabs>

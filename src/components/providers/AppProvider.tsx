@@ -2,7 +2,7 @@
 
 import { PropsWithChildren, useState } from 'react';
 import { SessionProvider } from 'next-auth/react';
-import { ThemeProvider } from 'next-themes';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
@@ -19,10 +19,28 @@ export default function Providers({ children }: PropsWithChildren) {
   return (
     <SessionProvider refetchOnWindowFocus={true} refetchInterval={5 * 60}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <NextThemesProvider 
+          attribute="class" 
+          defaultTheme="system" 
+          enableSystem
+          forcedTheme={undefined} // ลบ forcedTheme ถ้ามี
+          themes={["light", "dark"]} // ให้ใช้เฉพาะธีมที่เรากำหนด
+        >
           {children}
-          <Toaster position="top-right" toastOptions={{ className: 'text-sm', duration: 3000 }} />
-        </ThemeProvider>
+          <Toaster 
+            position="top-right" 
+            toastOptions={{ 
+              className: 'text-sm', 
+              duration: 3000,
+              // ทำให้ toast มีสีตามธีม
+              style: {
+                background: 'var(--background)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+              },
+            }} 
+          />
+        </NextThemesProvider>
       </QueryClientProvider>
     </SessionProvider>
   );

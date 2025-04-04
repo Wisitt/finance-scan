@@ -1,5 +1,6 @@
 import { cn } from '@/utils/utils';
 import { UseFormReturn } from 'react-hook-form';
+import { Tag, Folder } from 'lucide-react';
 import {
   FormField,
   FormItem,
@@ -32,16 +33,28 @@ export function CategorySelector({
       name="category"
       render={({ field }) => (
         <FormItem className="w-full">
-          <FormLabel className="text-base">หมวดหมู่</FormLabel>
+          <FormLabel className="text-base font-medium">หมวดหมู่</FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
               <SelectTrigger className={cn(
                 "w-full transition-all duration-300 py-3",
+                "focus:ring-2 focus:ring-offset-0 shadow-sm",
                 transactionType === 'expense' 
-                  ? "focus-visible:ring-red-400 hover:border-red-200" 
-                  : "focus-visible:ring-green-400 hover:border-green-200"
+                  ? "focus:ring-red-400 hover:border-red-200" 
+                  : "focus:ring-green-400 hover:border-green-200",
+                field.value && "border-slate-300"
               )}>
-                <SelectValue placeholder="เลือกหมวดหมู่" />
+                <div className="flex items-center gap-2">
+                  {field.value ? (
+                    <Tag className={cn(
+                      "h-4 w-4",
+                      transactionType === 'expense' ? "text-red-500" : "text-green-500"
+                    )} />
+                  ) : (
+                    <Folder className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <SelectValue placeholder="เลือกหมวดหมู่" />
+                </div>
               </SelectTrigger>
             </FormControl>
             <SelectContent className="max-h-[280px]">
@@ -52,7 +65,10 @@ export function CategorySelector({
                     value={category.name} 
                     className="cursor-pointer"
                   >
-                    {category.name}
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-3.5 w-3.5" />
+                      {category.name}
+                    </div>
                   </SelectItem>
                 ))
               ) : (

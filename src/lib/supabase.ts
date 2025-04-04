@@ -96,3 +96,16 @@ export async function uploadImage(file: File, userId: string): Promise<string | 
     return null;
   }
 }
+
+export async function deleteImageFromUrl(url: string): Promise<void> {
+  try {
+    const urlObj = new URL(url);
+    const path = decodeURIComponent(urlObj.pathname.split('/storage/v1/object/public/')[1]);
+    const { error } = await supabase.storage.from('receipts').remove([path]);
+    if (error) {
+      console.warn('ลบรูปไม่สำเร็จ:', error.message);
+    }
+  } catch (err) {
+    console.error('ไม่สามารถแยก path รูปจาก URL:', url);
+  }
+}
