@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { Transaction } from '@/types';
 import { Trash2, X, ImageIcon } from 'lucide-react';
 import {

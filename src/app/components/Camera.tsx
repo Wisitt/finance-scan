@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, CheckCircle, X, Loader2, RotateCw } from 'lucide-react';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 interface CameraCaptureProps {
   onCapture: (file: File) => void;

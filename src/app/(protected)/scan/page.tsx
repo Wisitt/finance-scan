@@ -5,7 +5,7 @@ import { useTransactionStore } from '@/store/transactionStore';
 import { deleteImageFromUrl, uploadImage } from '@/lib/supabase';
 import { format, isValid, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 // --- Icons ---
 import {

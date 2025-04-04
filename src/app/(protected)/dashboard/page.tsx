@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
@@ -44,10 +44,19 @@ import {
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 import Link from 'next/link';
 import { TransactionCharts } from '../transactions';
@@ -57,39 +66,33 @@ import { formatCurrency } from '@/lib/utils';
 import { SummaryCard } from '@/components/shared/SummaryCard';
 import { useTransactionFilters } from '@/hooks/useTransactionFilters';
 
+
 export default function DashBoardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { transactions, fetchTransactions } = useTransactionStore();
-  const { summary } = useTransactionFilters(transactions);
+  const { transactions , fetchTransactions } = useTransactionStore();
 
+  const {
+    filters,
+    updateFilter,
+    resetFilters,
+    processedTransactions,
+    uniqueCategories,
+    summary,
+  } = useTransactionFilters(transactions);
+
+  // ตัวอย่างกำหนดวันเวลาปัจจุบัน (จำลอง)
+  const [currentDateTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
-
-  // Memoized calculations for improved performance
-  const recentTransactions = useMemo(() => {
-    return [...transactions]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
-  }, [transactions]);
-  
-  const income = useMemo(() => 
-    transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0), 
-    [transactions]
-  );
-  
-  const expense = useMemo(() => 
-    transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0), 
-    [transactions]
-  );
 
   // โหลดข้อมูล categories และ transactions
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
     } else if (status === 'authenticated' && session?.user?.id) {
-      const loadData = async () => {
+      async function loadData() {
         try {
           await fetchTransactions();
         } catch (error) {
@@ -97,7 +100,7 @@ export default function DashBoardPage() {
         } finally {
           setLoading(false);
         }
-      };
+      }
       
       loadData();
     }
@@ -107,11 +110,37 @@ export default function DashBoardPage() {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
 
+
+  // คำนวณรายรับ-รายจ่าย-ยอดคงเหลือ
+  const income = transactions
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const expense = transactions
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const balance = income - expense;
+
+  // หารายการล่าสุด
+  const recentTransactions = [...transactions]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
+
+  // คำทักทายตามช่วงเวลา
+  const getGreeting = () => {
+    const hour = currentDateTime.getHours();
+    if (hour < 12) return 'สวัสดีตอนเช้า';
+    if (hour < 17) return 'สวัสดีตอนบ่าย';
+    return 'สวัสดีตอนเย็น';
+  };
+
+  // วันเวลาที่ใช้แสดง "อัปเดตล่าสุด"
   const lastUpdated = new Date('2025-03-06 08:19:59');
 
   return (
     <>
-      {/* Dashboard Header */}
+      {/* ส่วนหัวของหน้า + ปุ่มช่วยเหลือด่วน */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground mb-1">
@@ -124,10 +153,10 @@ export default function DashBoardPage() {
             จัดการรายรับรายจ่ายและดูภาพรวมทางการเงิน
           </p>
         </div>
-      </div>
-
-      {/* Summary Cards Section */}
+        </div>
+      
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+
         <SummaryCard
           title="รายรับ"
           value={summary.totalIncome}
@@ -150,7 +179,7 @@ export default function DashBoardPage() {
           compareColor="text-destructive"
           progressValue={65}
         />
-        <SummaryCard
+                <SummaryCard
           title="ยอดคงเหลือ"
           value={summary.balance}
           icon={Wallet}
@@ -169,8 +198,9 @@ export default function DashBoardPage() {
         />
       </section>
 
-      {/* Main Tabs */}
+      {/* Tabs หลัก: Dashboard / Scanner / Settings */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        {/* แถบเลือก Tab */}
         <TabsList className="border-b mb-2">
           <TabsTrigger
             value="dashboard"
@@ -195,7 +225,7 @@ export default function DashBoardPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Dashboard Tab */}
+        {/* 1) Tab แดชบอร์ด */}
         <TabsContent value="dashboard" className="space-y-4">
           {session?.user.name ? (
             <>
@@ -283,7 +313,6 @@ export default function DashBoardPage() {
                         </div>
                       )}
                     </CardContent>
-
                     <CardFooter className="border-t p-3">
                       <Link href="/transactions" className="w-full">
                         <Button variant="outline" className="w-full justify-center">
@@ -330,7 +359,7 @@ export default function DashBoardPage() {
                 </div>
               </div>
 
-              {/* System Status */}
+              {/* System Status (ตัวอย่างข้อความสถานะ) */}
               <Card className="bg-muted/20">
                 <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -367,12 +396,12 @@ export default function DashBoardPage() {
           )}
         </TabsContent>
 
-        {/* Scanner Tab */}
+        {/* 2) Tab สแกนใบเสร็จ */}
         <TabsContent value="scan">
           <ReceiptScanner />
         </TabsContent>
 
-        {/* Settings Tab */}
+        {/* 3) Tab ตั้งค่า */}
         <TabsContent value="settings">
           <Card>
             <CardHeader>

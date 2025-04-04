@@ -9,7 +9,8 @@ import { CreditCard, PieChart, Plus, RefreshCw } from 'lucide-react';
 import TransactionCharts from './components/TransactionCharts';
 import AddTransactionForm from './components/form/AddTransactionForm';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
+
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { TransactionList } from './components/list/TransactionList';
 

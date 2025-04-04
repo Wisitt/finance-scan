@@ -1,4 +1,4 @@
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';

@@ -10,7 +10,7 @@ import { Loader2, LogIn, ArrowRight, CheckCircle, AlertCircle, TrendingDown, Tre
 import { Button } from '@/components/ui/button';
 import { FormProvider } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { AmountInput } from './AmountInput';
 import { CategorySelector } from './CategorySelector';

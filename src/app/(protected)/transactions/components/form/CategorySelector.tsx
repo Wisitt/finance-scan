@@ -1,4 +1,4 @@
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { UseFormReturn } from 'react-hook-form';
 import { Tag, Folder } from 'lucide-react';
 import {

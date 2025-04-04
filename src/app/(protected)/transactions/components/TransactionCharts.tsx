@@ -26,7 +26,7 @@ import {
 } from 'chart.js';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import {
   ArrowDown,
   BarChart3, 
