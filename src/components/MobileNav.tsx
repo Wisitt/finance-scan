@@ -51,9 +51,6 @@ export function MobileNav() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[240px] sm:w-[280px]">
-          <SheetHeader className="border-b pb-4 mb-4">
-            <SheetTitle className="text-left">FinanceTrack</SheetTitle>
-          </SheetHeader>
           <nav className="flex flex-col gap-2">
             {menuItems.map((item) => {
               const Icon = item.icon;

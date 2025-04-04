@@ -182,3 +182,46 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Custom styling for the sidebar - import this in your global CSS */
+
+/* Premium gold colors */
+.badge-premium {
+  background: linear-gradient(to right, #d4af37, #f9d877);
+  color: #4a3800;
+}
+
+/* Custom scrollbar for the sidebar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(115, 115, 115, 0.3);
+  border-radius: 6px;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(115, 115, 115, 0.5);
+}
+
+/* Animated logo gradient */
+.logo-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Premium badge styles */
+.badge-premium {
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}

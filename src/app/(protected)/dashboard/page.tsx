@@ -73,11 +73,6 @@ export default function DashBoardPage() {
 
   const { transactions , fetchTransactions } = useTransactionStore();
   const {
-    filters,
-    updateFilter,
-    resetFilters,
-    processedTransactions,
-    uniqueCategories,
     summary,
   } = useTransactionFilters(transactions);
 

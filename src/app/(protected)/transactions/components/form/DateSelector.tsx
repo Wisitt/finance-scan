@@ -1,5 +1,5 @@
 import { cn } from '@/utils/utils';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import {
@@ -43,7 +43,13 @@ export default function DateSelector({ form, transactionType }: DateSelectorProp
                   )}
                 >
                   {field.value ? (
-                    format(field.value, "d MMMM yyyy")
+                    format(
+                      // Ensure field.value is a Date object by parsing it if it's a string
+                      typeof field.value === 'string' 
+                        ? parseISO(field.value) 
+                        : field.value, 
+                      "d MMMM yyyy"
+                    )
                   ) : (
                     <span>เลือกวันที่</span>
                   )}
@@ -54,7 +60,7 @@ export default function DateSelector({ form, transactionType }: DateSelectorProp
             <PopoverContent className="w-auto p-0 sm:w-[300px]" align="start">
               <Calendar
                 mode="single"
-                selected={field.value}
+                selected={typeof field.value === 'string' ? parseISO(field.value) : field.value}
                 onSelect={field.onChange}
                 initialFocus
                 disabled={(date) => date > new Date()}
