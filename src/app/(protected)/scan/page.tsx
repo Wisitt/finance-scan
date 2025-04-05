@@ -171,7 +171,7 @@ export default function ReceiptScanner() {
             try {
                 const errorData = await response.json();
                 errorMsg = errorData.message || errorMsg;
-            } catch (e) {}
+            } catch {}
             throw new Error(errorMsg);
           }
 
@@ -192,7 +192,7 @@ export default function ReceiptScanner() {
             if (!validDate || !/^\d{4}-\d{2}-\d{2}$/.test(validDate)) {
               validDate = format(new Date(), 'yyyy-MM-dd');
             }
-          } catch (e) {
+          } catch  {
             validDate = format(new Date(), 'yyyy-MM-dd');
           }
           
@@ -312,7 +312,7 @@ export default function ReceiptScanner() {
         if (data.date && typeof data.date === 'string' && data.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
             try {
                 transactionDateISO = new Date(data.date).toISOString();
-            } catch (e) {
+            } catch {
                 console.warn(`Invalid date string found ('${data.date}'), using current date.`);
                 transactionDateISO = nowISO;
             }

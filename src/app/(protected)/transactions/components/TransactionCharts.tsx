@@ -23,6 +23,9 @@ import {
   Tooltip as ChartTooltip,
   Legend,
   Filler,
+  ScriptableContext,
+  TooltipItem,
+  ChartType
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 
@@ -175,9 +178,9 @@ export default function TransactionCharts() {
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function(context: TooltipItem<'doughnut'>) {
             const label = context.label || '';
-            const value = context.raw || 0;
+            const value = (context.raw as number) ?? 0;
             const total = context.dataset.data.reduce((sum: number, val: number) => sum + val, 0);
             const pct = total ? Math.round((value / total) * 100) : 0;
             return `${label}: ${formatCurrency(value)} (${pct}%)`;
@@ -245,7 +248,7 @@ export default function TransactionCharts() {
           label: 'รายรับ',
           data: sortedDates.map(date => dailyData[date].income),
           borderColor: 'rgba(16, 185, 129, 1)',
-          backgroundColor: (ctx: any) => {
+          backgroundColor: (ctx: ScriptableContext<'line'>) => {
             if (!ctx.chart) return 'rgba(16, 185, 129, 0.3)';
             const canvas = ctx.chart.ctx;
             return generateGradient(canvas, 'rgba(16, 185, 129, 0.4)', 'rgba(16, 185, 129, 0.05)');
@@ -258,7 +261,7 @@ export default function TransactionCharts() {
           label: 'รายจ่าย',
           data: sortedDates.map(date => dailyData[date].expense),
           borderColor: 'rgba(239, 68, 68, 1)',
-          backgroundColor: (ctx: any) => {
+          backgroundColor: (ctx: ScriptableContext<'line'>) => {
             if (!ctx.chart) return 'rgba(239, 68, 68, 0.3)';
             const canvas = ctx.chart.ctx;
             return generateGradient(canvas, 'rgba(239, 68, 68, 0.4)', 'rgba(239, 68, 68, 0.05)');
@@ -304,7 +307,7 @@ export default function TransactionCharts() {
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function(context: TooltipItem<'line'>) {
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
             return `${label}: ${formatCurrency(value)}`;
@@ -563,7 +566,7 @@ export default function TransactionCharts() {
             </TabsList>
           </Tabs>
 
-          <Select value={timeRange} onValueChange={(val) => setTimeRange(val as TimeRange)}>
+          <Select value={timeRange} onValueChange={(val: TimeRange) => setTimeRange(val)}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
               <SelectValue placeholder="เลือกช่วงเวลา" />
