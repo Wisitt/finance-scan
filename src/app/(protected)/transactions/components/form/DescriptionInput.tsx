@@ -9,9 +9,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { TransactionFormValues } from './useTransactionForm';
 
 interface DescriptionInputProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<TransactionFormValues>;
   transactionType: 'expense' | 'income';
 }
 

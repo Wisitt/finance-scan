@@ -16,9 +16,10 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { TransactionFormValues } from './useTransactionForm';
 
 interface DateSelectorProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<TransactionFormValues>;
   transactionType: 'expense' | 'income';
 }
 

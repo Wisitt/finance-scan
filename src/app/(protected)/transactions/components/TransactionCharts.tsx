@@ -25,7 +25,6 @@ import {
   Filler,
   ScriptableContext,
   TooltipItem,
-  ChartType
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 
@@ -141,7 +140,6 @@ export default function TransactionCharts() {
   };
 
   
-  // ฟังก์ชันสร้าง gradient ให้กราฟ
   const generateGradient = (ctx: CanvasRenderingContext2D, color1: string, color2: string) => {
     if (!ctx) return '#fff';
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -547,7 +545,9 @@ export default function TransactionCharts() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <Tabs 
             value={chartType} 
-            onValueChange={(v) => setChartType(v as any)}
+            onValueChange={(value: string) =>
+              setChartType(value as 'overview' | 'category' | 'trend' | 'comparison')
+            }            
             className="w-full sm:w-auto"
           >
             <TabsList className="grid grid-cols-3 w-full">

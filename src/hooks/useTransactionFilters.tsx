@@ -59,7 +59,7 @@ export function useTransactionFilters(transactions: Transaction[]) {
     
     const { type, category, dateRange, sortOption, searchTerm } = filters;
     
-    let filtered = transactions.filter(tx => {
+    const filtered = transactions.filter(tx => {
       if (type !== 'all' && tx.type !== type) return false;
       
       if (category !== 'all' && tx.category !== category) return false;
