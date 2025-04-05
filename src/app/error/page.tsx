@@ -13,7 +13,7 @@ function ActualErrorPage() {
 
   useEffect(() => {
     if (!error) {
-      router.push('/login');
+      router.push('/');
     }
   }, [error, router]);
 
@@ -41,7 +41,7 @@ function ActualErrorPage() {
         '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     });
     localStorage.clear();
-    router.push('/login');
+    router.push('/');
   };
 
   if (!error) {

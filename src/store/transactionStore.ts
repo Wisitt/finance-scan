@@ -1,4 +1,3 @@
-// transactionStore.ts
 import { create } from 'zustand';
 
 import { Transaction } from '@/types';
@@ -44,39 +43,53 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       if (!dataFetched || lastFetchedUserId !== userId) {
         set({ loading: true, error: null });
         
-        // Fetch from API
-        const transactions = await fetchTransactionsAPI(userId);
-        
-        // Sort by date desc
-        const sortedTransactions = [...transactions].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        
-        set({ 
-          transactions: sortedTransactions, 
-          loading: false,
-          dataFetched: true,
-          lastFetchedUserId: userId
-        });
+        try {
+          // Fetch from API
+          const response = await fetchTransactionsAPI(userId);
+          
+          // Add defensive check to ensure response is an array
+          const transactions = Array.isArray(response) ? response : [];
+          
+          // Log what we received for debugging
+          console.log(`Received ${transactions.length} transactions from API`);
+          
+          // Sort by date desc - only if we have transactions
+          const sortedTransactions = transactions.length > 0 
+            ? [...transactions].sort(
+                (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+              )
+            : [];
+          
+          set({ 
+            transactions: sortedTransactions, 
+            loading: false,
+            dataFetched: true,
+            lastFetchedUserId: userId
+          });
+        } catch (apiError) {
+          console.error('API call failed:', apiError);
+          throw apiError; // Rethrow to be caught by the outer catch
+        }
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
       set({
         error: error instanceof Error ? error : new Error('Failed to fetch transactions'),
-        loading: false
+        loading: false,
+        // Ensure we have an empty array if fetching failed
+        transactions: []
       });
     }
   },
 
   addTransaction: async (transactionData) => {
     try {
-      // ดึง userId จาก session
+      // Get userId from session
       const session = await getSession();
       const userId = session?.user?.id;
       if (!userId) throw new Error('No userId found in session');
 
-      // สร้าง transaction ใหม่
-      // (ใน NestJS ตัวอย่างอาจให้ Nest gen id เองก็ได้ แต่จะ gen ที่ Front-end ก็ไม่ผิด)
+      // Create new transaction
       const finalTransaction = {
         created_at: new Date().toISOString(),
         ...transactionData,
@@ -85,11 +98,15 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       
       if (!finalTransaction.user_id) throw new Error('user_id is required');
 
-      // เรียก Nest API
+      // Call Nest API
       const savedTransaction = await addTransactionAPI(finalTransaction);
 
-      // Update state
-      set({ transactions: [...get().transactions, savedTransaction] });
+      // Update state - ensure we always have an array to spread
+      const currentTransactions = Array.isArray(get().transactions) 
+        ? get().transactions 
+        : [];
+        
+      set({ transactions: [...currentTransactions, savedTransaction] });
       return savedTransaction;
     } catch (error) {
       console.error('Error adding transaction:', error);
@@ -99,16 +116,20 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
   deleteTransaction: async (id) => {
     try {
-      // ต้องส่ง userId ไปด้วย
+      // Send userId
       const session = await getSession();
       const userId = session?.user?.id;
       if (!userId) throw new Error('No userId found in session');
 
-      // ลบข้อมูลผ่าน Nest API
+      // Delete via Nest API
       await deleteTransactionAPI(id, userId);
 
-      // Update state
-      const updatedTransactions = get().transactions.filter((t) => t.id !== id);
+      // Update state - ensure we always have an array to filter
+      const currentTransactions = Array.isArray(get().transactions) 
+        ? get().transactions 
+        : [];
+        
+      const updatedTransactions = currentTransactions.filter((t) => t.id !== id);
       set({ transactions: updatedTransactions });
     } catch (error) {
       console.error('Error deleting transaction:', error);

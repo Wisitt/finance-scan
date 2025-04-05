@@ -122,7 +122,7 @@ const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/login',
+    signIn: '/',
     error: '/error',
   },
   debug: true,

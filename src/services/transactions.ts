@@ -1,22 +1,24 @@
 import { Transaction } from '@/types';
-import api, { ApiResponse, NewTransactionPayload } from './instance';
+import api from './instance';
+
+type NewTransactionPayload = Omit<Transaction, 'id'>;
 
 // GET
 export async function fetchTransactionsAPI(userId: string): Promise<Transaction[]> {
-  const response = await api.get<ApiResponse<Transaction[]>>(`/transactions?userId=${userId}`);
-  if (response.data.error) throw new Error(response.data.error);
-  return response.data.data;
+  const { data } = await api.get(`/transactions?userId=${userId}`);
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
 // POST
 export async function addTransactionAPI(transaction: NewTransactionPayload): Promise<Transaction> {
-  const response = await api.post<ApiResponse<Transaction>>('/transactions', transaction);
-  if (response.data.error) throw new Error(response.data.error);
-  return response.data.data;
+  const { data } = await api.post('/transactions', transaction);
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
 // DELETE
 export async function deleteTransactionAPI(id: string, userId: string): Promise<void> {
-  const response = await api.delete<ApiResponse<null>>(`/transactions/${id}?userId=${userId}`);
-  if (response.data.error) throw new Error(response.data.error);
+  const { data } = await api.delete(`/transactions/${id}?userId=${userId}`);
+  if (data.error) throw new Error(data.error);
 }

@@ -66,7 +66,7 @@ export default function DashBoardPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/login');
+      router.push('/');
     } else if (status === 'authenticated' && session?.user?.id) {
       async function loadData() {
         try {
