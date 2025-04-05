@@ -24,15 +24,13 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { Line, Doughnut } from 'react-chartjs-2';
 
-import { cn } from '@/lib/utils';
 import {
   ArrowDown,
   BarChart3, 
   Calendar,
   Clock,
-  DollarSign,
   Download,
   HelpCircle,
   LayoutDashboard,
@@ -40,7 +38,6 @@ import {
   Loader2,
   PieChart,
   Plus,
-  RefreshCw,
   Tag,
   TrendingDown,
   TrendingUp,
@@ -48,16 +45,14 @@ import {
 } from 'lucide-react';
 
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { SummaryCard } from '@/components/shared/SummaryCard';
 import { useTransactionCharts } from '@/hooks/useTransactionCharts';
 
-// Chart.js register
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -71,10 +66,8 @@ ChartJS.register(
   Filler
 );
 
-// กำหนด Time Range
 type TimeRange = '7days' | '30days' | '90days' | 'all' | 'thisMonth' | 'lastMonth';
 
-// ฟังก์ชัน format วันแบบย่อไทย
 const formatThaiShortDate = (date: Date): string => {
   const thaiMonths = [
     'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
@@ -91,11 +84,9 @@ export default function TransactionCharts() {
   const { user } = useAuthUser();
   const { data: session } = useSession();
 
-  // State for filters and UI
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [chartType, setChartType] = useState<'overview' | 'category' | 'trend' | 'comparison'>('overview');
   const [isLoading, setIsLoading] = useState(true);
-  const [dataFetched, setDataFetched] = useState(false); // Track if data has been fetched
   const {
     filteredTransactions,
     totalIncome,
@@ -106,7 +97,6 @@ export default function TransactionCharts() {
     dailyData,
     sortedExpenseCategories,
     sortedIncomeCategories,
-    comparisonData
   } = useTransactionCharts(transactions, timeRange);
   
 
@@ -124,11 +114,7 @@ export default function TransactionCharts() {
     loadData();
   }, [session?.user?.id, fetchTransactions]);
 
-  useEffect(() => {
-    return () => {
-      setDataFetched(false);
-    };
-  }, [session?.user?.id]);
+
 
   useEffect(() => {
     if (storeLoading) {
@@ -329,64 +315,6 @@ export default function TransactionCharts() {
     animation: { duration: 800 },
   };
 
-
-  const barOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: { grid: { display: false } },
-      y: { 
-        beginAtZero: true,
-        grid: { color: 'rgba(0, 0, 0, 0.05)' },
-        ticks: {
-          callback: function(tickValue: number | string) {
-            const val = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
-            return formatCurrency(val).replace('฿', '');
-          }
-        }
-      }
-    },
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          usePointStyle: true,
-          boxWidth: 8,
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            const label = context.dataset.label || '';
-            const value = context.parsed.y || 0;
-            return `${label}: ${formatCurrency(value)}`;
-          }
-        }
-      }
-    },
-    animation: { duration: 800 },
-  };
-  const barChartData = {
-    labels: ['รายรับ', 'รายจ่าย'],
-    datasets: [
-      {
-        label: comparisonData.months.last,
-        data: [
-          comparisonData.data.lastMonthIncome,
-          comparisonData.data.lastMonthExpense,
-        ],
-        backgroundColor: 'rgba(234, 88, 12, 0.6)',
-      },
-      {
-        label: comparisonData.months.current,
-        data: [
-          comparisonData.data.currentMonthIncome,
-          comparisonData.data.currentMonthExpense,
-        ],
-        backgroundColor: 'rgba(34, 197, 94, 0.6)',
-      },
-    ],
-  };
   
   const financialInsights = useMemo(() => {
     const result: string[] = [];
@@ -408,9 +336,7 @@ export default function TransactionCharts() {
     return result;
   }, [filteredTransactions.length, savingsRate, totalExpense, totalIncome]);
 
-  // **ฟังก์ชัน Render กราฟตามโหมด chartType**
   const renderChart = () => {
-    // 1) Loading
     if (isLoading) {
       return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -436,7 +362,6 @@ export default function TransactionCharts() {
       );
     }
 
-    // 2) ไม่มีข้อมูล
     if (!filteredTransactions.length) {
       return (
         <Card className="bg-white border p-6 text-center">
@@ -453,12 +378,10 @@ export default function TransactionCharts() {
       );
     }
 
-    // 3) มีข้อมูล => เลือกตาม chartType
     switch (chartType) {
       case 'overview':
         return (
           <div className="space-y-6">
-            {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <SummaryCard
                 title="รายรับทั้งหมด"
@@ -490,7 +413,6 @@ export default function TransactionCharts() {
               />
             </div>
 
-            {/* Donut Chart สัดส่วนรายรับ-รายจ่าย และคำแนะนำ */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="border">
                 <CardHeader>
@@ -529,7 +451,6 @@ export default function TransactionCharts() {
       case 'category':
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Expense Categories */}
             <Card className="border">
               <CardHeader>
                 <CardTitle className="text-sm flex items-center">
@@ -554,7 +475,6 @@ export default function TransactionCharts() {
               </CardContent>
             </Card>
 
-            {/* Income Categories */}
             <Card className="border">
               <CardHeader>
                 <CardTitle className="text-sm flex items-center">
@@ -609,7 +529,6 @@ export default function TransactionCharts() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold flex items-center">
@@ -622,7 +541,6 @@ export default function TransactionCharts() {
           </p>
         </div>
 
-        {/* Tabs & TimeRange */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <Tabs 
             value={chartType} 
@@ -662,10 +580,8 @@ export default function TransactionCharts() {
         </div>
       </div>
 
-      {/* Render กราฟ/รายงานหลัก */}
       {renderChart()}
 
-      {/* Footer เล็ก ๆ */}
       <Card className="border mt-6">
         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div className="text-sm text-muted-foreground flex items-center gap-1">
@@ -684,11 +600,6 @@ export default function TransactionCharts() {
   );
 }
 
-/* ---------------------------------------------------
-  ส่วนประกอบ UI ย่อยเล็ก ๆ เพื่อให้โค้ดหลักอ่านง่ายขึ้น
------------------------------------------------------ */
-
-// แสดงหมวดหมู่กับยอด
 function CategoryList({ title, items }: { title: string; items: [string, number][] }) {
   return (
     <div className="mt-3 border-t pt-3 space-y-2">
@@ -703,7 +614,6 @@ function CategoryList({ title, items }: { title: string; items: [string, number]
   );
 }
 
-// กรณีไม่มีข้อมูลใน chart
 function NoCategoryData({ text }: { text: string }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center text-sm text-muted-foreground">
@@ -713,55 +623,10 @@ function NoCategoryData({ text }: { text: string }) {
   );
 }
 
-// แสดงสัญลักษณ์ลูกศร พร้อมข้อความย่อ
 function ArrowRightIndicator() {
   return (
     <div className="text-primary">
       <ArrowDown className="rotate-270 h-4 w-4" />
-    </div>
-  );
-}
-
-// แถวเปรียบเทียบ รายรับ/รายจ่าย เดือนปัจจุบัน vs. เดือนที่แล้ว
-function ComparisonRow(props: {
-  label: string;
-  iconColor: string;
-  lastValue: number;
-  currentValue: number;
-  growth: number;
-  lastLabel: string;
-  currentLabel: string;
-}) {
-  const { label, iconColor, lastValue, currentValue, growth, lastLabel, currentLabel } = props;
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <h4 className="text-sm font-medium flex items-center">
-          <DollarSign className={cn("h-4 w-4 mr-1", iconColor)} />
-          {label}
-        </h4>
-        <Badge variant={growth >= 0 ? "default" : "outline"} className="text-xs">
-          {growth >= 0 ? "+" : ""}
-          {growth.toFixed(1)}%
-        </Badge>
-      </div>
-      <div className="flex justify-between items-center text-xs">
-        <div>
-          <p className="text-muted-foreground">{lastLabel}</p>
-          <p className="font-medium">{formatCurrency(lastValue)}</p>
-        </div>
-        <div className="px-2">
-          {growth >= 0 ? (
-            <TrendingUp className="h-4 w-4 text-red-500" />
-          ) : (
-            <TrendingDown className="h-4 w-4 text-green-500" />
-          )}
-        </div>
-        <div className="text-right">
-          <p className="text-muted-foreground">{currentLabel}</p>
-          <p className="font-medium">{formatCurrency(currentValue)}</p>
-        </div>
-      </div>
     </div>
   );
 }

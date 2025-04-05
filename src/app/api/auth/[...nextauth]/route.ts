@@ -116,7 +116,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     
-    async redirect({ url, baseUrl }) {
+    async redirect({ baseUrl }) {
       // หลังจากล็อกอินเสร็จ ให้ redirect ไปที่ /dashboard
       return `${baseUrl}/dashboard`;
     },

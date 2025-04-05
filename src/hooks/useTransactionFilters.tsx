@@ -23,7 +23,6 @@ export const DEFAULT_FILTERS: FilterOptions = {
 export function useTransactionFilters(transactions: Transaction[]) {
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
 
-  // Get unique categories from transactions
   const uniqueCategories = useMemo(() => {
     if (!transactions.length) return ['all'];
     
@@ -36,17 +35,14 @@ export function useTransactionFilters(transactions: Transaction[]) {
     return ['all', ...categories];
   }, [transactions]);
 
-  // Update a single filter
   const updateFilter = (key: keyof FilterOptions, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  // Reset all filters to defaults
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
   };
 
-  // Calculate the number of active filters (non-default values)
   const activeFilterCount = useMemo(() => {
     let count = 0;
     
@@ -54,26 +50,20 @@ export function useTransactionFilters(transactions: Transaction[]) {
     if (filters.category !== DEFAULT_FILTERS.category) count++;
     if (filters.dateRange !== DEFAULT_FILTERS.dateRange) count++;
     if (filters.searchTerm !== DEFAULT_FILTERS.searchTerm && filters.searchTerm.trim() !== '') count++;
-    // We don't count sortOption as a "filter" since it's just ordering
     
     return count;
   }, [filters]);
 
-  // Apply filters to transactions
   const processedTransactions = useMemo(() => {
     if (!transactions.length) return [];
     
     const { type, category, dateRange, sortOption, searchTerm } = filters;
     
-    // First apply all filters
     let filtered = transactions.filter(tx => {
-      // Filter by transaction type
       if (type !== 'all' && tx.type !== type) return false;
       
-      // Filter by category
       if (category !== 'all' && tx.category !== category) return false;
       
-      // Filter by search term
       if (searchTerm) {
         const lowerSearch = searchTerm.toLowerCase();
         const inCategory = tx.category?.toLowerCase().includes(lowerSearch) || false;

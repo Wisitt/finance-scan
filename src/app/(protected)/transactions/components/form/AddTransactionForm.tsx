@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { format } from 'date-fns';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, LogIn, ArrowRight, CheckCircle, AlertCircle, TrendingDown, TrendingUp, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FormProvider } from 'react-hook-form';
@@ -25,8 +24,8 @@ import { SubmitButton } from './SubmitButton';
 
 
 export default function AddTransactionForm() {
-  const { user, isLoading: authLoading, isAuthenticated } = useAuthUser();
-  const { 
+  const { isLoading: authLoading, isAuthenticated } = useAuthUser();
+  const {
     form, 
     transactionType,
     isSubmitting,
@@ -112,10 +111,7 @@ export default function AddTransactionForm() {
                 />
 
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                  <AmountInput 
-                    form={form} 
-                    transactionType={transactionType} 
-                  />
+                <AmountInput form={form} transactionType={transactionType} />
                 </div>
 
                 <CategorySelector 

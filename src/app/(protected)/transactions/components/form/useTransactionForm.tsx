@@ -7,7 +7,6 @@ import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCategoryStore } from '@/store/categoryStore';
 import { useTransactionStore } from '@/store/transactionStore';
 
-// Schema for form validation
 const transactionSchema = z.object({
   amount: z.number().positive('จำนวนต้องมากกว่า 0'),
   category: z.string().min(1, 'กรุณาเลือกหมวดหมู่'),
@@ -16,13 +15,14 @@ const transactionSchema = z.object({
     required_error: "กรุณาระบุวันที่",
   }),
 });
-const defaultValues = {
+export type TransactionFormValues = z.infer<typeof transactionSchema>;
+
+const defaultValues: Partial<TransactionFormValues> = {
   amount: undefined,
   category: '',
   date: new Date(),
   description: '',
 };
-type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export function useTransactionForm() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuthUser();
@@ -37,26 +37,22 @@ export function useTransactionForm() {
     error: null
   });
 
-  // Initialize form with react-hook-form
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
-    defaultValues,
+    defaultValues:{}
   });
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Filter categories based on transaction type
   const filteredCategories = categories.filter(cat => cat.type === transactionType);
   
-  // This function is what your component expects
   const handleTransactionTypeChange = (value: 'expense' | 'income') => {
     setTransactionType(value);
-    form.setValue('category', ''); // Reset category when type changes
+    form.setValue('category', '');
   };
 
-  // Handle amount input changes with formatting
   const handleAmountChange = (value: number | undefined) => {
     form.setValue('amount', value = 0);
     if (value) {

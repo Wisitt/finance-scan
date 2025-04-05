@@ -15,9 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TransactionFormValues } from './useTransactionForm';
 
 interface CategorySelectorProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<TransactionFormValues>;
   categories: { id: string; name: string; type: string; }[];
   transactionType: 'expense' | 'income';
 }

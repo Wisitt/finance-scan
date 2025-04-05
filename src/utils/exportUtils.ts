@@ -1,7 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { Transaction } from '@/types';
-import { formatCurrency } from '@/lib/utils';
 
 /**
  * Exports transaction data to CSV format

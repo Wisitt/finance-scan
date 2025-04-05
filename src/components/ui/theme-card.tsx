@@ -3,7 +3,7 @@
 import { useTheme } from 'next-themes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BellRing, CalendarClock, ChevronRight, CreditCard, TrendingUp } from 'lucide-react';
+import { BellRing, ChevronRight, CreditCard, TrendingUp } from 'lucide-react';
 
 export function DashboardCard() {
   const { theme } = useTheme();

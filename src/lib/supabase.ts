@@ -105,7 +105,7 @@ export async function deleteImageFromUrl(url: string): Promise<void> {
     if (error) {
       console.warn('ลบรูปไม่สำเร็จ:', error.message);
     }
-  } catch (err) {
-    console.error('ไม่สามารถแยก path รูปจาก URL:', url);
+  } catch {
+      console.error('ไม่สามารถแยก path รูปจาก URL:', url);
   }
 }

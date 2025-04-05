@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Transaction } from '@/types';
-import { Trash2, X, ImageIcon, Calendar, Tag, Clock, Edit, Share2, InfoIcon, User } from 'lucide-react';
+import { Trash2, X, ImageIcon, Calendar, Tag, Clock, Edit, InfoIcon, User } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { formatToShortDate, timeAgo } from '@/utils/dateUtils';
 import { formatCurrency } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 

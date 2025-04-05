@@ -14,18 +14,12 @@ import {
   Home,
   Wallet,
   CalendarDays,
-  CreditCard,
   TrendingUp,
   TrendingDown,
   Receipt,
-  Clock,
-  LayoutDashboard,
-  ArrowUpRight,
   UserPlus,
   Settings2,
-  Info,
   ExternalLink,
-  ArrowRight
 } from 'lucide-react';
 
 import {
@@ -44,17 +38,7 @@ import {
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -74,20 +58,12 @@ export default function DashBoardPage() {
   const { transactions , fetchTransactions } = useTransactionStore();
 
   const {
-    filters,
-    updateFilter,
-    resetFilters,
-    processedTransactions,
-    uniqueCategories,
     summary,
   } = useTransactionFilters(transactions);
 
-  // ตัวอย่างกำหนดวันเวลาปัจจุบัน (จำลอง)
-  const [currentDateTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // โหลดข้อมูล categories และ transactions
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
@@ -111,7 +87,6 @@ export default function DashBoardPage() {
   }
 
 
-  // คำนวณรายรับ-รายจ่าย-ยอดคงเหลือ
   const income = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -120,27 +95,16 @@ export default function DashBoardPage() {
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const balance = income - expense;
 
-  // หารายการล่าสุด
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
-  // คำทักทายตามช่วงเวลา
-  const getGreeting = () => {
-    const hour = currentDateTime.getHours();
-    if (hour < 12) return 'สวัสดีตอนเช้า';
-    if (hour < 17) return 'สวัสดีตอนบ่าย';
-    return 'สวัสดีตอนเย็น';
-  };
-
-  // วันเวลาที่ใช้แสดง "อัปเดตล่าสุด"
+ 
   const lastUpdated = new Date('2025-03-06 08:19:59');
 
   return (
     <>
-      {/* ส่วนหัวของหน้า + ปุ่มช่วยเหลือด่วน */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground mb-1">
@@ -198,9 +162,7 @@ export default function DashBoardPage() {
         />
       </section>
 
-      {/* Tabs หลัก: Dashboard / Scanner / Settings */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        {/* แถบเลือก Tab */}
         <TabsList className="border-b mb-2">
           <TabsTrigger
             value="dashboard"
@@ -225,18 +187,15 @@ export default function DashBoardPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* 1) Tab แดชบอร์ด */}
         <TabsContent value="dashboard" className="space-y-4">
           {session?.user.name ? (
             <>
-              {/* กราฟ + รายการล่าสุด */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <TransactionCharts />
                 </div>
 
                 <div className="space-y-6">
-                  {/* รายการล่าสุด */}
                   <Card>
                     <CardHeader className="pb-3 flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
@@ -323,7 +282,6 @@ export default function DashBoardPage() {
                     </CardFooter>
                   </Card>
 
-                  {/* User Profile Card */}
                   <Card>
                     <CardHeader className="pb-2 flex items-center gap-3">
                       <Avatar className="h-12 w-12">
@@ -359,7 +317,6 @@ export default function DashBoardPage() {
                 </div>
               </div>
 
-              {/* System Status (ตัวอย่างข้อความสถานะ) */}
               <Card className="bg-muted/20">
                 <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -396,12 +353,10 @@ export default function DashBoardPage() {
           )}
         </TabsContent>
 
-        {/* 2) Tab สแกนใบเสร็จ */}
         <TabsContent value="scan">
           <ReceiptScanner />
         </TabsContent>
 
-        {/* 3) Tab ตั้งค่า */}
         <TabsContent value="settings">
           <Card>
             <CardHeader>

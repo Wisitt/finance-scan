@@ -14,7 +14,6 @@ import {
   ScanLine,
   TrendingUp,
   ChevronRight,
-  BellRing,
   Sparkles
 } from 'lucide-react';
 import { useTheme } from 'next-themes';

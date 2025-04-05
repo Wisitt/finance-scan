@@ -6,16 +6,13 @@ import { deleteImageFromUrl, uploadImage } from '@/lib/supabase';
 import { format, isValid, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
-// --- Icons ---
 import {
   Loader2, Info, ChevronDown, ChevronUp, XCircle, Check, Trash, Edit3, CreditCard,
   Receipt, FileWarning, AlertCircle, ArrowLeft, ScanLine, RefreshCw, Eye, Save, Tag,
   Clock, CalendarDays, FileText, ShoppingBasket, Store
 } from 'lucide-react';
-// --- End Icons ---
-
-// --- UI Components ---
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +29,6 @@ import {
 import {
   Tooltip, TooltipContent, TooltipTrigger, TooltipProvider,
 } from '@/components/ui/tooltip';
-// --- End UI Components ---
 
 import { Transaction } from '@/types';
 import toast from 'react-hot-toast';
@@ -43,6 +39,7 @@ import { useCategoryStore } from '@/store/categoryStore';
 import ImageUploader from '@/app/components/ImageUploader';
 import { formatCurrency } from '@/lib/utils';
 import { DatePickerInput } from '@/components/ui/datepicker';
+import api from '@/services/instance';
 
 interface OcrScanResultData {
   amount: number;
@@ -83,14 +80,13 @@ export default function ReceiptScanner() {
 
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
   const filteredCategories = categories.filter(cat => cat.type === transactionType);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
-
+  }, [fetchCategories]);
+  
   const handleImagesSelected = useCallback((files: File[]) => {
     setSelectedFiles(files);
     setScanResults([]);
@@ -162,7 +158,7 @@ export default function ReceiptScanner() {
         try {
           setProcessingProgress(40);
           console.log(`Calling NestJS backend for OCR: ${imageUrl}`);
-          const response = await fetch(`${API_BASE_URL}/ocr/google-vision`, {
+          const response = await fetch(`${api}/ocr/google-vision`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ imageUrl: imageUrl })
@@ -262,13 +258,17 @@ export default function ReceiptScanner() {
   };
 
   // Update scan result field
-  const updateScanResult = (index: number, field: keyof ScanResultState, value: any) => {
+  const updateScanResult = (
+    index: number, 
+    field: keyof ScanResultState, 
+    value: ScanResultState[keyof ScanResultState]
+  ) => {
     setScanResults(prev => {
       const updated = [...prev];
       if (field === 'amount') {
-          updated[index] = { ...updated[index], [field]: parseFloat(value) || 0 };
+        updated[index] = { ...updated[index], [field]: parseFloat(value as string) || 0 };
       } else {
-          updated[index] = { ...updated[index], [field]: value };
+        updated[index] = { ...updated[index], [field]: value };
       }
       return updated;
     });
@@ -309,7 +309,6 @@ export default function ReceiptScanner() {
       for (const data of scanResults) {
         let transactionDateISO: string;
 
-        // --- เพิ่มการตรวจสอบ data.date ---
         if (data.date && typeof data.date === 'string' && data.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
             try {
                 transactionDateISO = new Date(data.date).toISOString();
@@ -638,12 +637,14 @@ export default function ReceiptScanner() {
                        <div className="flex items-start gap-3">
                          <div className="w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden bg-muted flex-shrink-0 relative">
                            {result.imageUrl ? (
-                             <img
-                               src={result.imageUrl.startsWith('blob:') ? result.imageUrl : `${result.imageUrl}?t=${Date.now()}`} 
-                               alt={`Receipt ${index + 1}`}
-                               className="object-cover w-full h-full"
-                               onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
-                             />
+                             <Image
+                                src={result.imageUrl.startsWith('blob:') ? result.imageUrl : `${result.imageUrl}?t=${Date.now()}`}
+                                alt={`Receipt ${index + 1}`}
+                                fill
+                                objectFit="cover"
+                                className="object-cover w-full h-full"
+                                onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                               />
                            ) : (
                              <div className="w-full h-full bg-muted flex items-center justify-center">
                                <Receipt className="h-6 w-6 text-muted-foreground opacity-50" />

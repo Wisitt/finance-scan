@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
-import { format } from 'date-fns';
 
 // UI Components
 import { Badge } from '@/components/ui/badge';
@@ -31,20 +30,17 @@ import {
 } from 'lucide-react';
 
 // Components
-
 import { TransactionFilters } from './TransactionFilters';
-
 import { TransactionListSkeleton } from './TransactionListSkeleton';
-
-// Hooks and Utilities
-import { useTransactionFilters } from '@/hooks/useTransactionFilters';
-import { exportTransactionsToCSV, exportTransactionsToJSON } from '@/utils/exportUtils';
-
 import { EmptyState } from '@/components/shared/EmptyState';
 import { TransactionDetailModal } from '@/components/ui/transaction-detail-modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ImageModal } from '@/components/ui/image-modal';
 import TransactionTable from './TransactionTable';
+
+// Hooks and Utilities
+import { useTransactionFilters } from '@/hooks/useTransactionFilters';
+import { exportTransactionsToCSV, exportTransactionsToJSON } from '@/utils/exportUtils';
 
 interface TransactionListProps {
   showFilters?: boolean;
@@ -55,18 +51,19 @@ interface TransactionListProps {
 
 export function TransactionList({
   showFilters = true,
+  showExport = false,
   showHeader = true,
   limitCount,
 }: TransactionListProps) {
   const { user } = useAuthUser();
   const { transactions, loading: transactionsLoading, deleteTransaction } = useTransactionStore();
-  
+
   // State
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
-  
+
   // Filters and pagination
   const {
     filters,
@@ -77,11 +74,11 @@ export function TransactionList({
     summary,
     activeFilterCount
   } = useTransactionFilters(transactions);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   // Reset currentPage when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -91,7 +88,7 @@ export function TransactionList({
   const totalItems = processedTransactions.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  
+
   // Apply limit if specified
   const displayedTransactions = useMemo(() => {
     let results = processedTransactions.slice(startIndex, startIndex + itemsPerPage);
@@ -116,7 +113,7 @@ export function TransactionList({
     }
   };
 
-  // Handle CSV export
+  // Handle CSV/JSON export
   const handleExport = async (type: 'csv' | 'json') => {
     setIsExporting(true);
     try {
@@ -125,6 +122,7 @@ export function TransactionList({
       } else if (type === 'json') {
         exportTransactionsToJSON(processedTransactions);
       }
+      toast.success('Export เรียบร้อย');
     } catch (error) {
       toast.error('เกิดข้อผิดพลาดในการส่งออกข้อมูล', {
         description: 'โปรดลองอีกครั้งในภายหลัง',
@@ -160,7 +158,9 @@ export function TransactionList({
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">รายรับทั้งหมด</p>
-                <p className="text-xl font-bold text-green-600 mt-1">{summary.totalIncome.toLocaleString('th-TH')} บาท</p>
+                <p className="text-xl font-bold text-green-600 mt-1">
+                  {summary.totalIncome.toLocaleString('th-TH')} บาท
+                </p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
                 <TrendingUp className="h-5 w-5 text-green-600" />
@@ -172,7 +172,9 @@ export function TransactionList({
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">รายจ่ายทั้งหมด</p>
-                <p className="text-xl font-bold text-red-600 mt-1">{summary.totalExpense.toLocaleString('th-TH')} บาท</p>
+                <p className="text-xl font-bold text-red-600 mt-1">
+                  {summary.totalExpense.toLocaleString('th-TH')} บาท
+                </p>
               </div>
               <div className="p-2 bg-red-100 rounded-full">
                 <TrendingDown className="h-5 w-5 text-red-600" />
@@ -180,16 +182,32 @@ export function TransactionList({
             </CardContent>
           </Card>
 
-          <Card className={`border ${summary.balance >= 0 ? 'bg-blue-50/30' : 'bg-amber-50/30'} hover:shadow-sm transition-shadow duration-200`}>
+          <Card
+            className={`border ${
+              summary.balance >= 0 ? 'bg-blue-50/30' : 'bg-amber-50/30'
+            } hover:shadow-sm transition-shadow duration-200`}
+          >
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">ยอดคงเหลือ</p>
-                <p className={`text-xl font-bold mt-1 ${summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                <p
+                  className={`text-xl font-bold mt-1 ${
+                    summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'
+                  }`}
+                >
                   {summary.balance.toLocaleString('th-TH')} บาท
                 </p>
               </div>
-              <div className={`p-2 rounded-full ${summary.balance >= 0 ? 'bg-blue-100' : 'bg-amber-100'}`}>
-                <Wallet className={`h-5 w-5 ${summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'}`} />
+              <div
+                className={`p-2 rounded-full ${
+                  summary.balance >= 0 ? 'bg-blue-100' : 'bg-amber-100'
+                }`}
+              >
+                <Wallet
+                  className={`h-5 w-5 ${
+                    summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'
+                  }`}
+                />
               </div>
             </CardContent>
           </Card>
@@ -198,40 +216,63 @@ export function TransactionList({
 
       {/* Main Content */}
       <Card>
-        {showFilters && (
-          <CardHeader className="pb-0">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" />
-                    รายการธุรกรรม
-                    <Badge variant="secondary" className="ml-2">
-                      {processedTransactions.length}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
-                  </CardDescription>
-                </div>
+        <CardHeader className="pb-0">
+          <div className="flex flex-col gap-4">
+            {/* ส่วนหัวรายการ + ปุ่ม Export (ถ้าต้องการ) */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  รายการธุรกรรม
+                  <Badge variant="secondary" className="ml-2">
+                    {processedTransactions.length}
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
+                </CardDescription>
               </div>
-              
-              <TransactionFilters 
+
+              {/* แสดงปุ่ม Export ถ้ากำหนด showExport = true */}
+              {showExport && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExport('csv')}
+                    disabled={isExporting}
+                  >
+                    Export CSV
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExport('json')}
+                    disabled={isExporting}
+                  >
+                    Export JSON
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {showFilters && (
+              <TransactionFilters
                 filters={filters}
                 updateFilter={updateFilter}
                 resetFilters={resetFilters}
                 uniqueCategories={uniqueCategories}
                 activeFilterCount={activeFilterCount}
               />
-            </div>
-          </CardHeader>
-        )}
-        
+            )}
+          </div>
+        </CardHeader>
+
         <Separator className="my-1" />
-        
+
         <CardContent className="p-4">
           {!processedTransactions.length ? (
-            <EmptyState 
+            <EmptyState
               icon={<Search className="h-8 w-8 text-muted-foreground" />}
               title="ไม่พบรายการที่ตรงกับเงื่อนไข"
               description="ลองเปลี่ยนตัวกรองหรือคำค้นหาเพื่อดูรายการธุรกรรมอื่น ๆ"
@@ -243,19 +284,20 @@ export function TransactionList({
               }
             />
           ) : (
-            <TransactionTable 
-              transactions={displayedTransactions} 
+            <TransactionTable
+              transactions={displayedTransactions}
               onViewDetails={setSelectedTransaction}
               onViewImage={setShowImageModal}
               onDeleteClick={setDeleteId}
             />
           )}
         </CardContent>
-        
+
         {processedTransactions.length > itemsPerPage && !limitCount && (
           <CardFooter className="border-t p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
             <div className="text-xs text-muted-foreground">
-              แสดง {startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
+              แสดง {startIndex + 1} -{' '}
+              {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
               {totalItems} รายการ
             </div>
             <div className="flex items-center gap-2">
@@ -286,13 +328,13 @@ export function TransactionList({
       </Card>
 
       {/* Modals */}
-      <ImageModal 
-        imageUrl={showImageModal} 
+      <ImageModal
+        imageUrl={showImageModal}
         isOpen={!!showImageModal}
         onClose={() => setShowImageModal(null)}
       />
-      
-      <TransactionDetailModal 
+
+      <TransactionDetailModal
         transaction={selectedTransaction}
         isOpen={!!selectedTransaction}
         onClose={() => setSelectedTransaction(null)}
@@ -303,7 +345,7 @@ export function TransactionList({
         onViewImage={setShowImageModal}
         username={user?.name}
       />
-      
+
       <ConfirmDialog
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}

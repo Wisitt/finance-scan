@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Search, Filter, ChevronDown, XCircle, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, XCircle, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +18,6 @@ import {
 } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export type FilterType = {
@@ -45,10 +43,8 @@ export function TransactionFilters({
   uniqueCategories,
   activeFilterCount = 0,
 }: TransactionFiltersProps) {
-  const [showAllFilters, setShowAllFilters] = React.useState(false);
   const [isMobileView, setIsMobileView] = React.useState(false);
-  
-  // Check if we're on mobile
+
   React.useEffect(() => {
     const checkMobile = () => {
       setIsMobileView(window.innerWidth < 768);
@@ -59,13 +55,11 @@ export function TransactionFilters({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Determine which filters to show inline vs in popover
-  const showInlineFilters = !isMobileView || showAllFilters;
   
   return (
     <div className="w-full space-y-3">
       <div className="flex flex-wrap items-center gap-2 w-full">
-        {/* Always visible search input */}
+
         <div className="relative flex-grow max-w-md">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -85,8 +79,7 @@ export function TransactionFilters({
             </Button>
           )}
         </div>
-        
-        {/* Mobile filter button that opens popover */}
+
         {isMobileView && (
           <div className="flex items-center gap-2">
             <Popover>
@@ -189,7 +182,7 @@ export function TransactionFilters({
                     <Button 
                       variant="default" 
                       size="sm"
-                      onClick={() => document.body.click()} // Close popover
+                      onClick={() => document.body.click()}
                     >
                       ใช้ตัวกรอง
                     </Button>
@@ -217,7 +210,7 @@ export function TransactionFilters({
           </div>
         )}
         
-        {/* Desktop filters that show inline */}
+
         {!isMobileView && (
           <div className="flex flex-wrap items-center gap-2">
             <Select

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { format, parseISO, isValid, formatDistance } from 'date-fns';
 import { th } from 'date-fns/locale';
 
@@ -113,13 +113,13 @@ export function formatDisplayDate(dateString: string | null | undefined): string
     if (isValid(dateObj)) {
       return format(dateObj, "d MMM yy", { locale: th });
     }
-  } catch (e) {}
+  } catch  {}
   // Fallback for potentially different formats or invalid strings
   try {
     const dateObj = new Date(dateString);
      if (isValid(dateObj)) {
        return format(dateObj, "d MMM yy", { locale: th });
      }
-  } catch (e) {}
+  } catch  {}
   return 'Invalid Date'; // Or return the original string: dateString
 }

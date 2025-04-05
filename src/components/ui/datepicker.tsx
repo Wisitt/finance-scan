@@ -33,8 +33,10 @@ export function DatePickerInput({
       }
     }
   } catch (e) {
+    console.error(e);
     date = null;
   }
+  
 
   return (
     <Popover>

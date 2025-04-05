@@ -9,16 +9,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { motion } from 'framer-motion';
+import { TransactionFormValues } from './useTransactionForm';
 
 interface AmountInputProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<TransactionFormValues>;
   transactionType: 'expense' | 'income';
 }
 
 export function AmountInput({ form, transactionType }: AmountInputProps) {
-  const colorClasses = transactionType === 'expense'
-    ? "text-red-500 focus:ring-red-400 hover:border-red-200"
-    : "text-green-500 focus:ring-green-400 hover:border-green-200";
+
     
   return (
     <FormField

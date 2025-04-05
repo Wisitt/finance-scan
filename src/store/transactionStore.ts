@@ -1,7 +1,5 @@
 // transactionStore.ts
 import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
-// ลบ import supabase
 
 import { Transaction } from '@/types';
 import { getSession } from 'next-auth/react';
@@ -80,6 +78,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       // สร้าง transaction ใหม่
       // (ใน NestJS ตัวอย่างอาจให้ Nest gen id เองก็ได้ แต่จะ gen ที่ Front-end ก็ไม่ผิด)
       const finalTransaction = {
+        created_at: new Date().toISOString(),
         ...transactionData,
         user_id: userId,
       };
