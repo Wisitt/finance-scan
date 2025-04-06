@@ -39,52 +39,38 @@ export function FeatureCard({
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      className="group relative overflow-hidden rounded-2xl border border-border p-6 bg-card hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+      whileHover={{ y: -5 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      viewport={{ once: true, margin: '-100px' }}
+      viewport={{ once: true, margin: "-100px" }}
     >
-      <Card className={cardVariants({ theme: isDark ? "dark" : "light" })}>
-        <CardContent className="p-8 relative h-full">
-          {/* Gradient Hover Layer */}
-          <div
-            className={`
-              absolute inset-0 bg-gradient-to-br opacity-0 
-              group-hover:opacity-100 transition-opacity duration-500 -z-10
-              ${isDark 
-                ? 'from-primary-800/10 to-primary-600/20' 
-                : 'from-primary-100 to-primary-200'}
-            `}
-          ></div>
-
-          <div className="mb-6 relative">
-            {/* Icon Wrapper */}
-            <div
-              className={`
-                w-16 h-16 rounded-2xl flex items-center justify-center 
-                transform group-hover:scale-110 transition-transform duration-300
-                ${isDark ? 'bg-primary-800/20' : 'bg-primary-100'}
-              `}
-            >
-              <div className="text-primary">{icon}</div>
-            </div>
-          </div>
-
-          <h3 className="text-xl font-bold mb-3">{title}</h3>
-
-          <p className={`mb-6 ${isDark ? 'text-[#BBBBBB]' : 'text-gray-600'}`}>
-            {description}
-          </p>
-
-          <Button
-            variant="ghost"
-            className="mt-auto w-fit transition-colors text-sm text-primary"
-          >
-            <span>เรียนรู้เพิ่มเติม</span>
-            <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent transform origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+      
+      <div className="relative w-14 h-14 rounded-full mb-4 bg-primary/10 flex items-center justify-center">
+        <motion.div
+          className="text-primary"
+          animate={{ 
+            scale: [1, 1.05, 1],
+          }}
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: index * 0.3
+          }}
+        >
+          {icon}
+        </motion.div>
+      </div>
+      
+      <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+        {title}
+      </h3>
+      <p className="text-muted-foreground">
+        {description}
+      </p>
     </motion.div>
   );
 }

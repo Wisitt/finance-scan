@@ -27,6 +27,7 @@ import {
   Wallet,
   Search,
   Filter,
+  Download,
 } from 'lucide-react';
 
 // Components
@@ -41,6 +42,8 @@ import TransactionTable from './TransactionTable';
 // Hooks and Utilities
 import { useTransactionFilters } from '@/hooks/useTransactionFilters';
 import { exportTransactionsToCSV, exportTransactionsToJSON } from '@/utils/exportUtils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface TransactionListProps {
   showFilters?: boolean;
@@ -152,180 +155,291 @@ export function TransactionList({
   return (
     <div className="space-y-6">
       {/* Header */}
+      {/* Header */}
       {showHeader && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <Card className="border bg-green-50/30 hover:shadow-sm transition-shadow duration-200">
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card className="border border-border/50 hover:shadow-sm transition-shadow duration-200 bg-gradient-to-br from-accent/5 to-transparent">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">รายรับทั้งหมด</p>
-                <p className="text-xl font-bold text-green-600 mt-1">
+                <p className="text-xl font-bold text-accent mt-1">
                   {summary.totalIncome.toLocaleString('th-TH')} บาท
                 </p>
               </div>
-              <div className="p-2 bg-green-100 rounded-full">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-accent/10 rounded-full relative">
+                <TrendingUp className="h-5 w-5 text-accent" />
+                {/* Animated ring */}
+                <motion.div 
+                  className="absolute -inset-1 rounded-full border border-accent/30"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0, 0.5]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border bg-red-50/30 hover:shadow-sm transition-shadow duration-200">
+          <Card className="border border-border/50 hover:shadow-sm transition-shadow duration-200 bg-gradient-to-br from-primary/5 to-transparent">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">รายจ่ายทั้งหมด</p>
-                <p className="text-xl font-bold text-red-600 mt-1">
+                <p className="text-xl font-bold text-primary mt-1">
                   {summary.totalExpense.toLocaleString('th-TH')} บาท
                 </p>
               </div>
-              <div className="p-2 bg-red-100 rounded-full">
-                <TrendingDown className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-primary/10 rounded-full relative">
+                <TrendingDown className="h-5 w-5 text-primary" />
+                {/* Animated ring */}
+                <motion.div 
+                  className="absolute -inset-1 rounded-full border border-primary/30"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0, 0.5]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
 
           <Card
-            className={`border ${
-              summary.balance >= 0 ? 'bg-blue-50/30' : 'bg-amber-50/30'
-            } hover:shadow-sm transition-shadow duration-200`}
+            className={cn(
+              "border border-border/50 hover:shadow-sm transition-shadow duration-200",
+              summary.balance >= 0 ? "bg-gradient-to-br from-secondary/5 to-transparent" : "bg-gradient-to-br from-destructive/5 to-transparent"
+            )}
           >
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">ยอดคงเหลือ</p>
                 <p
-                  className={`text-xl font-bold mt-1 ${
-                    summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'
-                  }`}
+                  className={cn(
+                    "text-xl font-bold mt-1",
+                    summary.balance >= 0 ? "text-secondary" : "text-destructive"
+                  )}
                 >
                   {summary.balance.toLocaleString('th-TH')} บาท
                 </p>
               </div>
               <div
-                className={`p-2 rounded-full ${
-                  summary.balance >= 0 ? 'bg-blue-100' : 'bg-amber-100'
-                }`}
+                className={cn(
+                  "p-2 rounded-full relative",
+                  summary.balance >= 0 ? "bg-secondary/10" : "bg-destructive/10"
+                )}
               >
                 <Wallet
-                  className={`h-5 w-5 ${
-                    summary.balance >= 0 ? 'text-blue-600' : 'text-amber-600'
-                  }`}
+                  className={cn(
+                    "h-5 w-5",
+                    summary.balance >= 0 ? "text-secondary" : "text-destructive"
+                  )}
+                />
+                {/* Animated ring */}
+                <motion.div 
+                  className={cn(
+                    "absolute -inset-1 rounded-full border",
+                    summary.balance >= 0 ? "border-secondary/30" : "border-destructive/30"
+                  )}
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0, 0.5]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
                 />
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       )}
 
       {/* Main Content */}
-      <Card>
-        <CardHeader className="pb-0">
-          <div className="flex flex-col gap-4">
-            {/* ส่วนหัวรายการ + ปุ่ม Export (ถ้าต้องการ) */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  รายการธุรกรรม
-                  <Badge variant="secondary" className="ml-2">
-                    {processedTransactions.length}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
-                </CardDescription>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <Card className="border-border/50">
+          <CardHeader className="pb-0">
+            <div className="flex flex-col gap-4">
+              {/* Header and Export Buttons */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="relative">
+                      <FileText className="h-4 w-4 text-primary" />
+                        รายการธุรกรรม
+                        <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary border-primary/20">
+                          {processedTransactions.length}
+                        </Badge>
+
+                        </div>
+                      </CardTitle>
+                    </div>
+                    <CardDescription>
+                      ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
+                    </CardDescription>
+
+                  {/* Export buttons */}
+                  {showExport && (
+                    <div className="flex items-center gap-2">
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleExport('csv')}
+                          disabled={isExporting}
+                          className="border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 flex items-center gap-1.5"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Export CSV
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleExport('json')}
+                          disabled={isExporting}
+                          className="border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 flex items-center gap-1.5"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Export JSON
+                        </Button>
+                      </motion.div>
+                    </div>
+                  )}
               </div>
 
-              {/* แสดงปุ่ม Export ถ้ากำหนด showExport = true */}
-              {showExport && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleExport('csv')}
-                    disabled={isExporting}
-                  >
-                    Export CSV
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleExport('json')}
-                    disabled={isExporting}
-                  >
-                    Export JSON
-                  </Button>
+                {showFilters && (
+                  <TransactionFilters
+                    filters={filters}
+                    updateFilter={updateFilter}
+                    resetFilters={resetFilters}
+                    uniqueCategories={uniqueCategories}
+                    activeFilterCount={activeFilterCount}
+                  />
+                )}
+            </div>
+              </CardHeader>
+
+              <Separator className="my-1 bg-border/50" />
+
+              <CardContent className="p-4">
+                <AnimatePresence mode="wait">
+                  {!processedTransactions.length ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <EmptyState
+                        icon={
+                          <div className="relative">
+                            <Search className="h-8 w-8 text-muted-foreground" />
+                            <motion.div 
+                              className="absolute -inset-2 rounded-full bg-primary/10" 
+                              animate={{ 
+                                scale: [1, 1.2, 1],
+                                opacity: [0.3, 0.1, 0.3]
+                              }}
+                              transition={{ 
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          </div>
+                        }
+                        title="ไม่พบรายการที่ตรงกับเงื่อนไข"
+                        description="ลองเปลี่ยนตัวกรองหรือคำค้นหาเพื่อดูรายการธุรกรรมอื่น ๆ"
+                        action={
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={resetFilters}
+                              className="border-primary/20 hover:bg-primary/5 hover:text-primary"
+                            >
+                              <Filter className="h-3.5 w-3.5 mr-1.5" />
+                              รีเซ็ตตัวกรอง
+                            </Button>
+                          </motion.div>
+                        }
+                      />
+                    </motion.div>
+                  ) : (
+                    <TransactionTable
+                      transactions={displayedTransactions}
+                      onViewDetails={setSelectedTransaction}
+                      onViewImage={setShowImageModal}
+                      onDeleteClick={setDeleteId}
+                    />
+                  )}
+                </AnimatePresence>
+              </CardContent>
+
+            {/* Pagination */}
+            {processedTransactions.length > itemsPerPage && !limitCount && (
+              <CardFooter className="border-t border-border/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
+                <div className="text-xs text-muted-foreground">
+                  แสดง {startIndex + 1} -{' '}
+                  {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
+                  {totalItems} รายการ
                 </div>
-              )}
-            </div>
-
-            {showFilters && (
-              <TransactionFilters
-                filters={filters}
-                updateFilter={updateFilter}
-                resetFilters={resetFilters}
-                uniqueCategories={uniqueCategories}
-                activeFilterCount={activeFilterCount}
-              />
+                <div className="flex items-center gap-2">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="border-border/50 hover:bg-primary/5 hover:text-primary"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">ก่อนหน้า</span>
+                    </Button>
+                  </motion.div>
+                  
+                  <div className="text-sm font-medium bg-primary/5 text-primary px-3 py-1 rounded">
+                    {currentPage} / {totalPages}
+                  </div>
+                  
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="border-border/50 hover:bg-primary/5 hover:text-primary"
+                    >
+                      <span className="hidden sm:inline">ถัดไป</span>
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </motion.div>
+                </div>
+              </CardFooter>
             )}
-          </div>
-        </CardHeader>
-
-        <Separator className="my-1" />
-
-        <CardContent className="p-4">
-          {!processedTransactions.length ? (
-            <EmptyState
-              icon={<Search className="h-8 w-8 text-muted-foreground" />}
-              title="ไม่พบรายการที่ตรงกับเงื่อนไข"
-              description="ลองเปลี่ยนตัวกรองหรือคำค้นหาเพื่อดูรายการธุรกรรมอื่น ๆ"
-              action={
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  <Filter className="h-3.5 w-3.5 mr-1.5" />
-                  รีเซ็ตตัวกรอง
-                </Button>
-              }
-            />
-          ) : (
-            <TransactionTable
-              transactions={displayedTransactions}
-              onViewDetails={setSelectedTransaction}
-              onViewImage={setShowImageModal}
-              onDeleteClick={setDeleteId}
-            />
-          )}
-        </CardContent>
-
-        {processedTransactions.length > itemsPerPage && !limitCount && (
-          <CardFooter className="border-t p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
-            <div className="text-xs text-muted-foreground">
-              แสดง {startIndex + 1} -{' '}
-              {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
-              {totalItems} รายการ
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">ก่อนหน้า</span>
-              </Button>
-              <div className="text-sm font-medium bg-muted/30 px-3 py-1 rounded">
-                {currentPage} / {totalPages}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <span className="hidden sm:inline">ถัดไป</span>
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-          </CardFooter>
-        )}
-      </Card>
+            
+          </Card>
+        </motion.div>
 
       {/* Modals */}
       <ImageModal

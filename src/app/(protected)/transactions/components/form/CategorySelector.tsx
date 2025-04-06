@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { UseFormReturn } from 'react-hook-form';
-import { Tag, Folder } from 'lucide-react';
+import { Tag, Folder, Eye } from 'lucide-react';
 import {
   FormField,
   FormItem,
@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TransactionFormValues } from './useTransactionForm';
+import { motion } from 'framer-motion';
 
 interface CategorySelectorProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -41,15 +42,15 @@ export function CategorySelector({
                 "w-full transition-all duration-300 py-3",
                 "focus:ring-2 focus:ring-offset-0 shadow-sm",
                 transactionType === 'expense' 
-                  ? "focus:ring-red-400 hover:border-red-200" 
-                  : "focus:ring-green-400 hover:border-green-200",
+                  ? "focus:ring-primary/50 hover:border-primary/30" 
+                  : "focus:ring-accent/50 hover:border-accent/30",
                 field.value && "border-slate-300"
               )}>
                 <div className="flex items-center gap-2">
                   {field.value ? (
                     <Tag className={cn(
                       "h-4 w-4",
-                      transactionType === 'expense' ? "text-red-500" : "text-green-500"
+                      transactionType === 'expense' ? "text-primary" : "text-accent"
                     )} />
                   ) : (
                     <Folder className="h-4 w-4 text-muted-foreground" />
@@ -66,14 +67,25 @@ export function CategorySelector({
                     value={category.name} 
                     className="cursor-pointer"
                   >
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-3.5 w-3.5" />
+                    <motion.div 
+                      className="flex items-center gap-2"
+                      whileHover={{ x: 2 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                      <Tag className={cn(
+                        "h-3.5 w-3.5",
+                        transactionType === 'expense' ? "text-primary" : "text-accent"
+                      )} />
                       {category.name}
-                    </div>
+                    </motion.div>
                   </SelectItem>
                 ))
               ) : (
-                <div className="p-3 text-center text-sm text-muted-foreground">
+                <div className="p-3 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
+                  <Eye className={cn(
+                    "h-5 w-5 opacity-50",
+                    transactionType === 'expense' ? "text-primary" : "text-accent"
+                  )} />
                   ไม่พบหมวดหมู่
                 </div>
               )}

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
@@ -10,8 +10,8 @@ interface SubmitButtonProps {
 
 export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProps) {
   const buttonClasses = transactionType === 'expense' 
-    ? "bg-red-600 hover:bg-red-700 shadow-sm hover:shadow-md hover:shadow-red-100" 
-    : "bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md hover:shadow-green-100";
+    ? "bg-gradient-to-r from-primary to-primary/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-primary/10" 
+    : "bg-gradient-to-r from-accent to-accent/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-accent/10";
     
   return (
     <motion.div
@@ -20,8 +20,24 @@ export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProp
         scale: 1.01,
         transition: { duration: 0.2 }
       }}
-      className="w-full"
+      className="w-full relative overflow-hidden"
     >
+      {/* Scanning line animation */}
+      {!isSubmitting && (
+        <motion.div 
+          className="absolute left-0 right-0 h-[1px] bg-white/30 pointer-events-none" 
+          animate={{ 
+            top: ["20%", "80%", "20%"],
+            opacity: [0.3, 0.7, 0.3]
+          }}
+          transition={{ 
+            duration: 2, 
+            ease: "easeInOut", 
+            repeat: Infinity 
+          }}
+        />
+      )}
+      
       <Button
         type="submit"
         className={cn(
@@ -33,12 +49,31 @@ export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProp
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            <div className="relative mr-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <motion.div 
+                className="absolute -inset-1 rounded-full"
+                animate={{ 
+                  scale: [1, 1.5, 1],
+                  opacity: [0.2, 0, 0.2]
+                }}
+                transition={{ 
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "easeOut"
+                }}
+                style={{ backgroundColor: 'white', opacity: 0.3 }}
+              />
+            </div>
             กำลังบันทึก...
           </>
         ) : (
           <>
-            <PlusCircle className="mr-2 h-5 w-5" />
+            {transactionType === 'expense' ? (
+              <PlusCircle className="mr-2 h-5 w-5" />
+            ) : (
+              <ScanLine className="mr-2 h-5 w-5" />
+            )}
             {transactionType === 'expense' ? 'บันทึกรายจ่าย' : 'บันทึกรายรับ'}
           </>
         )}

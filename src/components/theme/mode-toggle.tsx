@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Moon, Sun, Monitor, Check } from "lucide-react";
+import { Moon, Sun, Eye, EyeOff, ScanBarcode } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,38 +30,40 @@ export const ThemeToggle = () => {
   const [theme, setTheme] = useState<Theme>("system");
   const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [scanningActive, setScanningActive] = useState(false);
 
-  // Enhanced theme options configuration
+  // Enhanced theme options configuration with Fin$ight colors
   const themeOptions: ThemeOption[] = [
     {
       value: "light",
       label: "สว่าง",
-      icon: Sun,
-      description: "ใช้ธีมสว่างสำหรับการใช้งานในพื้นที่มีแสง",
-      iconClass: "text-amber-500",
-      bgClass: "bg-gradient-to-br from-amber-50 to-amber-100",
-      activeBgClass: "bg-gradient-to-br from-amber-100 to-amber-200",
-      activeTextClass: "text-amber-600",
+      icon: Eye,
+      description: "ใช้ธีมสว่างสำหรับการมองเห็นที่คมชัด",
+      iconClass: "text-primary",
+      bgClass: "bg-primary/10",
+      activeBgClass: "bg-primary/20",
+      activeTextClass: "text-primary",
     },
     {
       value: "dark",
-      icon: Moon,
+      icon: EyeOff,
       label: "มืด",
       description: "ใช้ธีมมืดเพื่อลดแสงจอและถนอมสายตา",
-      iconClass: "text-violet-400",
-      bgClass: "bg-gradient-to-br from-violet-400/20 to-indigo-400/20",
-      activeBgClass: "bg-gradient-to-br from-violet-400/30 to-indigo-400/30",
-      activeTextClass: "text-violet-300",
+      iconClass: "text-accent",
+      bgClass: "bg-accent/10",
+      activeBgClass: "bg-accent/20",
+      activeTextClass: "text-accent",
     },
     {
       value: "system",
-      icon: Monitor,
+      icon: ScanBarcode,
       label: "ระบบ",
       description: "ปรับตามการตั้งค่าของระบบ",
-      iconClass: "text-sky-500",
-      bgClass: "bg-slate-100 dark:bg-slate-800/40",
-      activeBgClass: "bg-gradient-to-br from-sky-400/20 to-sky-500/20",
-      activeTextClass: "text-sky-400",
+      iconClass: "text-secondary",
+      bgClass: "bg-secondary/10",
+      activeBgClass: "bg-secondary/20",
+      activeTextClass: "text-secondary",
     },
   ];
 
@@ -93,6 +95,15 @@ export const ThemeToggle = () => {
     }
   }, []);
 
+  // Activate scanning animation when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      setScanningActive(true);
+      const timer = setTimeout(() => setScanningActive(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   // Apply theme to document and save preference with enhanced transitions
   useEffect(() => {
     if (!mounted) return;
@@ -116,6 +127,10 @@ export const ThemeToggle = () => {
       } else {
         root.classList.remove("dark");
       }
+      
+      // Activate scanning animation when theme changes
+      setScanningActive(true);
+      setTimeout(() => setScanningActive(false), 1500);
     };
 
     applyTheme();
@@ -135,6 +150,8 @@ export const ThemeToggle = () => {
   // Update theme
   const setThemeHandler = (newTheme: Theme) => {
     setTheme(newTheme);
+    setScanningActive(true);
+    setTimeout(() => setScanningActive(false), 1500);
   };
 
   if (!mounted) {
@@ -144,114 +161,195 @@ export const ThemeToggle = () => {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={setIsOpen}>
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 className={cn(
                   "relative rounded-full w-10 h-10 overflow-hidden transition-all border",
-                  isHovered && displayTheme === "dark" 
-                    ? "bg-violet-500/10 border-violet-500/30" 
-                    : isHovered 
-                    ? "bg-amber-500/10 border-amber-500/30" 
+                  isHovered 
+                    ? "bg-primary/10 border-primary/30" 
                     : "border-transparent"
                 )}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 aria-label={`เปลี่ยนธีม (ปัจจุบัน: ${theme === "system" ? "ระบบ" : theme === "dark" ? "มืด" : "สว่าง"})`}
               >
+                {/* Scanning line animation */}
+                {scanningActive && (
+                  <motion.div 
+                    className="absolute left-0 right-0 h-[1px] pointer-events-none" 
+                    style={{
+                      backgroundColor: displayTheme === "dark" ? 'var(--accent)' : 'var(--primary)',
+                      opacity: 0.7
+                    }}
+                    animate={{ 
+                      top: ["30%", "70%", "30%"],
+                      opacity: [0.3, 0.7, 0.3]
+                    }}
+                    transition={{ 
+                      duration: 1.5, 
+                      ease: "easeInOut", 
+                      repeat: scanningActive ? Infinity : 0
+                    }}
+                  />
+                )}
+                
                 {/* Enhanced background effect */}
                 <div className={cn(
                   "absolute inset-0 opacity-0 transition-opacity duration-300",
-                  displayTheme === "dark" 
-                    ? "bg-gradient-to-r from-violet-500/20 to-indigo-500/20" 
-                    : "bg-gradient-to-r from-amber-500/20 to-orange-500/20",
-                  isHovered && "opacity-40"
+                  isHovered && "opacity-40",
+                  "bg-gradient-to-r from-primary/20 to-accent/20"
                 )} />
                 
-                {/* Icon container with enhanced animation */}
+                {/* Eye-themed icon container */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={displayTheme + theme}
-                    initial={{ scale: 0.5, rotate: -10, opacity: 0 }}
-                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                    exit={{ scale: 0.5, rotate: 10, opacity: 0 }}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
                     transition={{ duration: 0.25, type: "spring", stiffness: 200 }}
                     className="relative z-10 flex items-center justify-center"
                   >
                     <ThemeIcon className={cn("h-5 w-5", iconClass)} />
+                    
+                    {/* Subtle pulse effect */}
+                    {isHovered && (
+                      <motion.div 
+                        className="absolute inset-0 rounded-full"
+                        animate={{ 
+                          scale: [1, 1.5, 1],
+                          opacity: [0.2, 0, 0.2]
+                        }}
+                        transition={{ 
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                        style={{ 
+                          backgroundColor: displayTheme === "dark" ? 'var(--accent)' : 'var(--primary)',
+                          opacity: 0.2
+                        }}
+                      />
+                    )}
                   </motion.div>
                 </AnimatePresence>
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
           
-          <TooltipContent side="bottom" className="font-medium">
-            <div>เปลี่ยนธีม</div>
+          <TooltipContent side="bottom" className="font-medium text-xs">
+            <div>เปลี่ยนธีมการแสดงผล</div>
           </TooltipContent>
         </Tooltip>
 
-        <DropdownMenuContent align="end" className="w-56 p-1.5">
+        <DropdownMenuContent align="end" className="w-56 p-1.5 border-border/50 relative">
+          {/* Scanning line animation in dropdown */}
+          {scanningActive && (
+            <motion.div 
+              className="absolute left-0 right-0 h-[1px] bg-primary/50 pointer-events-none" 
+              animate={{ 
+                top: ["5%", "95%", "5%"],
+                opacity: [0.2, 0.5, 0.2]
+              }}
+              transition={{ 
+                duration: 2, 
+                ease: "easeInOut", 
+                repeat: scanningActive ? 1 : 0
+              }}
+            />
+          )}
+          
           <div className="flex flex-col gap-1.5">
             {themeOptions.map((option) => {
               const Icon = option.icon;
               const isActive = theme === option.value;
               
               return (
-                <DropdownMenuItem
+                <motion.div
                   key={option.value}
-                  onClick={() => setThemeHandler(option.value)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg transition-all",
-                    isActive 
-                      ? option.value === "dark" 
-                        ? "bg-violet-500/20 dark:bg-violet-500/20" 
-                        : option.value === "light" 
-                        ? "bg-amber-500/20" 
-                        : "bg-sky-500/20"
-                      : "hover:bg-background-hover"
-                  )}
+                  whileHover={{ x: 2 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
                 >
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  <DropdownMenuItem
+                    onClick={() => setThemeHandler(option.value)}
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all",
-                      option.bgClass,
-                      isActive && option.activeBgClass
+                      "flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg transition-all",
+                      isActive 
+                        ? option.value === "dark" 
+                          ? "bg-accent/10" 
+                          : option.value === "light" 
+                          ? "bg-primary/10" 
+                          : "bg-secondary/10"
+                        : "hover:bg-muted/80"
                     )}
                   >
-                    <Icon className={cn(
-                      "h-5 w-5", 
-                      option.iconClass,
-                      isActive && option.activeTextClass
-                    )} />
-                  </motion.div>
-                  
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{option.label}</p>
-                    <p className="text-xs text-muted-foreground">{option.description}</p>
-                  </div>
-                  
-                  {isActive && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                    <motion.div 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className={cn(
-                        "flex h-5 w-5 items-center justify-center rounded-full",
-                        option.value === "dark" ? "bg-violet-500 text-navy-900" :
-                        option.value === "light" ? "bg-amber-500 text-white" :
-                        "bg-sky-500 text-white"
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all relative",
+                        option.bgClass,
+                        isActive && option.activeBgClass
                       )}
                     >
-                      <Check className="h-3 w-3" />
+                      <Icon className={cn(
+                        "h-5 w-5", 
+                        option.iconClass,
+                        isActive && option.activeTextClass
+                      )} />
+                      
+                      {/* Scanning line animation for icon */}
+                      {isActive && (
+                        <motion.div 
+                          className="absolute left-0 right-0 h-[1px]" 
+                          style={{
+                            backgroundColor: option.value === "dark" 
+                              ? 'var(--accent)' 
+                              : option.value === "light" 
+                              ? 'var(--primary)' 
+                              : 'var(--secondary)',
+                            opacity: 0.7
+                          }}
+                          animate={{ 
+                            top: ["30%", "70%", "30%"],
+                            opacity: [0.4, 0.7, 0.4]
+                          }}
+                          transition={{ 
+                            duration: 2, 
+                            ease: "easeInOut", 
+                            repeat: Infinity 
+                          }}
+                        />
+                      )}
                     </motion.div>
-                  )}
-                </DropdownMenuItem>
+                    
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{option.label}</p>
+                      <p className="text-xs text-muted-foreground">{option.description}</p>
+                    </div>
+                    
+                    {isActive && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                        className={cn(
+                          "flex h-5 w-5 items-center justify-center rounded-full",
+                          option.value === "dark" ? "bg-accent text-accent-foreground" :
+                          option.value === "light" ? "bg-primary text-primary-foreground" :
+                          "bg-secondary text-secondary-foreground"
+                        )}
+                      >
+                        <Eye className="h-3 w-3" />
+                      </motion.div>
+                    )}
+                  </DropdownMenuItem>
+                </motion.div>
               );
             })}
           </div>

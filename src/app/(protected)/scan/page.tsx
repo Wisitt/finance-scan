@@ -39,7 +39,6 @@ import { useCategoryStore } from '@/store/categoryStore';
 import ImageUploader from '@/app/components/ImageUploader';
 import { formatCurrency } from '@/lib/utils';
 import { DatePickerInput } from '@/components/ui/datepicker';
-import api from '@/services/instance';
 
 interface OcrScanResultData {
   amount: number;
@@ -158,10 +157,10 @@ export default function ReceiptScanner() {
         try {
           setProcessingProgress(40);
           console.log(`Calling NestJS backend for OCR: ${imageUrl}`);
-          const response = await fetch(`${api}/ocr/google-vision`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ocr/google-vision`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: imageUrl })
+            body: JSON.stringify({ imageUrl })
           });
 
           setProcessingProgress(80);

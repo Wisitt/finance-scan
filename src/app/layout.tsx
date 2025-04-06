@@ -8,7 +8,7 @@ import Providers from '@/components/providers/AppProvider';
 const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
-  title: 'FinTrack - บันทึกรายรับรายจ่ายและสแกนใบเสร็จ',
+  title: 'Fin$ight',
   description: 'บันทึกรายรับรายจ่ายและสแกนใบเสร็จอัตโนมัติด้วย OCR',
   icons: {
     icon: '/favicon.ico',

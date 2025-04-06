@@ -1,8 +1,8 @@
 import type { Config } from "tailwindcss";
 
-export default {
-	darkMode: "class",
-	content: [
+const config = {
+  darkMode: "class",
+  content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
@@ -38,6 +38,10 @@ export default {
           DEFAULT: "hsl(var(--background))",
           alt: "hsl(var(--background-alt))",
           hover: "hsl(var(--background-hover))",
+          alpha: {
+            '0': "hsl(var(--background-alpha-0))",
+            '10': "hsl(var(--background-alpha-10))",
+          },
         },
         foreground: {
           DEFAULT: "hsl(var(--foreground))",
@@ -166,7 +170,6 @@ export default {
           950: "hsl(var(--navy-950))",
         },
       },
-      // คงไว้ซึ่งการตั้งค่าเดิมอื่นๆ
       borderRadius: {
         lg: "var(--radius-lg)",
         md: "var(--radius-md)",
@@ -330,7 +333,7 @@ export default {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-shine': 'linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent)',
+        'gradient-shine': 'linear-gradient(to right, hsl(var(--background-alpha-0)), var(--shine-highlight), hsl(var(--background-alpha-0)))',
         'violet-gradient': 'linear-gradient(135deg, hsl(var(--violet-400)), hsl(var(--violet-600)))',
         'sky-gradient': 'linear-gradient(135deg, hsl(var(--sky-400)), hsl(var(--sky-600)))',
         'navy-gradient': 'linear-gradient(135deg, hsl(var(--navy-700)), hsl(var(--navy-900)))'
@@ -340,4 +343,6 @@ export default {
   plugins: [
     require("tailwindcss-animate"),
   ],
-} satisfies Config;
+};
+
+export default config;
