@@ -95,6 +95,9 @@ export function ThemeProvider({
     root.classList.remove('dark', 'light');
     root.classList.add(resolvedTheme);
 
+    // Force a repaint to ensure theme changes are applied immediately
+    const reflow = root.offsetHeight;
+
     // Add the transition class for smooth transitions
     // but only after initial load to prevent transition on page load
     const transitionClass = 'theme-transition';

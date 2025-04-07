@@ -1,30 +1,30 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { APP_ROUTES } from '@/constants/routes';
-import { useSession, signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme/mode-toggle';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { DashboardCard } from '@/components/ui/theme-card';
+import { APP_ROUTES } from '@/constants/routes';
+import { useTheme } from '@/contexts/theme-context';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
-  LogIn,
   ChevronRight,
+  LogIn,
   Sparkles,
 } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { ThemeToggle } from '@/components/theme/mode-toggle';
-import { DashboardCard } from '@/components/ui/theme-card';
-import { cn } from '@/lib/utils';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { theme } = useTheme();
   const [scrollPosition, setScrollPosition] = useState(0);
-  const isDark = theme === 'dark';
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
 
-
+  // Memoized time and greeting - computed once on mount
   const { currentTime, greeting } = useMemo(() => {
     const now = new Date();
     const hours = now.getHours();
@@ -41,30 +41,41 @@ export default function HomePage() {
     return { currentTime: formattedTime, greeting };
   }, []);
 
-
+  // Optimized scroll handler using useCallback
   const handleScroll = useCallback(() => {
     setScrollPosition(window.scrollY);
   }, []);
 
-
   useEffect(() => {
+    setMounted(true);
+  }, []);
+  const isDark = mounted && resolvedTheme === 'dark';
 
+  // Handle scroll effect
+  useEffect(() => {
+    // Add passive option for better scroll performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  // Redirect authenticated users to dashboard
   useEffect(() => {
     if (status === 'authenticated' && session) {
       router.push(APP_ROUTES.DASHBOARD);
     }
   }, [session, status, router]);
 
-
+  // Memoized sign in handler
   const handleSignIn = useCallback(() => {
     signIn('google', { callbackUrl: APP_ROUTES.DASHBOARD });
   }, []);
 
+  // Memoized navigation opacity calculation
+  const navOpacity = useMemo(() => {
+    return Math.min(scrollPosition / 300, 1);
+  }, [scrollPosition]);
 
+  // Optimized loading state with memoization
   const loadingView = useMemo(() => (
     <motion.div
       className="flex min-h-screen items-center justify-center bg-background"
@@ -88,9 +99,9 @@ export default function HomePage() {
         <div className="absolute inset-0 rounded-full bg-primary/20 blur-md" />
         {/* Iris ring */}
         <div className="absolute inset-1 rounded-full border-2 border-primary/80" />
-        
+
         {/* Animated iris */}
-        <motion.div 
+        <motion.div
           className="absolute inset-3 rounded-full bg-gradient-to-r from-primary to-accent"
           animate={{
             scale: [1, 0.9, 1],
@@ -101,13 +112,13 @@ export default function HomePage() {
             ease: "easeInOut",
           }}
         />
-        
+
         {/* Pupil with dollar sign */}
         <motion.div
           className="absolute inset-0 flex items-center justify-center"
-          animate={{ 
+          animate={{
             scale: [1, 0.95, 1],
-            rotate: [0, 5, 0, -5, 0] 
+            rotate: [0, 5, 0, -5, 0]
           }}
           transition={{
             duration: 3,
@@ -140,17 +151,12 @@ export default function HomePage() {
   // Optimized header component 
   const headerComponent = useMemo(() => (
     <motion.header
-      className="fixed top-0 left-0 right-0 z-50 py-4"
-      style={{
-        backgroundColor: isDark
-          ? `rgb(0, 0, 0)` // Pure black in dark mode with no opacity
-          : `rgb(255, 255, 255)`, // Pure white in light mode with no opacity
-        boxShadow: scrollPosition > 50 && isDark 
-          ? `0 1px 0 rgb(30, 30, 30)` // Very subtle border in dark mode
-          : scrollPosition > 50 && !isDark 
-          ? '0 1px 0 rgb(240, 240, 240)' // Very subtle border in light mode
-          : 'none',
-      }}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 py-4 transition-colors duration-300",
+        isDark ? "bg-black" : "bg-white",
+        scrollPosition > 50 && isDark && "shadow-[0_1px_0_rgb(30,30,30)]",
+        scrollPosition > 50 && !isDark && "shadow-[0_1px_0_rgb(240,240,240)]"
+      )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -162,7 +168,7 @@ export default function HomePage() {
             {/* Logo container - clean design without shadows */}
             <motion.div
               className={cn(
-                "relative bg-gradient-to-br from-primary via-[#4caf50]/80 to-accent/80 rounded-full", 
+                "relative bg-gradient-to-br from-primary via-[#4caf50]/80 to-accent/80 rounded-full",
                 "w-full h-full flex items-center justify-center overflow-hidden",
                 isDark ? "border border-[#333333]" : "border border-[#f0f0f0]"
               )}
@@ -180,30 +186,30 @@ export default function HomePage() {
                     isDark ? "text-black" : "text-white"
                   )}>$</span>
                   {/* Animated scanning line */}
-                  <motion.div 
+                  <motion.div
                     className={cn(
                       "absolute inset-0 h-[1px] w-full",
                       isDark ? "bg-black" : "bg-white"
                     )}
-                    animate={{ 
+                    animate={{
                       top: ["20%", "80%", "20%"],
                       opacity: [0.5, 0.8, 0.5]
                     }}
-                    transition={{ 
-                      duration: 2.5, 
-                      ease: "easeInOut", 
-                      repeat: Infinity 
+                    transition={{
+                      duration: 2.5,
+                      ease: "easeInOut",
+                      repeat: Infinity
                     }}
                   />
                 </div>
               </div>
             </motion.div>
           </div>
-  
+
           <h1 className="text-lg font-bold">
             Fin<span className="text-accent">$</span>ight
             <span className="relative ml-1">
-              <motion.span 
+              <motion.span
                 className="absolute -top-1 -right-2 text-[#4caf50] text-xs"
                 animate={{ rotate: [0, 10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -213,15 +219,15 @@ export default function HomePage() {
             </span>
           </h1>
         </div>
-  
+
         <div className="flex items-center gap-2">
           {/* Theme toggle */}
           <ThemeToggle />
-  
+
           <span className="text-sm text-muted-foreground hidden md:inline-block mr-3">
             {currentTime} • {greeting}
           </span>
-  
+
           <Badge
             variant="outline"
             className={cn(
@@ -232,7 +238,7 @@ export default function HomePage() {
             <Sparkles className="h-3 w-3 text-[#4caf50]" />
             <span className="font-medium text-[0.7rem]">New</span>
           </Badge>
-  
+
           {status !== 'authenticated' ? (
             <Button
               variant="ghost"
@@ -360,27 +366,27 @@ export default function HomePage() {
               {/* Financial vision eye decoration */}
               <div className="absolute -top-12 -right-12 w-24 h-24 opacity-20 pointer-events-none">
                 <div className="relative w-full h-full">
-                  <motion.div 
+                  <motion.div
                     className="absolute inset-0 rounded-full border-4 border-primary"
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.1, 1],
                       opacity: [0.3, 0.7, 0.3]
                     }}
-                    transition={{ 
-                      duration: 4, 
-                      repeat: Infinity, 
-                      ease: "easeInOut" 
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
                     }}
                   />
-                  <motion.div 
+                  <motion.div
                     className="absolute inset-4 rounded-full border-2 border-accent"
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.2, 1],
                       opacity: [0.4, 0.8, 0.4]
                     }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: Infinity, 
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
                       ease: "easeInOut",
                       delay: 0.5
                     }}
@@ -388,9 +394,9 @@ export default function HomePage() {
                   <motion.div
                     className="absolute inset-8 rounded-full bg-gradient-to-r from-primary to-accent"
                     animate={{ scale: [1, 0.8, 1] }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity, 
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
                       ease: "easeInOut",
                       delay: 1
                     }}
@@ -404,15 +410,15 @@ export default function HomePage() {
               </div>
 
               {/* Growth indicator */}
-              <motion.div 
+              <motion.div
                 className="absolute -bottom-8 -left-8 w-20 h-20 opacity-80 pointer-events-none"
-                animate={{ 
+                animate={{
                   y: [0, -5, 0],
                 }}
-                transition={{ 
-                  duration: 3, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
                 }}
               >
                 <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -427,10 +433,10 @@ export default function HomePage() {
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
                   />
-                  <motion.circle 
-                    cx="90" 
-                    cy="30" 
-                    r="5" 
+                  <motion.circle
+                    cx="90"
+                    cy="30"
+                    r="5"
                     className="fill-accent"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -473,27 +479,27 @@ export default function HomePage() {
               viewport={{ once: true, margin: "-100px" }}
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent transform origin-left transition-transform duration-300 group-hover:scale-x-100" />
-              
+
               {/* Eye-themed icon with scan line animation */}
               <div className="relative w-14 h-14 rounded-full mb-4 bg-primary/10 flex items-center justify-center overflow-hidden">
                 <div className="relative w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center">
                   <div className="w-4 h-4 rounded-full bg-primary" />
                   {/* Scan line animation */}
-                  <motion.div 
-                    className="absolute h-[2px] w-full bg-accent" 
-                    animate={{ 
+                  <motion.div
+                    className="absolute h-[2px] w-full bg-accent"
+                    animate={{
                       top: ["30%", "70%", "30%"],
                       opacity: [0.4, 0.8, 0.4]
                     }}
-                    transition={{ 
-                      duration: 2, 
-                      ease: "easeInOut", 
-                      repeat: Infinity 
+                    transition={{
+                      duration: 2,
+                      ease: "easeInOut",
+                      repeat: Infinity
                     }}
                   />
                 </div>
               </div>
-              
+
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                 สแกนใบเสร็จอัจฉริยะ
               </h3>
@@ -512,19 +518,19 @@ export default function HomePage() {
               viewport={{ once: true, margin: "-100px" }}
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent to-primary transform origin-left transition-transform duration-300 group-hover:scale-x-100" />
-              
+
               {/* Chart-themed icon */}
               <div className="relative w-14 h-14 rounded-full mb-4 bg-primary/10 flex items-center justify-center">
                 <div className="w-10 h-10 flex items-end justify-center gap-[3px]">
                   {[0.3, 0.5, 0.7, 0.6, 0.8].map((height, i) => (
-                    <motion.div 
+                    <motion.div
                       key={i}
                       className="w-1 bg-gradient-to-t from-primary to-accent rounded-t-sm"
                       style={{ height: `${height * 100}%` }}
                       initial={{ scaleY: 0 }}
                       animate={{ scaleY: 1 }}
-                      transition={{ 
-                        duration: 0.5, 
+                      transition={{
+                        duration: 0.5,
                         delay: i * 0.1,
                         repeat: Infinity,
                         repeatDelay: 3,
@@ -534,7 +540,7 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-              
+
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                 วิเคราะห์การใช้จ่าย
               </h3>
@@ -553,31 +559,31 @@ export default function HomePage() {
               viewport={{ once: true, margin: "-100px" }}
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent to-primary transform origin-left transition-transform duration-300 group-hover:scale-x-100" />
-              
+
               {/* Card with dollar sign animation */}
               <div className="relative w-14 h-14 rounded-full mb-4 bg-primary/10 flex items-center justify-center overflow-hidden">
                 <motion.div
                   className="w-10 h-6 rounded bg-gradient-to-r from-primary to-accent flex items-center justify-center"
                   animate={{ y: [0, -2, 0], rotate: [0, 2, 0, -2, 0] }}
-                  transition={{ 
-                    duration: 4, 
-                    ease: "easeInOut", 
-                    repeat: Infinity 
+                  transition={{
+                    duration: 4,
+                    ease: "easeInOut",
+                    repeat: Infinity
                   }}
                 >
                   <span className="text-card font-bold">$</span>
                 </motion.div>
-                <motion.div 
+                <motion.div
                   className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-[1px] bg-accent/70 rounded"
                   animate={{ width: ["50%", "70%", "50%"] }}
-                  transition={{ 
-                    duration: 2, 
-                    ease: "easeInOut", 
-                    repeat: Infinity 
+                  transition={{
+                    duration: 2,
+                    ease: "easeInOut",
+                    repeat: Infinity
                   }}
                 />
               </div>
-              
+
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                 จัดการธุรกรรมแบบง่าย
               </h3>
@@ -597,7 +603,7 @@ export default function HomePage() {
               <div className="relative w-12 h-12">
                 {/* Logo glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-accent/30 rounded-full blur-md"></div>
-                
+
                 {/* Logo container */}
                 <motion.div
                   className="relative bg-gradient-to-br from-primary to-accent/80 rounded-full shadow-lg shadow-primary/20 border border-primary/10 w-full h-full flex items-center justify-center overflow-hidden"
@@ -609,16 +615,16 @@ export default function HomePage() {
                     <div className="relative w-6 h-6 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
                       <span className="text-background font-bold text-sm">$</span>
                       {/* Animated scanning line */}
-                      <motion.div 
-                        className="absolute inset-0 bg-background/20 h-[1px] w-full" 
-                        animate={{ 
+                      <motion.div
+                        className="absolute inset-0 bg-background/20 h-[1px] w-full"
+                        animate={{
                           top: ["20%", "80%", "20%"],
                           opacity: [0.5, 0.8, 0.5]
                         }}
-                        transition={{ 
-                          duration: 2.5, 
-                          ease: "easeInOut", 
-                          repeat: Infinity 
+                        transition={{
+                          duration: 2.5,
+                          ease: "easeInOut",
+                          repeat: Infinity
                         }}
                       />
                     </div>
