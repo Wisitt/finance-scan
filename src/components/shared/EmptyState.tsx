@@ -1,9 +1,9 @@
 'use client';
 
-import { ReactNode } from 'react';
-import { InboxIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { InboxIcon } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -21,7 +21,7 @@ export function EmptyState({
   className
 }: EmptyStateProps) {
   return (
-    <motion.div 
+    <motion.div
       className={cn(
         "flex flex-col items-center justify-center py-12 px-4 text-center",
         className

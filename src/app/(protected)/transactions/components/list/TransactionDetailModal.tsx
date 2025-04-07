@@ -1,19 +1,18 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { Transaction } from '@/types';
-import { Trash2, X, ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { cn, formatCurrency } from '@/lib/utils';
+import { Transaction } from '@/types';
 import { formatToShortDate } from '@/utils/dateUtils';
-import { formatCurrency } from '@/lib/utils';
+import { ImageIcon, Trash2, X } from 'lucide-react';
 
 interface TransactionDetailModalProps {
   transaction: Transaction | null;
@@ -48,7 +47,7 @@ export default function TransactionDetailModal({
             </Button>
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-2">
           <div className="flex justify-between items-center">
             <div
@@ -71,7 +70,7 @@ export default function TransactionDetailModal({
               {formatCurrency(transaction.amount)}
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
               <p className="text-sm text-muted-foreground">วันที่</p>
@@ -85,7 +84,7 @@ export default function TransactionDetailModal({
               <p className="text-sm text-muted-foreground">รายละเอียด</p>
               <p className="font-medium">{transaction.description || '-'}</p>
             </div>
-            
+
             {transaction.receipt_images && transaction.receipt_images.length > 0 && (
               <div className="col-span-2 space-y-2">
                 <p className="text-sm text-muted-foreground">ใบเสร็จ</p>
@@ -110,15 +109,15 @@ export default function TransactionDetailModal({
               </div>
             )}
           </div>
-          
+
           <Separator />
-          
+
           <div className="flex justify-between text-xs text-muted-foreground">
             <div>ID: {transaction.id.substring(0, 8)}...</div>
             <div>รายการโดย: {username || 'ไม่ระบุ'}</div>
           </div>
         </div>
-        
+
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose}>
             ปิด

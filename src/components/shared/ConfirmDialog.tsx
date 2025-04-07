@@ -2,36 +2,36 @@
 
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmDialogProps {
-    isOpen: boolean;
-    title?: string;
-    description?: string;
-    confirmText?: string;
-    cancelText?: string;
-    loading?: boolean;
-    onConfirm: () => void;
-    onClose: () => void;
+  isOpen: boolean;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  loading?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
 }
 
 export function ConfirmDialog({
-    isOpen,
-    title = 'ยืนยัน',
-    description = 'คุณแน่ใจหรือไม่?',
-    confirmText = 'ตกลง',
-    cancelText = 'ยกเลิก',
-    loading,
-    onConfirm,
-    onClose,
+  isOpen,
+  title = 'ยืนยัน',
+  description = 'คุณแน่ใจหรือไม่?',
+  confirmText = 'ตกลง',
+  cancelText = 'ยกเลิก',
+  loading,
+  onConfirm,
+  onClose,
 }: ConfirmDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>

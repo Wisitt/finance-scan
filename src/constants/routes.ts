@@ -10,7 +10,7 @@ export const APP_ROUTES = {
   ERROR: '/error',
   PROFILE: '/profile',
   SETTINGS: '/settings',
-  HELP:'help'
+  HELP: 'help'
 } as const;
 
 /**

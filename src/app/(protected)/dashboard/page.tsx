@@ -1,61 +1,61 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 import { format, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
 
 import {
   BarChart3,
-  ScanLine,
-  Home,
-  Wallet,
   CalendarDays,
-  TrendingUp,
-  TrendingDown,
-  Receipt,
-  UserPlus,
-  Settings2,
   ExternalLink,
+  Home,
+  Receipt,
+  ScanLine,
+  Settings2,
+  TrendingDown,
+  TrendingUp,
+  UserPlus,
+  Wallet,
 } from 'lucide-react';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
-  CardFooter
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger
 } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-import Link from 'next/link';
-import { TransactionCharts } from '../transactions';
-import ReceiptScanner from '../scan/page';
-import { useRouter } from 'next/navigation';
-import { formatCurrency } from '@/lib/utils';
 import { SummaryCard } from '@/components/shared/SummaryCard';
 import { useTransactionFilters } from '@/hooks/useTransactionFilters';
+import { formatCurrency } from '@/lib/utils';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import ReceiptScanner from '../scan/page';
+import { TransactionCharts } from '../transactions';
 
 
 export default function DashBoardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { transactions , fetchTransactions } = useTransactionStore();
+  const { transactions, fetchTransactions } = useTransactionStore();
 
   const {
     summary,
@@ -77,7 +77,7 @@ export default function DashBoardPage() {
           setLoading(false);
         }
       }
-      
+
       loadData();
     }
   }, [status, router, session, fetchTransactions]);
@@ -100,7 +100,7 @@ export default function DashBoardPage() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
- 
+
   const lastUpdated = new Date('2025-03-06 08:19:59');
 
   return (
@@ -117,8 +117,8 @@ export default function DashBoardPage() {
             จัดการรายรับรายจ่ายและดูภาพรวมทางการเงิน
           </p>
         </div>
-        </div>
-      
+      </div>
+
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 
         <SummaryCard
@@ -143,7 +143,7 @@ export default function DashBoardPage() {
           compareColor="text-destructive"
           progressValue={65}
         />
-                <SummaryCard
+        <SummaryCard
           title="ยอดคงเหลือ"
           value={summary.balance}
           icon={Wallet}
@@ -155,8 +155,8 @@ export default function DashBoardPage() {
             summary.totalIncome > 0 && summary.balance / summary.totalIncome >= 0.2
               ? 'text-success'
               : summary.balance < 0
-              ? 'text-destructive'
-              : 'text-warning'
+                ? 'text-destructive'
+                : 'text-warning'
           }
           progressValue={summary.totalIncome > 0 ? Math.min((summary.balance / summary.totalIncome) * 100, 100) : 0}
         />

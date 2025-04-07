@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import toast from 'react-hot-toast';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useCategoryStore } from '@/store/categoryStore';
 import { useTransactionStore } from '@/store/transactionStore';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import * as z from 'zod';
 
 const transactionSchema = z.object({
   amount: z.number().positive('จำนวนต้องมากกว่า 0'),
@@ -39,7 +39,7 @@ export function useTransactionForm() {
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
-    defaultValues:{}
+    defaultValues: {}
   });
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function useTransactionForm() {
   }, [fetchCategories]);
 
   const filteredCategories = categories.filter(cat => cat.type === transactionType);
-  
+
   const handleTransactionTypeChange = (value: 'expense' | 'income') => {
     setTransactionType(value);
     form.setValue('category', '');
@@ -72,7 +72,7 @@ export function useTransactionForm() {
       toast.error('กรุณาเลือกผู้ใช้ก่อนเพิ่มรายการ');
       return;
     }
-    
+
     setIsSubmitting(true);
     setFormState({ isSuccess: false, error: null });
 
@@ -85,10 +85,10 @@ export function useTransactionForm() {
         date: new Date(data.date).toISOString(),
         type: transactionType,
       };
-      
+
       await addTransaction(newTransaction);
       toast.success(`บันทึก${transactionType === 'expense' ? 'รายจ่าย' : 'รายรับ'}: ฿${data.amount.toFixed(2)} (${data.category}) สำเร็จ`);
-      
+
       // Reset form
       form.reset({
         amount: undefined,

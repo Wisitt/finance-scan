@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Camera, CheckCircle, X, Loader2, RotateCw, Eye, ScanLine } from 'lucide-react';
+import { Camera, CheckCircle, X, Loader2, RotateCw, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 

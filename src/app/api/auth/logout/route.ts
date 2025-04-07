@@ -1,6 +1,6 @@
 // /app/api/auth/logout/route.ts (สมมติเป็นไฟล์ logout)
-import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   const cookieStore = await cookies();

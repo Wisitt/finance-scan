@@ -1,4 +1,4 @@
-import { Home, ArrowRightLeft, ScanLine, User, Settings } from "lucide-react";
+import { ArrowRightLeft, Home, ScanLine, Settings, User } from "lucide-react";
 import { APP_ROUTES } from "./routes";
 
 export interface NavItem {
@@ -16,21 +16,21 @@ export interface NavItem {
  * Main navigation items for the application
  */
 export const navItems: NavItem[] = [
-    { 
-        name: 'หน้าแรก', 
-        href: APP_ROUTES.DASHBOARD, 
+    {
+        name: 'หน้าแรก',
+        href: APP_ROUTES.DASHBOARD,
         icon: Home,
         pattern: /^\/dashboard(\/.*)?$/
     },
-    { 
-        name: 'ธุรกรรม', 
-        href: APP_ROUTES.TRANSACTIONS, 
+    {
+        name: 'ธุรกรรม',
+        href: APP_ROUTES.TRANSACTIONS,
         icon: ArrowRightLeft,
         pattern: /^\/transactions(\/.*)?$/
     },
-    { 
-        name: 'สแกนใบเสร็จ', 
-        href: APP_ROUTES.SCAN, 
+    {
+        name: 'สแกนใบเสร็จ',
+        href: APP_ROUTES.SCAN,
         icon: ScanLine,
         pattern: /^\/scan(\/.*)?$/
     },

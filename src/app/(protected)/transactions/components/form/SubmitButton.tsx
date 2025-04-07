@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils';
-import { PlusCircle, Loader2, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Loader2, PlusCircle, ScanLine } from 'lucide-react';
 
 interface SubmitButtonProps {
   transactionType: 'expense' | 'income';
@@ -9,14 +9,14 @@ interface SubmitButtonProps {
 }
 
 export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProps) {
-  const buttonClasses = transactionType === 'expense' 
-    ? "bg-gradient-to-r from-primary to-primary/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-primary/10" 
+  const buttonClasses = transactionType === 'expense'
+    ? "bg-gradient-to-r from-primary to-primary/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-primary/10"
     : "bg-gradient-to-r from-accent to-accent/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-accent/10";
-    
+
   return (
     <motion.div
       whileTap={{ scale: 0.98 }}
-      whileHover={{ 
+      whileHover={{
         scale: 1.01,
         transition: { duration: 0.2 }
       }}
@@ -24,20 +24,20 @@ export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProp
     >
       {/* Scanning line animation */}
       {!isSubmitting && (
-        <motion.div 
-          className="absolute left-0 right-0 h-[1px] bg-white/30 pointer-events-none" 
-          animate={{ 
+        <motion.div
+          className="absolute left-0 right-0 h-[1px] bg-white/30 pointer-events-none"
+          animate={{
             top: ["20%", "80%", "20%"],
             opacity: [0.3, 0.7, 0.3]
           }}
-          transition={{ 
-            duration: 2, 
-            ease: "easeInOut", 
-            repeat: Infinity 
+          transition={{
+            duration: 2,
+            ease: "easeInOut",
+            repeat: Infinity
           }}
         />
       )}
-      
+
       <Button
         type="submit"
         className={cn(
@@ -51,13 +51,13 @@ export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProp
           <>
             <div className="relative mr-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <motion.div 
+              <motion.div
                 className="absolute -inset-1 rounded-full"
-                animate={{ 
+                animate={{
                   scale: [1, 1.5, 1],
                   opacity: [0.2, 0, 0.2]
                 }}
-                transition={{ 
+                transition={{
                   duration: 1,
                   repeat: Infinity,
                   ease: "easeOut"

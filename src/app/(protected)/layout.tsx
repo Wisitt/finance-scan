@@ -1,9 +1,9 @@
 'use client';
-import { ReactNode, useState } from 'react';
 import Header from '@/components/layouts/Header';
-import { cn } from '@/lib/utils';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Sidebar } from '@/components/Sidebar';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { cn } from '@/lib/utils';
+import { ReactNode, useState } from 'react';
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -35,7 +35,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
         )}
       >
         <Header isMobile={isMobile} onMenuClick={handleMenuClick} />
-        
+
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>

@@ -29,15 +29,10 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 
 import {
-  ArrowDown,
   BarChart3, 
   Calendar,
-  Clock,
-  Download,
-  HelpCircle,
   LayoutDashboard,
   LineChart,
-  Loader2,
   PieChart,
   Plus,
   Tag,
@@ -45,11 +40,10 @@ import {
   TrendingUp,
   Wallet,
   Eye,
-  ScanLine
 } from 'lucide-react';
 
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription} from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';

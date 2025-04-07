@@ -1,12 +1,10 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { LucideIcon } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { LucideIcon } from 'lucide-react';
 
 type SummaryCardProps = {
   title: string;
@@ -39,34 +37,34 @@ export function SummaryCard({
     >
       <Card className="shadow-md hover:shadow-lg transition-all border border-border/80 overflow-hidden bg-gradient-to-br from-card to-card/95">
         {/* Eye-like scanning line animation */}
-        <motion.div 
+        <motion.div
           className={cn("absolute left-0 right-0 h-[1px]", color.replace('text-', 'bg-'))}
           style={{ opacity: 0.3 }}
-          animate={{ 
+          animate={{
             top: ["20%", "80%", "20%"],
             opacity: [0.2, 0.6, 0.2]
           }}
-          transition={{ 
-            duration: 3.5, 
-            ease: "easeInOut", 
-            repeat: Infinity 
+          transition={{
+            duration: 3.5,
+            ease: "easeInOut",
+            repeat: Infinity
           }}
         />
 
         <CardHeader className="pb-2 relative z-10">
           <CardDescription className="flex items-center gap-1 font-medium">
-            <motion.div 
+            <motion.div
               className={cn('p-1.5 rounded-full flex items-center justify-center', bgColor)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               {/* Icon with subtle pulsing animation */}
               <motion.div
-                animate={{ 
+                animate={{
                   scale: [1, 1.1, 1],
                   opacity: [0.9, 1, 0.9]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
                   ease: "easeInOut"
@@ -77,7 +75,7 @@ export function SummaryCard({
             </motion.div>
             <span>{title}</span>
           </CardDescription>
-          
+
           {loading ? (
             <Skeleton className="h-8 w-32 mt-1" />
           ) : (
@@ -86,7 +84,7 @@ export function SummaryCard({
             </CardTitle>
           )}
         </CardHeader>
-        
+
         <CardContent className="relative z-10">
           {(compareText || progressValue !== undefined) && (
             <div className="space-y-2">
@@ -101,31 +99,31 @@ export function SummaryCard({
                   {/* Custom progress bar with eye-theme gradient */}
                   <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                     <motion.div
-                      className={cn("h-full rounded-full", 
-                        color === 'text-primary' ? 'bg-gradient-to-r from-primary/80 to-primary' : 
-                        color === 'text-destructive' ? 'bg-gradient-to-r from-destructive/80 to-destructive' :
-                        'bg-gradient-to-r from-accent/80 to-accent'
+                      className={cn("h-full rounded-full",
+                        color === 'text-primary' ? 'bg-gradient-to-r from-primary/80 to-primary' :
+                          color === 'text-destructive' ? 'bg-gradient-to-r from-destructive/80 to-destructive' :
+                            'bg-gradient-to-r from-accent/80 to-accent'
                       )}
                       initial={{ width: 0 }}
                       animate={{ width: `${progressValue}%` }}
-                      transition={{ 
-                        duration: 0.8, 
+                      transition={{
+                        duration: 0.8,
                         ease: "easeOut"
                       }}
                     />
                   </div>
-                  
+
                   {/* Scanning line on progress bar */}
                   {progressValue > 15 && (
-                    <motion.div 
+                    <motion.div
                       className="absolute top-0 bottom-0 w-[2px] bg-background/60 rounded-full"
-                      animate={{ 
+                      animate={{
                         left: ["0%", `${Math.min(progressValue, 95)}%`, "0%"],
                         opacity: [0, 1, 0]
                       }}
-                      transition={{ 
-                        duration: 2.5, 
-                        ease: "easeInOut", 
+                      transition={{
+                        duration: 2.5,
+                        ease: "easeInOut",
                         repeat: Infinity,
                         repeatDelay: 1
                       }}
@@ -139,7 +137,7 @@ export function SummaryCard({
 
         {/* Background decorative element */}
         <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full opacity-5">
-          <motion.div 
+          <motion.div
             className={cn("w-full h-full rounded-full", color.replace('text-', 'bg-'))}
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}

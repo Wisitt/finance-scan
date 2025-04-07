@@ -24,7 +24,7 @@ export default function HomePage() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const isDark = theme === 'dark';
 
-  // Memoized time and greeting - computed once on mount
+
   const { currentTime, greeting } = useMemo(() => {
     const now = new Date();
     const hours = now.getHours();
@@ -41,36 +41,30 @@ export default function HomePage() {
     return { currentTime: formattedTime, greeting };
   }, []);
 
-  // Optimized scroll handler using useCallback
+
   const handleScroll = useCallback(() => {
     setScrollPosition(window.scrollY);
   }, []);
 
-  // Handle scroll effect
+
   useEffect(() => {
-    // Add passive option for better scroll performance
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Redirect authenticated users to dashboard
   useEffect(() => {
     if (status === 'authenticated' && session) {
       router.push(APP_ROUTES.DASHBOARD);
     }
   }, [session, status, router]);
 
-  // Memoized sign in handler
+
   const handleSignIn = useCallback(() => {
     signIn('google', { callbackUrl: APP_ROUTES.DASHBOARD });
   }, []);
 
-  // Memoized navigation opacity calculation
-  const navOpacity = useMemo(() => {
-    return Math.min(scrollPosition / 300, 1);
-  }, [scrollPosition]);
 
-  // Optimized loading state with memoization
   const loadingView = useMemo(() => (
     <motion.div
       className="flex min-h-screen items-center justify-center bg-background"

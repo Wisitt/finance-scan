@@ -1,10 +1,9 @@
 'use client';
 
-import { Bell, LogOut, Menu, Settings, User } from 'lucide-react';
-import { useSession, signOut } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme/mode-toggle';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { useTransactionStore } from '@/store/transactionStore';
+import { Bell, LogOut, Menu, Settings, User } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
 
 interface HeaderProps {
   isMobile?: boolean;
@@ -26,17 +26,17 @@ interface HeaderProps {
  */
 export default function Header({ isMobile, onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
-  
+
   const userName = session?.user?.name || '';
   const userEmail = session?.user?.email || '';
   const userImage = session?.user?.image || '';
   const userInitial = userName.charAt(0).toUpperCase();
-  
+
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
     useTransactionStore.getState().resetTransactionState();
   };
-  
+
   return (
     <header className="sticky top-0 z-40 w-full h-16 bg-background/80 backdrop-blur-md border-b shadow-sm flex items-center px-4">
       {isMobile && (
@@ -49,24 +49,24 @@ export default function Header({ isMobile, onMenuClick }: HeaderProps) {
           <Menu className="h-5 w-5" />
         </Button>
       )}
-      
+
       <div className="flex-1" />
-      
+
       <div className="flex items-center gap-3 md:gap-4">
         {/* Theme Toggle */}
         <ThemeToggle />
-        
+
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="relative rounded-full hover:bg-primary/10 transition-all"
               aria-label="การแจ้งเตือน"
             >
               <Bell className="h-5 w-5" />
-              <Badge 
+              <Badge
                 className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-primary text-[10px]"
               >
                 2
@@ -93,7 +93,7 @@ export default function Header({ isMobile, onMenuClick }: HeaderProps) {
                   </div>
                 </div>
               </div>
-              
+
               <div className="px-3 py-2 hover:bg-muted/50 cursor-pointer transition-colors rounded-md mx-1 my-1 border-l-2 border-primary">
                 <div className="flex items-start gap-2">
                   <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
@@ -113,7 +113,7 @@ export default function Header({ isMobile, onMenuClick }: HeaderProps) {
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
-          
+
         {/* User Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -141,7 +141,7 @@ export default function Header({ isMobile, onMenuClick }: HeaderProps) {
               <span>ตั้งค่า</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={handleSignOut}
               className="text-destructive focus:text-destructive flex items-center gap-2"
             >

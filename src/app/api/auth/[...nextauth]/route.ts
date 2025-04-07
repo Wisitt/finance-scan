@@ -15,6 +15,8 @@ const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
+      console.log('🪪 Google account:', account);
+      console.log('👤 User:', user);
       try {
         if (account?.provider !== 'google' || !user.email) {
           return false;
@@ -46,6 +48,8 @@ const authOptions: NextAuthOptions = {
         // Create user if not found
         if (!userId) {
           try {
+            const googleId = account?.providerAccountId;
+
             const createRes = await fetch(`${nestApiBase}/users`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -53,6 +57,8 @@ const authOptions: NextAuthOptions = {
                 name: user.name || 'Unnamed Google User',
                 email: user.email,
                 avatar_url: user.image,
+                google_id: googleId,
+                last_login: new Date().toISOString(),
               }),
             });
 

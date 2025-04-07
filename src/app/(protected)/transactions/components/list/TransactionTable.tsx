@@ -1,13 +1,12 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { Transaction } from '@/types';
-import { ArrowUpCircle, ArrowDownCircle, Trash2, ImageIcon, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn, formatCurrency } from '@/lib/utils';
+import { Transaction } from '@/types';
 import { formatToShortDate } from '@/utils/dateUtils';
-import { formatCurrency } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { ArrowDownCircle, ArrowUpCircle, Eye, ImageIcon, Trash2 } from 'lucide-react';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -33,7 +32,7 @@ export default function TransactionTable({
           className={cn(
             'group relative flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-all',
             'hover:bg-muted/30 focus-within:bg-muted/30 focus-within:ring-1 focus-within:ring-primary',
-            transaction.type === 'income' 
+            transaction.type === 'income'
               ? 'border-l-4 border-l-green-500'
               : 'border-l-4 border-l-red-500'
           )}
@@ -72,7 +71,7 @@ export default function TransactionTable({
               <p className="text-sm mt-1 max-w-[300px] truncate">{transaction.description}</p>
             )}
           </div>
-          
+
           <div className="mt-3 sm:mt-0 flex items-center justify-between sm:justify-end gap-3">
             <span
               className={cn(
@@ -82,7 +81,7 @@ export default function TransactionTable({
             >
               {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
             </span>
-            
+
             <div className="flex items-center gap-1">
               {transaction.receipt_images && transaction.receipt_images.length > 0 && (
                 <Button
@@ -98,7 +97,7 @@ export default function TransactionTable({
                   <ImageIcon className="h-4 w-4" />
                 </Button>
               )}
-              
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -108,7 +107,7 @@ export default function TransactionTable({
               >
                 <Eye className="h-4 w-4" />
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="icon"

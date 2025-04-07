@@ -1,8 +1,5 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { Moon, Sun, Eye, EyeOff, ScanBarcode } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { Eye, EyeOff, ScanBarcode, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -70,19 +70,19 @@ export const ThemeToggle = () => {
   // Get current display theme (accounting for system preference)
   const getCurrentDisplayTheme = (): "light" | "dark" => {
     if (!mounted) return "light";
-    
+
     if (theme === "system") {
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
-    
+
     return theme === "dark" ? "dark" : "light";
   };
 
   const displayTheme = getCurrentDisplayTheme();
-  const currentThemeOption = themeOptions.find(t => t.value === (theme === "system" ? displayTheme : theme)) 
-    || themeOptions.find(t => t.value === theme) 
+  const currentThemeOption = themeOptions.find(t => t.value === (theme === "system" ? displayTheme : theme))
+    || themeOptions.find(t => t.value === theme)
     || themeOptions[0];
-  
+
   const ThemeIcon = currentThemeOption.icon;
   const iconClass = currentThemeOption.iconClass;
 
@@ -109,25 +109,25 @@ export const ThemeToggle = () => {
     if (!mounted) return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    
+
     const applyTheme = () => {
-      const resolvedTheme = theme === "system" 
-        ? (mediaQuery.matches ? "dark" : "light") 
+      const resolvedTheme = theme === "system"
+        ? (mediaQuery.matches ? "dark" : "light")
         : theme;
-        
+
       const root = document.documentElement;
-      
+
       // Add theme transition class for smooth changes
       if (!root.classList.contains('theme-transition')) {
         root.classList.add('theme-transition');
       }
-      
+
       if (resolvedTheme === "dark") {
         root.classList.add("dark");
       } else {
         root.classList.remove("dark");
       }
-      
+
       // Activate scanning animation when theme changes
       setScanningActive(true);
       setTimeout(() => setScanningActive(false), 1500);
@@ -170,8 +170,8 @@ export const ThemeToggle = () => {
                 size="icon"
                 className={cn(
                   "relative rounded-full w-10 h-10 overflow-hidden transition-all border",
-                  isHovered 
-                    ? "bg-primary/10 border-primary/30" 
+                  isHovered
+                    ? "bg-primary/10 border-primary/30"
                     : "border-transparent"
                 )}
                 onMouseEnter={() => setIsHovered(true)}
@@ -180,31 +180,31 @@ export const ThemeToggle = () => {
               >
                 {/* Scanning line animation */}
                 {scanningActive && (
-                  <motion.div 
-                    className="absolute left-0 right-0 h-[1px] pointer-events-none" 
+                  <motion.div
+                    className="absolute left-0 right-0 h-[1px] pointer-events-none"
                     style={{
                       backgroundColor: displayTheme === "dark" ? 'var(--accent)' : 'var(--primary)',
                       opacity: 0.7
                     }}
-                    animate={{ 
+                    animate={{
                       top: ["30%", "70%", "30%"],
                       opacity: [0.3, 0.7, 0.3]
                     }}
-                    transition={{ 
-                      duration: 1.5, 
-                      ease: "easeInOut", 
+                    transition={{
+                      duration: 1.5,
+                      ease: "easeInOut",
                       repeat: scanningActive ? Infinity : 0
                     }}
                   />
                 )}
-                
+
                 {/* Enhanced background effect */}
                 <div className={cn(
                   "absolute inset-0 opacity-0 transition-opacity duration-300",
                   isHovered && "opacity-40",
                   "bg-gradient-to-r from-primary/20 to-accent/20"
                 )} />
-                
+
                 {/* Eye-themed icon container */}
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -216,21 +216,21 @@ export const ThemeToggle = () => {
                     className="relative z-10 flex items-center justify-center"
                   >
                     <ThemeIcon className={cn("h-5 w-5", iconClass)} />
-                    
+
                     {/* Subtle pulse effect */}
                     {isHovered && (
-                      <motion.div 
+                      <motion.div
                         className="absolute inset-0 rounded-full"
-                        animate={{ 
+                        animate={{
                           scale: [1, 1.5, 1],
                           opacity: [0.2, 0, 0.2]
                         }}
-                        transition={{ 
+                        transition={{
                           duration: 2,
                           repeat: Infinity,
                           ease: "easeInOut"
                         }}
-                        style={{ 
+                        style={{
                           backgroundColor: displayTheme === "dark" ? 'var(--accent)' : 'var(--primary)',
                           opacity: 0.2
                         }}
@@ -241,7 +241,7 @@ export const ThemeToggle = () => {
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          
+
           <TooltipContent side="bottom" className="font-medium text-xs">
             <div>เปลี่ยนธีมการแสดงผล</div>
           </TooltipContent>
@@ -250,25 +250,25 @@ export const ThemeToggle = () => {
         <DropdownMenuContent align="end" className="w-56 p-1.5 border-border/50 relative">
           {/* Scanning line animation in dropdown */}
           {scanningActive && (
-            <motion.div 
-              className="absolute left-0 right-0 h-[1px] bg-primary/50 pointer-events-none" 
-              animate={{ 
+            <motion.div
+              className="absolute left-0 right-0 h-[1px] bg-primary/50 pointer-events-none"
+              animate={{
                 top: ["5%", "95%", "5%"],
                 opacity: [0.2, 0.5, 0.2]
               }}
-              transition={{ 
-                duration: 2, 
-                ease: "easeInOut", 
+              transition={{
+                duration: 2,
+                ease: "easeInOut",
                 repeat: scanningActive ? 1 : 0
               }}
             />
           )}
-          
+
           <div className="flex flex-col gap-1.5">
             {themeOptions.map((option) => {
               const Icon = option.icon;
               const isActive = theme === option.value;
-              
+
               return (
                 <motion.div
                   key={option.value}
@@ -279,16 +279,16 @@ export const ThemeToggle = () => {
                     onClick={() => setThemeHandler(option.value)}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg transition-all",
-                      isActive 
-                        ? option.value === "dark" 
-                          ? "bg-accent/10" 
-                          : option.value === "light" 
-                          ? "bg-primary/10" 
-                          : "bg-secondary/10"
+                      isActive
+                        ? option.value === "dark"
+                          ? "bg-accent/10"
+                          : option.value === "light"
+                            ? "bg-primary/10"
+                            : "bg-secondary/10"
                         : "hover:bg-muted/80"
                     )}
                   >
-                    <motion.div 
+                    <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className={cn(
@@ -298,41 +298,41 @@ export const ThemeToggle = () => {
                       )}
                     >
                       <Icon className={cn(
-                        "h-5 w-5", 
+                        "h-5 w-5",
                         option.iconClass,
                         isActive && option.activeTextClass
                       )} />
-                      
+
                       {/* Scanning line animation for icon */}
                       {isActive && (
-                        <motion.div 
-                          className="absolute left-0 right-0 h-[1px]" 
+                        <motion.div
+                          className="absolute left-0 right-0 h-[1px]"
                           style={{
-                            backgroundColor: option.value === "dark" 
-                              ? 'var(--accent)' 
-                              : option.value === "light" 
-                              ? 'var(--primary)' 
-                              : 'var(--secondary)',
+                            backgroundColor: option.value === "dark"
+                              ? 'var(--accent)'
+                              : option.value === "light"
+                                ? 'var(--primary)'
+                                : 'var(--secondary)',
                             opacity: 0.7
                           }}
-                          animate={{ 
+                          animate={{
                             top: ["30%", "70%", "30%"],
                             opacity: [0.4, 0.7, 0.4]
                           }}
-                          transition={{ 
-                            duration: 2, 
-                            ease: "easeInOut", 
-                            repeat: Infinity 
+                          transition={{
+                            duration: 2,
+                            ease: "easeInOut",
+                            repeat: Infinity
                           }}
                         />
                       )}
                     </motion.div>
-                    
+
                     <div className="flex-1">
                       <p className="text-sm font-medium">{option.label}</p>
                       <p className="text-xs text-muted-foreground">{option.description}</p>
                     </div>
-                    
+
                     {isActive && (
                       <motion.div
                         initial={{ scale: 0 }}
@@ -341,8 +341,8 @@ export const ThemeToggle = () => {
                         className={cn(
                           "flex h-5 w-5 items-center justify-center rounded-full",
                           option.value === "dark" ? "bg-accent text-accent-foreground" :
-                          option.value === "light" ? "bg-primary text-primary-foreground" :
-                          "bg-secondary text-secondary-foreground"
+                            option.value === "light" ? "bg-primary text-primary-foreground" :
+                              "bg-secondary text-secondary-foreground"
                         )}
                       >
                         <Eye className="h-3 w-3" />

@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, PieChart, Plus, Eye, ScanLine, RefreshCw } from 'lucide-react';
+import { CreditCard, PieChart, Plus, Eye, RefreshCw } from 'lucide-react';
 import TransactionCharts from './components/TransactionCharts';
 import AddTransactionForm from './components/form/AddTransactionForm';
 import { Button } from '@/components/ui/button';

@@ -1,5 +1,5 @@
- 
-import { format, parseISO, isValid, formatDistance } from 'date-fns';
+
+import { format, formatDistance, isValid, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
 
 /**
@@ -15,7 +15,7 @@ export function formatToISODate(date: Date | string): string {
  */
 export function formatToUTCString(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  
+
   return format(d, 'yyyy-MM-dd HH:mm:ss');
 }
 
@@ -24,9 +24,9 @@ export function formatToUTCString(date: Date | string): string {
  */
 export function formatToThaiDate(date: Date | string): string {
   const d = typeof date === 'string' ? parseISO(date) : date;
-  
+
   if (!isValid(d)) return 'วันที่ไม่ถูกต้อง';
-  
+
   // เพิ่ม 543 ปีเพื่อแปลงเป็น พ.ศ.
   return format(d, 'd MMMM yyyy', { locale: th })
     .replace(String(d.getFullYear()), String(d.getFullYear() + 543));
@@ -48,11 +48,11 @@ export function formatToShortDate(dateString: string): string {
 export function timeAgo(date: Date | string, addSuffix = true): string {
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
+
     if (isNaN(dateObj.getTime())) {
       return 'Invalid date';
     }
-    
+
     return formatDistance(dateObj, new Date(), {
       addSuffix,
       locale: th
@@ -76,7 +76,7 @@ export function formatThaiDate(date: Date | string, formatStr = 'PPP'): string {
 export function isToday(date: Date | string): boolean {
   const today = new Date();
   const checkDate = typeof date === 'string' ? new Date(date) : date;
-  
+
   return (
     checkDate.getDate() === today.getDate() &&
     checkDate.getMonth() === today.getMonth() &&
@@ -99,7 +99,7 @@ export function getCurrentMonthRange(): { start: string, end: string } {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
+
   return {
     start: formatToISODate(start),
     end: formatToISODate(end)
@@ -113,13 +113,13 @@ export function formatDisplayDate(dateString: string | null | undefined): string
     if (isValid(dateObj)) {
       return format(dateObj, "d MMM yy", { locale: th });
     }
-  } catch  {}
+  } catch { }
   // Fallback for potentially different formats or invalid strings
   try {
     const dateObj = new Date(dateString);
-     if (isValid(dateObj)) {
-       return format(dateObj, "d MMM yy", { locale: th });
-     }
-  } catch  {}
+    if (isValid(dateObj)) {
+      return format(dateObj, "d MMM yy", { locale: th });
+    }
+  } catch { }
   return 'Invalid Date'; // Or return the original string: dateString
 }

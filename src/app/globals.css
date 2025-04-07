@@ -46,72 +46,97 @@
 }
 
 :root {
-  --primary: oklch(0.68 0.20 184); /* Teal - Eye/Scanning theme */
-  --primary-dark: oklch(0.58 0.20 184); /* Darker teal for gradients */
-  --primary-light: oklch(0.78 0.15 184); /* Lighter teal for highlights */
-  --primary-foreground: oklch(0.98 0.01 240); /* Light text on primary */
-  
-  --accent: oklch(0.84 0.16 85); /* Gold - Financial growth theme */
-  --accent-foreground: oklch(0.17 0.01 240); /* Dark text on accent */
-  
-  --electric-blue: oklch(0.72 0.18 242); /* Electric blue highlight */
-  
-  --background: oklch(0.98 0.01 240); /* Soft background */
-  --background-alpha-10: oklch(0.98 0.01 240 / 0.1); /* 10% opacity background */
-  --background-alpha-0: oklch(0.98 0.01 240 / 0); /* 0% opacity background */
-  --foreground: oklch(0.18 0.01 240); /* Main text color */
-  
+  --primary: oklch(0.68 0.20 184);
+  /* Teal - Eye/Scanning theme */
+  --primary-dark: oklch(0.58 0.20 184);
+  /* Darker teal for gradients */
+  --primary-light: oklch(0.78 0.15 184);
+  /* Lighter teal for highlights */
+  --primary-foreground: oklch(0.98 0.01 240);
+  /* Light text on primary */
+
+  --accent: oklch(0.84 0.16 85);
+  /* Gold - Financial growth theme */
+  --accent-foreground: oklch(0.17 0.01 240);
+  /* Dark text on accent */
+
+  --electric-blue: oklch(0.72 0.18 242);
+  /* Electric blue highlight */
+
+  --background: oklch(0.98 0.01 240);
+  /* Soft background */
+  --background-alpha-10: oklch(0.98 0.01 240 / 0.1);
+  /* 10% opacity background */
+  --background-alpha-0: oklch(0.98 0.01 240 / 0);
+  /* 0% opacity background */
+  --foreground: oklch(0.18 0.01 240);
+  /* Main text color */
+
   --muted: oklch(0.94 0.01 240);
   --muted-foreground: oklch(0.45 0.01 240);
-  
-  --ring: oklch(0.65 0.15 184); /* Focus rings in teal */
+
+  --ring: oklch(0.65 0.15 184);
+  /* Focus rings in teal */
   --input: oklch(0.9 0.01 240);
   --border: oklch(0.88 0.01 240);
-  
+
   --card: oklch(0.97 0.01 240);
   --card-foreground: oklch(0.18 0.01 240);
-  
+
   --radius: 0.75rem;
-  
-  --shine-highlight: oklch(1 0 0 / 0.2); /* Light shine effect */
+
+  --shine-highlight: oklch(1 0 0 / 0.2);
+  /* Light shine effect */
   --popover: var(--background);
   --popover-foreground: var(--foreground);
-  
+
   /* Alpha variables for backgrounds */
   --background-alpha-0: oklch(0.98 0.01 240 / 0);
   --background-alpha-10: oklch(0.98 0.01 240 / 0.1);
 }
 
 .dark {
-  --primary: oklch(0.68 0.20 184); /* Teal - Eye/Scanning theme */
-  --primary-dark: oklch(0.58 0.20 184); /* Darker teal for gradients */
-  --primary-light: oklch(0.78 0.15 184); /* Lighter teal for highlights */
-  --primary-foreground: oklch(0.12 0.01 240); /* Dark text on primary */
-  
-  --accent: oklch(0.84 0.16 85); /* Gold - Financial growth theme */
-  --accent-foreground: oklch(0.12 0.01 240); /* Dark text on accent */
-  
-  --electric-blue: oklch(0.72 0.18 242); /* Electric blue highlight */
-  
-  --background: oklch(0.12 0.01 240); /* Dark background */
-  --background-alpha-10: oklch(0.12 0.01 240 / 0.1); /* 10% opacity background */
-  --background-alpha-0: oklch(0.12 0.01 240 / 0); /* 0% opacity background */
-  --foreground: oklch(0.98 0.01 240); /* Light text */
-  
+  --primary: oklch(0.68 0.20 184);
+  /* Teal - Eye/Scanning theme */
+  --primary-dark: oklch(0.58 0.20 184);
+  /* Darker teal for gradients */
+  --primary-light: oklch(0.78 0.15 184);
+  /* Lighter teal for highlights */
+  --primary-foreground: oklch(0.12 0.01 240);
+  /* Dark text on primary */
+
+  --accent: oklch(0.84 0.16 85);
+  /* Gold - Financial growth theme */
+  --accent-foreground: oklch(0.12 0.01 240);
+  /* Dark text on accent */
+
+  --electric-blue: oklch(0.72 0.18 242);
+  /* Electric blue highlight */
+
+  --background: oklch(0.12 0.01 240);
+  /* Dark background */
+  --background-alpha-10: oklch(0.12 0.01 240 / 0.1);
+  /* 10% opacity background */
+  --background-alpha-0: oklch(0.12 0.01 240 / 0);
+  /* 0% opacity background */
+  --foreground: oklch(0.98 0.01 240);
+  /* Light text */
+
   --muted: oklch(0.25 0.01 240);
   --muted-foreground: oklch(0.65 0.01 240);
-  
+
   --ring: oklch(0.65 0.15 184);
   --input: oklch(0.2 0.01 240);
   --border: oklch(0.25 0.01 240);
-  
+
   --card: oklch(0.18 0.01 240);
   --card-foreground: oklch(0.98 0.01 240);
-  
-  --shine-highlight: oklch(1 0 0 / 0.15); /* Dimmer shine effect for dark mode */
+
+  --shine-highlight: oklch(1 0 0 / 0.15);
+  /* Dimmer shine effect for dark mode */
   --popover: var(--background);
   --popover-foreground: var(--foreground);
-  
+
   /* Alpha variables for backgrounds */
   --background-alpha-0: oklch(0.12 0.01 240 / 0);
   --background-alpha-10: oklch(0.12 0.01 240 / 0.1);
@@ -121,12 +146,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
+
   /* Logo styles */
   .logo-text {
     font-weight: 700;
@@ -136,15 +162,31 @@
 
 /* Custom animations for financial elements */
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 5px 0 var(--primary); }
-  50% { box-shadow: 0 0 15px 2px var(--primary); }
-  100% { box-shadow: 0 0 5px 0 var(--primary); }
+  0% {
+    box-shadow: 0 0 5px 0 var(--primary);
+  }
+
+  50% {
+    box-shadow: 0 0 15px 2px var(--primary);
+  }
+
+  100% {
+    box-shadow: 0 0 5px 0 var(--primary);
+  }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-pulse-glow {

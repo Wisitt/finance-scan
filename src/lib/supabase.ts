@@ -1,10 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Environment จาก .env
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// สร้าง client ที่มีการตั้งค่า persistence ให้เหมาะสม
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -15,13 +13,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// เช็คและแสดงสถานะ auth ปัจจุบัน (เพื่อการ debug)
 export async function checkAndLogAuthStatus() {
   console.log('==========================================');
   console.log('🔍 Checking Supabase Auth Status');
   
   try {
-    // เช็ค session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
@@ -35,7 +31,6 @@ export async function checkAndLogAuthStatus() {
       });
     }
     
-    // เช็คผู้ใช้ปัจจุบัน
     const { data: userData, error: userError } = await supabase.auth.getUser();
     
     if (userError) {
@@ -54,7 +49,6 @@ export async function checkAndLogAuthStatus() {
   
   console.log('==========================================');
   
-  // ตรวจสอบค่า localStorage สำหรับ Supabase
   if (typeof window !== 'undefined') {
     try {
       const supabaseLocalStorageKeys = Object.keys(localStorage).filter(key => 
@@ -70,10 +64,9 @@ export async function checkAndLogAuthStatus() {
 
 export async function uploadImage(file: File, userId: string): Promise<string | null> {
   try {
-    // สร้างชื่อไฟล์หรือ path
     const fileName = `${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage
-      .from('receipt-images')         // ชื่อ bucket
+      .from('receipt-images')
       .upload(`receipts/${userId}/${fileName}`, file, {
         cacheControl: '3600',
         upsert: true,
@@ -84,13 +77,12 @@ export async function uploadImage(file: File, userId: string): Promise<string | 
       return null;
     }
 
-    // สร้าง public URL จาก path
     const { data: urlData } = supabase.storage
       .from('receipt-images')
       .getPublicUrl(`receipts/${userId}/${fileName}`);
 
     if (!urlData?.publicUrl) return null;
-    return urlData.publicUrl; // URL ไฟล์รูปบน supabase
+    return urlData.publicUrl;
   } catch (err) {
     console.error('Upload error:', err);
     return null;

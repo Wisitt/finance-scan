@@ -1,16 +1,16 @@
-import { cn } from '@/lib/utils';
-import { NumericFormat } from 'react-number-format';
-import { UseFormReturn } from 'react-hook-form';
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { TransactionFormValues } from './useTransactionForm';
 import { Eye } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
+import { NumericFormat } from 'react-number-format';
+import { TransactionFormValues } from './useTransactionForm';
 
 interface AmountInputProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -26,8 +26,8 @@ export function AmountInput({ form, transactionType }: AmountInputProps) {
         <FormItem className="w-full">
           <FormLabel className="text-base font-medium">จำนวนเงิน</FormLabel>
           <div className="relative">
-            <motion.span 
-              animate={{ 
+            <motion.span
+              animate={{
                 scale: field.value ? [1, 1.2, 1] : 1,
                 x: field.value ? [0, -2, 0] : 0
               }}
@@ -62,32 +62,32 @@ export function AmountInput({ form, transactionType }: AmountInputProps) {
                 onFocus={(e) => e.target.select()}
               />
             </FormControl>
-            
+
             {/* Eye-shaped scanning animation for high-value amounts */}
             {field.value && field.value > 1000 && (
               <div className="absolute right-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
                 <div className="relative h-5 w-5">
                   <Eye className={transactionType === 'expense' ? "text-primary" : "text-accent"} />
-                  <motion.div 
+                  <motion.div
                     className="absolute left-0 right-0 h-[1px]"
                     style={{
                       backgroundColor: transactionType === 'expense' ? 'var(--primary)' : 'var(--accent)'
                     }}
-                    animate={{ 
+                    animate={{
                       top: ["30%", "70%", "30%"],
                     }}
-                    transition={{ 
-                      duration: 1.5, 
-                      ease: "easeInOut", 
-                      repeat: Infinity 
+                    transition={{
+                      duration: 1.5,
+                      ease: "easeInOut",
+                      repeat: Infinity
                     }}
                   />
                 </div>
               </div>
             )}
-            
+
             {field.value > 0 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 className={cn(

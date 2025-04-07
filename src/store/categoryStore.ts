@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { addCategoryAPI, deleteCategoryAPI, fetchCategoriesAPI, updateCategoryAPI } from '@/services/categories';
 import { Category } from '@/types';
-import { fetchCategoriesAPI, addCategoryAPI, updateCategoryAPI, deleteCategoryAPI } from '@/services/categories';
+import { create } from 'zustand';
 
 
 interface CategoryState {

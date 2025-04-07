@@ -1,49 +1,49 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { useTransactionStore } from '@/store/transactionStore';
 import { Transaction } from '@/types';
+import { useEffect, useMemo, useState } from 'react';
 
 // UI Components
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import { 
-  FileText, 
-  ChevronLeft, 
-  ChevronRight, 
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Search,
-  Filter,
+import {
+  ChevronLeft,
+  ChevronRight,
   Download,
+  FileText,
+  Filter,
+  Search,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Components
-import { TransactionFilters } from './TransactionFilters';
-import { TransactionListSkeleton } from './TransactionListSkeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { TransactionDetailModal } from '@/components/ui/transaction-detail-modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ImageModal } from '@/components/ui/image-modal';
+import { TransactionDetailModal } from '@/components/ui/transaction-detail-modal';
+import { TransactionFilters } from './TransactionFilters';
+import { TransactionListSkeleton } from './TransactionListSkeleton';
 import TransactionTable from './TransactionTable';
 
 // Hooks and Utilities
 import { useTransactionFilters } from '@/hooks/useTransactionFilters';
+import { cn } from '@/lib/utils';
 import { exportTransactionsToCSV, exportTransactionsToJSON } from '@/utils/exportUtils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 interface TransactionListProps {
   showFilters?: boolean;
@@ -144,7 +144,7 @@ export function TransactionList({
   // Empty state
   if (!transactions.length) {
     return (
-      <EmptyState 
+      <EmptyState
         icon={<FileText className="h-10 w-10 text-muted-foreground" />}
         title="ไม่มีรายการธุรกรรม"
         description="คุณยังไม่มีรายการธุรกรรมใด ๆ เพิ่มรายการแรกของคุณเพื่อเริ่มต้น"
@@ -157,7 +157,7 @@ export function TransactionList({
       {/* Header */}
       {/* Header */}
       {showHeader && (
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -174,13 +174,13 @@ export function TransactionList({
               <div className="p-2 bg-accent/10 rounded-full relative">
                 <TrendingUp className="h-5 w-5 text-accent" />
                 {/* Animated ring */}
-                <motion.div 
+                <motion.div
                   className="absolute -inset-1 rounded-full border border-accent/30"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 0, 0.5]
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
                     ease: "easeInOut"
@@ -201,13 +201,13 @@ export function TransactionList({
               <div className="p-2 bg-primary/10 rounded-full relative">
                 <TrendingDown className="h-5 w-5 text-primary" />
                 {/* Animated ring */}
-                <motion.div 
+                <motion.div
                   className="absolute -inset-1 rounded-full border border-primary/30"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 0, 0.5]
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
                     ease: "easeInOut"
@@ -248,16 +248,16 @@ export function TransactionList({
                   )}
                 />
                 {/* Animated ring */}
-                <motion.div 
+                <motion.div
                   className={cn(
                     "absolute -inset-1 rounded-full border",
                     summary.balance >= 0 ? "border-secondary/30" : "border-destructive/30"
                   )}
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 0, 0.5]
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
                     ease: "easeInOut"
@@ -284,162 +284,162 @@ export function TransactionList({
                   <CardTitle className="flex items-center gap-2">
                     <div className="relative">
                       <FileText className="h-4 w-4 text-primary" />
-                        รายการธุรกรรม
-                        <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary border-primary/20">
-                          {processedTransactions.length}
-                        </Badge>
+                      รายการธุรกรรม
+                      <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary border-primary/20">
+                        {processedTransactions.length}
+                      </Badge>
 
-                        </div>
-                      </CardTitle>
                     </div>
-                    <CardDescription>
-                      ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
-                    </CardDescription>
+                  </CardTitle>
+                </div>
+                <CardDescription>
+                  ค้นหา กรอง และจัดการรายการธุรกรรมของคุณ
+                </CardDescription>
 
-                  {/* Export buttons */}
-                  {showExport && (
-                    <div className="flex items-center gap-2">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleExport('csv')}
-                          disabled={isExporting}
-                          className="border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 flex items-center gap-1.5"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Export CSV
-                        </Button>
-                      </motion.div>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleExport('json')}
-                          disabled={isExporting}
-                          className="border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 flex items-center gap-1.5"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Export JSON
-                        </Button>
-                      </motion.div>
-                    </div>
-                  )}
+                {/* Export buttons */}
+                {showExport && (
+                  <div className="flex items-center gap-2">
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExport('csv')}
+                        disabled={isExporting}
+                        className="border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 flex items-center gap-1.5"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Export CSV
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExport('json')}
+                        disabled={isExporting}
+                        className="border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 flex items-center gap-1.5"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Export JSON
+                      </Button>
+                    </motion.div>
+                  </div>
+                )}
               </div>
 
-                {showFilters && (
-                  <TransactionFilters
-                    filters={filters}
-                    updateFilter={updateFilter}
-                    resetFilters={resetFilters}
-                    uniqueCategories={uniqueCategories}
-                    activeFilterCount={activeFilterCount}
-                  />
-                )}
+              {showFilters && (
+                <TransactionFilters
+                  filters={filters}
+                  updateFilter={updateFilter}
+                  resetFilters={resetFilters}
+                  uniqueCategories={uniqueCategories}
+                  activeFilterCount={activeFilterCount}
+                />
+              )}
             </div>
-              </CardHeader>
+          </CardHeader>
 
-              <Separator className="my-1 bg-border/50" />
+          <Separator className="my-1 bg-border/50" />
 
-              <CardContent className="p-4">
-                <AnimatePresence mode="wait">
-                  {!processedTransactions.length ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <EmptyState
-                        icon={
-                          <div className="relative">
-                            <Search className="h-8 w-8 text-muted-foreground" />
-                            <motion.div 
-                              className="absolute -inset-2 rounded-full bg-primary/10" 
-                              animate={{ 
-                                scale: [1, 1.2, 1],
-                                opacity: [0.3, 0.1, 0.3]
-                              }}
-                              transition={{ 
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }}
-                            />
-                          </div>
-                        }
-                        title="ไม่พบรายการที่ตรงกับเงื่อนไข"
-                        description="ลองเปลี่ยนตัวกรองหรือคำค้นหาเพื่อดูรายการธุรกรรมอื่น ๆ"
-                        action={
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={resetFilters}
-                              className="border-primary/20 hover:bg-primary/5 hover:text-primary"
-                            >
-                              <Filter className="h-3.5 w-3.5 mr-1.5" />
-                              รีเซ็ตตัวกรอง
-                            </Button>
-                          </motion.div>
-                        }
-                      />
-                    </motion.div>
-                  ) : (
-                    <TransactionTable
-                      transactions={displayedTransactions}
-                      onViewDetails={setSelectedTransaction}
-                      onViewImage={setShowImageModal}
-                      onDeleteClick={setDeleteId}
-                    />
-                  )}
-                </AnimatePresence>
-              </CardContent>
+          <CardContent className="p-4">
+            <AnimatePresence mode="wait">
+              {!processedTransactions.length ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <EmptyState
+                    icon={
+                      <div className="relative">
+                        <Search className="h-8 w-8 text-muted-foreground" />
+                        <motion.div
+                          className="absolute -inset-2 rounded-full bg-primary/10"
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.3, 0.1, 0.3]
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        />
+                      </div>
+                    }
+                    title="ไม่พบรายการที่ตรงกับเงื่อนไข"
+                    description="ลองเปลี่ยนตัวกรองหรือคำค้นหาเพื่อดูรายการธุรกรรมอื่น ๆ"
+                    action={
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={resetFilters}
+                          className="border-primary/20 hover:bg-primary/5 hover:text-primary"
+                        >
+                          <Filter className="h-3.5 w-3.5 mr-1.5" />
+                          รีเซ็ตตัวกรอง
+                        </Button>
+                      </motion.div>
+                    }
+                  />
+                </motion.div>
+              ) : (
+                <TransactionTable
+                  transactions={displayedTransactions}
+                  onViewDetails={setSelectedTransaction}
+                  onViewImage={setShowImageModal}
+                  onDeleteClick={setDeleteId}
+                />
+              )}
+            </AnimatePresence>
+          </CardContent>
 
-            {/* Pagination */}
-            {processedTransactions.length > itemsPerPage && !limitCount && (
-              <CardFooter className="border-t border-border/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
-                <div className="text-xs text-muted-foreground">
-                  แสดง {startIndex + 1} -{' '}
-                  {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
-                  {totalItems} รายการ
+          {/* Pagination */}
+          {processedTransactions.length > itemsPerPage && !limitCount && (
+            <CardFooter className="border-t border-border/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
+              <div className="text-xs text-muted-foreground">
+                แสดง {startIndex + 1} -{' '}
+                {Math.min(startIndex + itemsPerPage, totalItems)} จากทั้งหมด{' '}
+                {totalItems} รายการ
+              </div>
+              <div className="flex items-center gap-2">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="border-border/50 hover:bg-primary/5 hover:text-primary"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">ก่อนหน้า</span>
+                  </Button>
+                </motion.div>
+
+                <div className="text-sm font-medium bg-primary/5 text-primary px-3 py-1 rounded">
+                  {currentPage} / {totalPages}
                 </div>
-                <div className="flex items-center gap-2">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="border-border/50 hover:bg-primary/5 hover:text-primary"
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">ก่อนหน้า</span>
-                    </Button>
-                  </motion.div>
-                  
-                  <div className="text-sm font-medium bg-primary/5 text-primary px-3 py-1 rounded">
-                    {currentPage} / {totalPages}
-                  </div>
-                  
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="border-border/50 hover:bg-primary/5 hover:text-primary"
-                    >
-                      <span className="hidden sm:inline">ถัดไป</span>
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </motion.div>
-                </div>
-              </CardFooter>
-            )}
-            
-          </Card>
-        </motion.div>
+
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="border-border/50 hover:bg-primary/5 hover:text-primary"
+                  >
+                    <span className="hidden sm:inline">ถัดไป</span>
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </motion.div>
+              </div>
+            </CardFooter>
+          )}
+
+        </Card>
+      </motion.div>
 
       {/* Modals */}
       <ImageModal

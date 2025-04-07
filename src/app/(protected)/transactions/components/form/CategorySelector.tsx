@@ -1,11 +1,8 @@
-import { cn } from '@/lib/utils';
-import { UseFormReturn } from 'react-hook-form';
-import { Tag, Folder, Eye } from 'lucide-react';
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from '@/components/ui/form';
 import {
@@ -15,8 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TransactionFormValues } from './useTransactionForm';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Eye, Folder, Tag } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
+import { TransactionFormValues } from './useTransactionForm';
 
 interface CategorySelectorProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -24,10 +24,10 @@ interface CategorySelectorProps {
   transactionType: 'expense' | 'income';
 }
 
-export function CategorySelector({ 
-  form, 
-  categories, 
-  transactionType 
+export function CategorySelector({
+  form,
+  categories,
+  transactionType
 }: CategorySelectorProps) {
   return (
     <FormField
@@ -41,8 +41,8 @@ export function CategorySelector({
               <SelectTrigger className={cn(
                 "w-full transition-all duration-300 py-3",
                 "focus:ring-2 focus:ring-offset-0 shadow-sm",
-                transactionType === 'expense' 
-                  ? "focus:ring-primary/50 hover:border-primary/30" 
+                transactionType === 'expense'
+                  ? "focus:ring-primary/50 hover:border-primary/30"
                   : "focus:ring-accent/50 hover:border-accent/30",
                 field.value && "border-slate-300"
               )}>
@@ -62,12 +62,12 @@ export function CategorySelector({
             <SelectContent className="max-h-[280px]">
               {categories.length ? (
                 categories.map((category) => (
-                  <SelectItem 
-                    key={category.id} 
-                    value={category.name} 
+                  <SelectItem
+                    key={category.id}
+                    value={category.name}
                     className="cursor-pointer"
                   >
-                    <motion.div 
+                    <motion.div
                       className="flex items-center gap-2"
                       whileHover={{ x: 2 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}

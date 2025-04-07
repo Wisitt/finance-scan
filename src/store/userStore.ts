@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { createUser, fetchUsers, getUserById, updateUser } from '@/services/usersApi';
+import { User } from '@/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '@/types';
-import { createUser, fetchUsers, getUserById, updateUser } from '@/services/usersApi';
 
 interface UserState {
   users: User[];
@@ -112,24 +112,24 @@ export const useUserStore = create<UserState>()(
       },
 
 
-     // 3) Create user via Nest
-     createUser: async (name, email, avatar_url) => {
-      set({ isLoading: true, error: null });
+      // 3) Create user via Nest
+      createUser: async (name, email, avatar_url) => {
+        set({ isLoading: true, error: null });
 
-      try {
-        const data = await createUser(name, email, avatar_url);
-        set((state) => ({
-          users: [...state.users, data],
-          currentUser: data,
-          isLoading: false,
-        }));
-        return data;
-      } catch (error: any) {
-        set({ error: error.message, isLoading: false });
-        throw error;
-      }
-    },
-  }),
+        try {
+          const data = await createUser(name, email, avatar_url);
+          set((state) => ({
+            users: [...state.users, data],
+            currentUser: data,
+            isLoading: false,
+          }));
+          return data;
+        } catch (error: any) {
+          set({ error: error.message, isLoading: false });
+          throw error;
+        }
+      },
+    }),
     {
       name: 'user-store',
       partialize: (state) => ({ currentUser: state.currentUser }),

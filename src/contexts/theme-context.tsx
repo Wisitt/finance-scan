@@ -1,11 +1,11 @@
 'use client';
 
-import { 
-  createContext, 
-  ReactNode, 
-  useContext, 
-  useEffect, 
-  useState 
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState
 } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
@@ -55,12 +55,12 @@ export function ThemeProvider({
   // Effect to handle system theme detection and changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     // Define what happens when system preference changes
     const handleChange = () => {
       const newSystemTheme = mediaQuery.matches ? 'dark' : 'light';
       setSystemTheme(newSystemTheme);
-      
+
       if (theme === 'system') {
         setResolvedTheme(newSystemTheme);
         updateTheme(newSystemTheme);
@@ -69,10 +69,10 @@ export function ThemeProvider({
 
     // Set initial values
     handleChange();
-    
+
     // Listen for changes
     mediaQuery.addEventListener('change', handleChange);
-    
+
     // Cleanup
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
@@ -82,7 +82,7 @@ export function ThemeProvider({
   // Effect to update localStorage and apply theme class
   useEffect(() => {
     localStorage.setItem(storageKey, theme);
-    
+
     const newResolvedTheme = theme === 'system' ? systemTheme : theme;
     setResolvedTheme(newResolvedTheme);
     updateTheme(newResolvedTheme);
@@ -90,7 +90,7 @@ export function ThemeProvider({
 
   function updateTheme(resolvedTheme: 'dark' | 'light') {
     const root = window.document.documentElement;
-    
+
     // Remove old class and add new one
     root.classList.remove('dark', 'light');
     root.classList.add(resolvedTheme);
@@ -123,10 +123,10 @@ export function ThemeProvider({
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  
+
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
-  
+
   return context;
 };

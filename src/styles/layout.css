@@ -85,7 +85,7 @@
   .mobile-header {
     display: none;
   }
-  
+
   .main-content {
     padding-top: 0;
   }
@@ -95,13 +95,14 @@
   .sidebar {
     display: none;
   }
-  
+
   .main-content {
     margin-left: 0;
-    padding-top: 64px; /* Space for mobile header */
+    padding-top: 64px;
+    /* Space for mobile header */
   }
-  
+
   .main-header {
     display: none;
   }
-} 
+}

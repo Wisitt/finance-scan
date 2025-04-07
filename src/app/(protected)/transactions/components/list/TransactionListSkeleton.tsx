@@ -30,24 +30,24 @@ export function TransactionListSkeleton() {
                 <div className="relative">
                   {/* Eye-themed skeleton loader */}
                   <Skeleton className="h-10 w-10 rounded-full" />
-                  <motion.div 
-                    className="absolute inset-0 rounded-full bg-primary/10" 
-                    animate={{ 
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-primary/10"
+                    animate={{
                       opacity: [0.3, 0.6, 0.3],
                     }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   {/* Scanning line effect */}
-                  <motion.div 
-                    className="absolute left-0 right-0 h-[1px] bg-primary/30" 
-                    animate={{ 
+                  <motion.div
+                    className="absolute left-0 right-0 h-[1px] bg-primary/30"
+                    animate={{
                       top: ["30%", "70%", "30%"],
                       opacity: [0.2, 0.6, 0.2]
                     }}
-                    transition={{ 
-                      duration: 1.5, 
-                      ease: "easeInOut", 
-                      repeat: Infinity 
+                    transition={{
+                      duration: 1.5,
+                      ease: "easeInOut",
+                      repeat: Infinity
                     }}
                   />
                 </div>
@@ -66,15 +66,15 @@ export function TransactionListSkeleton() {
             <Skeleton className="h-10 w-[200px]" />
             <Skeleton className="h-10 w-[120px]" />
             <Skeleton className="h-10 w-[120px]" />
-            
+
             {/* Global scanning animation */}
-            <motion.div 
-              className="absolute left-0 right-0 h-[1px] bg-primary/30 pointer-events-none" 
-              animate={{ 
+            <motion.div
+              className="absolute left-0 right-0 h-[1px] bg-primary/30 pointer-events-none"
+              animate={{
                 top: ["0%", "100%", "0%"],
                 opacity: [0.1, 0.4, 0.1]
               }}
-              transition={{ 
+              transition={{
                 duration: 3,
                 ease: "linear",
                 repeat: Infinity
@@ -82,9 +82,9 @@ export function TransactionListSkeleton() {
             />
           </div>
         </CardHeader>
-        
+
         <Separator className="my-4 bg-border/50" />
-        
+
         <CardContent className="p-6 space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <motion.div
@@ -97,13 +97,13 @@ export function TransactionListSkeleton() {
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <Skeleton className="h-10 w-10 rounded-full" />
-                  <motion.div 
-                    className="absolute inset-0 bg-primary/10 rounded-full" 
-                    animate={{ 
+                  <motion.div
+                    className="absolute inset-0 bg-primary/10 rounded-full"
+                    animate={{
                       scale: [1, 1.1, 1],
                       opacity: [0.3, 0.7, 0.3]
                     }}
-                    transition={{ 
+                    transition={{
                       duration: 2,
                       delay: i * 0.2,
                       repeat: Infinity
@@ -118,7 +118,7 @@ export function TransactionListSkeleton() {
               <Skeleton className="h-6 w-24" />
             </motion.div>
           ))}
-          
+
           {/* Pagination skeleton */}
           <div className="flex justify-between items-center pt-4">
             <Skeleton className="h-4 w-40" />

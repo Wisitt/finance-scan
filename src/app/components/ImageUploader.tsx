@@ -3,7 +3,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, X, Loader2, AlertCircle, ImageIcon, ZoomIn, PlusCircle, Camera, Eye, ScanLine } from 'lucide-react';
+import { UploadCloud, X, AlertCircle, ImageIcon, ZoomIn, PlusCircle, Camera, Eye, ScanLine } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

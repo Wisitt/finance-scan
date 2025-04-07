@@ -1,8 +1,8 @@
 'use client';
 
+import { useUserStore } from '@/store/userStore';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
-import { useUserStore } from '@/store/userStore';
 
 export function useAuthUser() {
   const { data: session, status } = useSession();
@@ -13,11 +13,11 @@ export function useAuthUser() {
       if (status === 'authenticated' && session?.user) {
         if (session.user.id && session.user.name) {
           await setCurrentUser({
-              id: session.user.id,
-              name: session.user.name,
-              email: session.user.email || '',
-              avatar_url: session.user.image || session.user.avatar_url || '',
-              created_at: ''
+            id: session.user.id,
+            name: session.user.name,
+            email: session.user.email || '',
+            avatar_url: session.user.image || session.user.avatar_url || '',
+            created_at: ''
           });
         }
       }

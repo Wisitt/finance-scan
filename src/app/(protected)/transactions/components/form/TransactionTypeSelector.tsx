@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { ArrowDownCircle, ArrowUpCircle, Eye } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 
 type TransactionType = 'expense' | 'income';
 

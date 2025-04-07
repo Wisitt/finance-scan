@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
+import { addTransactionAPI, deleteTransactionAPI, fetchTransactionsAPI } from '@/services/transactions';
 import { Transaction } from '@/types';
 import { getSession } from 'next-auth/react';
-import { fetchTransactionsAPI, addTransactionAPI, deleteTransactionAPI } from '@/services/transactions';
 
 interface TransactionState {
   transactions: Transaction[];
@@ -22,46 +22,46 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   error: null,
   dataFetched: false,
   lastFetchedUserId: null,
-  
+
   fetchTransactions: async () => {
     try {
       // Get current session
       const session = await getSession();
       const userId = session?.user?.id;
-      
+
       if (!userId) {
         throw new Error('No userId found in session');
       }
-      
+
       // Check if we already fetched data for this user
       const lastFetchedUserId = get().lastFetchedUserId;
       const dataFetched = get().dataFetched;
-      
+
       // Only fetch if: 
       // 1. We haven't fetched data yet, OR
       // 2. We're fetching for a different user than before
       if (!dataFetched || lastFetchedUserId !== userId) {
         set({ loading: true, error: null });
-        
+
         try {
           // Fetch from API
           const response = await fetchTransactionsAPI(userId);
-          
+
           // Add defensive check to ensure response is an array
           const transactions = Array.isArray(response) ? response : [];
-          
+
           // Log what we received for debugging
           console.log(`Received ${transactions.length} transactions from API`);
-          
+
           // Sort by date desc - only if we have transactions
-          const sortedTransactions = transactions.length > 0 
+          const sortedTransactions = transactions.length > 0
             ? [...transactions].sort(
-                (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-              )
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            )
             : [];
-          
-          set({ 
-            transactions: sortedTransactions, 
+
+          set({
+            transactions: sortedTransactions,
             loading: false,
             dataFetched: true,
             lastFetchedUserId: userId
@@ -95,17 +95,17 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         ...transactionData,
         user_id: userId,
       };
-      
+
       if (!finalTransaction.user_id) throw new Error('user_id is required');
 
       // Call Nest API
       const savedTransaction = await addTransactionAPI(finalTransaction);
 
       // Update state - ensure we always have an array to spread
-      const currentTransactions = Array.isArray(get().transactions) 
-        ? get().transactions 
+      const currentTransactions = Array.isArray(get().transactions)
+        ? get().transactions
         : [];
-        
+
       set({ transactions: [...currentTransactions, savedTransaction] });
       return savedTransaction;
     } catch (error) {
@@ -125,10 +125,10 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       await deleteTransactionAPI(id, userId);
 
       // Update state - ensure we always have an array to filter
-      const currentTransactions = Array.isArray(get().transactions) 
-        ? get().transactions 
+      const currentTransactions = Array.isArray(get().transactions)
+        ? get().transactions
         : [];
-        
+
       const updatedTransactions = currentTransactions.filter((t) => t.id !== id);
       set({ transactions: updatedTransactions });
     } catch (error) {

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { parseISO, isToday, isSameWeek, isSameMonth } from 'date-fns';
 import { Transaction } from '@/types';
+import { isSameMonth, isSameWeek, isToday, parseISO } from 'date-fns';
+import { useMemo, useState } from 'react';
 
 export type FilterOptions = {
   type: 'all' | 'income' | 'expense';
@@ -25,13 +25,13 @@ export function useTransactionFilters(transactions: Transaction[]) {
 
   const uniqueCategories = useMemo(() => {
     if (!transactions.length) return ['all'];
-    
+
     const categories = Array.from(new Set(
       transactions
         .map(tx => tx.category)
         .filter(category => category && category.trim() !== '')
     ));
-    
+
     return ['all', ...categories];
   }, [transactions]);
 
@@ -45,32 +45,32 @@ export function useTransactionFilters(transactions: Transaction[]) {
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    
+
     if (filters.type !== DEFAULT_FILTERS.type) count++;
     if (filters.category !== DEFAULT_FILTERS.category) count++;
     if (filters.dateRange !== DEFAULT_FILTERS.dateRange) count++;
     if (filters.searchTerm !== DEFAULT_FILTERS.searchTerm && filters.searchTerm.trim() !== '') count++;
-    
+
     return count;
   }, [filters]);
 
   const processedTransactions = useMemo(() => {
     if (!transactions.length) return [];
-    
+
     const { type, category, dateRange, sortOption, searchTerm } = filters;
-    
+
     const filtered = transactions.filter(tx => {
       if (type !== 'all' && tx.type !== type) return false;
-      
+
       if (category !== 'all' && tx.category !== category) return false;
-      
+
       if (searchTerm) {
         const lowerSearch = searchTerm.toLowerCase();
         const inCategory = tx.category?.toLowerCase().includes(lowerSearch) || false;
         const inDescription = tx.description?.toLowerCase().includes(lowerSearch) || false;
         if (!inCategory && !inDescription) return false;
       }
-      
+
       // Filter by date range
       if (dateRange !== 'all') {
         const txDate = parseISO(tx.date);
@@ -79,10 +79,10 @@ export function useTransactionFilters(transactions: Transaction[]) {
         if (dateRange === 'week' && !isSameWeek(txDate, today)) return false;
         if (dateRange === 'month' && !isSameMonth(txDate, today)) return false;
       }
-      
+
       return true;
     });
-    
+
     // Then sort the filtered results
     return [...filtered].sort((a, b) => {
       switch (sortOption) {
@@ -104,7 +104,7 @@ export function useTransactionFilters(transactions: Transaction[]) {
   const summary = useMemo(() => {
     let totalIncome = 0;
     let totalExpense = 0;
-    
+
     processedTransactions.forEach((tx) => {
       if (tx.type === 'income') {
         totalIncome += Number(tx.amount);
@@ -112,7 +112,7 @@ export function useTransactionFilters(transactions: Transaction[]) {
         totalExpense += Number(tx.amount);
       }
     });
-    
+
     return {
       totalIncome,
       totalExpense,

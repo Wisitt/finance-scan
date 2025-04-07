@@ -1,13 +1,13 @@
 // LoginContent.tsx
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail } from 'lucide-react';
 import { APP_ROUTES } from '@/constants/routes';
+import { Mail } from 'lucide-react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginContent() {
   const { status } = useSession();
@@ -47,8 +47,8 @@ export default function LoginContent() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex items-center gap-2"
               onClick={handleGoogleSignIn}
             >

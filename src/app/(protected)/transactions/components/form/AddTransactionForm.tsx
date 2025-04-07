@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, LogIn, ArrowRight, CheckCircle, AlertCircle, TrendingDown, TrendingUp, ReceiptText, Eye, ScanLine } from 'lucide-react';
+import { LogIn, ArrowRight, CheckCircle, AlertCircle, TrendingDown, TrendingUp, ReceiptText, Eye} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FormProvider } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
