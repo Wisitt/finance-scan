@@ -1,29 +1,29 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
-import { format } from 'date-fns';
-import { useAuthUser } from '@/hooks/useAuthUser';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn, ArrowRight, CheckCircle, AlertCircle, TrendingDown, TrendingUp, ReceiptText, Eye} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FormProvider } from 'react-hook-form';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useAuthUser } from '@/hooks/useAuthUser';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, ArrowRight, CheckCircle, Eye, LogIn, ReceiptText, TrendingDown, TrendingUp } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { FormProvider } from 'react-hook-form';
 import { AmountInput } from './AmountInput';
 import { CategorySelector } from './CategorySelector';
 
-import { TransactionTypeSelector } from './TransactionTypeSelector';
-import { useTransactionForm } from './useTransactionForm';
 import { DateSelector } from './DateSelector';
 import { DescriptionInput } from './DescriptionInput';
 import { SubmitButton } from './SubmitButton';
+import { TransactionTypeSelector } from './TransactionTypeSelector';
+import { useTransactionForm } from './useTransactionForm';
 
 export default function AddTransactionForm() {
   const { isLoading: authLoading, isAuthenticated } = useAuthUser();
   const {
-    form, 
+    form,
     transactionType,
     isSubmitting,
     filteredCategories,
@@ -37,16 +37,16 @@ export default function AddTransactionForm() {
   if (authLoading) {
     return <LoadingCard />;
   }
-  
+
   if (!isAuthenticated) {
     return <LoginCard />;
   }
-  
+
   const amountValue = form.watch('amount');
   const categoryValue = form.watch('category');
   const dateValue = form.watch('date');
   const descriptionValue = form.watch('description');
-  
+
   const hasRequiredFields = amountValue && categoryValue;
 
   return (
@@ -58,53 +58,53 @@ export default function AddTransactionForm() {
     >
       <Card className={cn(
         "w-full shadow-xl border-t-4 overflow-hidden transition-all duration-300 relative",
-        transactionType === 'expense' 
-          ? "border-t-primary" 
-          : "border-t-accent"
+        transactionType === 'expense'
+          ? "border-t-accent"
+          : "border-t-primary"
       )}>
         {/* Scanning line animation */}
-        <motion.div 
-          className="absolute left-0 right-0 h-[1px] pointer-events-none" 
+        <motion.div
+          className="absolute left-0 right-0 h-[1px] pointer-events-none"
           style={{
-            backgroundColor: transactionType === 'expense' ? 'var(--primary)' : 'var(--accent)',
+            backgroundColor: transactionType === 'expense' ? 'var(--accent)' : 'var(--primary)',
             opacity: 0.3
           }}
-          animate={{ 
+          animate={{
             top: ["5%", "95%", "5%"],
             opacity: [0.2, 0.5, 0.2]
           }}
-          transition={{ 
-            duration: 4, 
-            ease: "easeInOut", 
-            repeat: Infinity 
+          transition={{
+            duration: 4,
+            ease: "easeInOut",
+            repeat: Infinity
           }}
         />
-        
+
         <CardHeader className={cn(
           "space-y-1 transition-colors duration-300 pb-4",
-          transactionType === 'expense' ? "bg-primary/5" : "bg-accent/5"
+          transactionType === 'expense' ? "bg-accent/5" : "bg-primary/5"
         )}>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <div className={cn(
                 "p-1.5 rounded-full relative",
-                transactionType === 'expense' ? "bg-primary/10" : "bg-accent/10"
+                transactionType === 'expense' ? "bg-accent/10" : "bg-primary/10"
               )}>
-                {transactionType === 'expense' 
-                  ? <TrendingDown className="h-5 w-5 text-primary" /> 
-                  : <TrendingUp className="h-5 w-5 text-accent" />
+                {transactionType === 'expense'
+                  ? <TrendingDown className="h-5 w-5 text-accent" />
+                  : <TrendingUp className="h-5 w-5 text-primary" />
                 }
                 {/* Subtle pulse effect */}
-                <motion.div 
+                <motion.div
                   className={cn(
                     "absolute inset-0 rounded-full",
-                    transactionType === 'expense' ? "border border-primary/20" : "border border-accent/20"
+                    transactionType === 'expense' ? "border border-accent/20" : "border border-primary/20"
                   )}
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.4, 1],
                     opacity: [1, 0, 1]
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
                     ease: "easeOut"
@@ -115,16 +115,16 @@ export default function AddTransactionForm() {
                 {transactionType === 'expense' ? 'เพิ่มรายจ่าย' : 'เพิ่มรายรับ'}
               </CardTitle>
             </div>
-            
-            <motion.div 
-              animate={{ scale: [1, 1.05, 1] }} 
+
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 0.5 }}
             >
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className={cn(
                   "font-normal backdrop-blur-sm shadow-sm",
-                  transactionType === 'expense' ? "bg-primary/5 border-primary/20" : "bg-accent/5 border-accent/20"
+                  transactionType === 'expense' ? "bg-accent/5 border-accent/20" : "bg-primary/5 border-primary/20"
                 )}
               >
                 {format(new Date(), 'dd MMM yyyy')}
@@ -132,43 +132,43 @@ export default function AddTransactionForm() {
             </motion.div>
           </div>
           <p className="text-sm text-muted-foreground">
-            {transactionType === 'expense' 
-              ? 'บันทึกรายจ่ายใหม่ของคุณเพื่อติดตามการใช้จ่าย' 
+            {transactionType === 'expense'
+              ? 'บันทึกรายจ่ายใหม่ของคุณเพื่อติดตามการใช้จ่าย'
               : 'บันทึกรายรับใหม่ของคุณเพื่อติดตามรายได้'}
           </p>
         </CardHeader>
-        
+
         <CardContent className="p-6">
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
               <div className="space-y-5">
-                <TransactionTypeSelector 
-                  value={transactionType} 
-                  onChange={handleTransactionTypeChange} 
+                <TransactionTypeSelector
+                  value={transactionType}
+                  onChange={handleTransactionTypeChange}
                 />
 
                 <div className={cn(
                   "rounded-lg p-4 border relative",
-                  transactionType === 'expense' ? "bg-primary/5 border-primary/10" : "bg-accent/5 border-accent/10"
+                  transactionType === 'expense' ? "bg-accent/5 border-accent/10" : "bg-primary/5 border-primary/10"
                 )}>
                   <AmountInput form={form} transactionType={transactionType} />
                 </div>
 
-                <CategorySelector 
-                  form={form} 
-                  categories={filteredCategories} 
+                <CategorySelector
+                  form={form}
+                  categories={filteredCategories}
                   transactionType={transactionType}
                 />
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <DateSelector 
-                    form={form} 
-                    transactionType={transactionType} 
+                  <DateSelector
+                    form={form}
+                    transactionType={transactionType}
                   />
-                  
-                  <DescriptionInput 
-                    form={form} 
-                    transactionType={transactionType} 
+
+                  <DescriptionInput
+                    form={form}
+                    transactionType={transactionType}
                   />
                 </div>
               </div>
@@ -184,70 +184,70 @@ export default function AddTransactionForm() {
                   >
                     <div className={cn(
                       "p-4 rounded-md text-sm border relative",
-                      transactionType === 'expense' 
-                        ? "bg-primary/5 border-primary/20" 
-                        : "bg-accent/5 border-accent/20"
+                      transactionType === 'expense'
+                        ? "bg-accent/5 border-accent/20"
+                        : "bg-primary/5 border-primary/20"
                     )}>
                       {/* Eye icon with scanning effect */}
                       <div className="absolute top-2 right-2 opacity-10">
                         <div className="relative">
                           <Eye className={cn(
                             "h-6 w-6",
-                            transactionType === 'expense' ? "text-primary" : "text-accent"
+                            transactionType === 'expense' ? "text-accent" : "text-primary"
                           )} />
-                          <motion.div 
-                            className="absolute left-0 right-0 h-[1px]" 
+                          <motion.div
+                            className="absolute left-0 right-0 h-[1px]"
                             style={{
-                              backgroundColor: transactionType === 'expense' ? 'var(--primary)' : 'var(--accent)'
+                              backgroundColor: transactionType === 'expense' ? 'var(--accent)' : 'var(--primary)'
                             }}
-                            animate={{ 
+                            animate={{
                               top: ["30%", "70%", "30%"],
                             }}
-                            transition={{ 
-                              duration: 2, 
-                              ease: "easeInOut", 
-                              repeat: Infinity 
+                            transition={{
+                              duration: 2,
+                              ease: "easeInOut",
+                              repeat: Infinity
                             }}
                           />
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-1.5 mb-2">
                         <ReceiptText className={cn(
                           "h-4 w-4",
-                          transactionType === 'expense' ? "text-primary" : "text-accent"
+                          transactionType === 'expense' ? "text-accent" : "text-primary"
                         )} />
                         <p className="font-medium">สรุปรายการ</p>
                       </div>
-                      
+
                       <Separator className={cn(
-                        "my-2", 
-                        transactionType === 'expense' ? "bg-primary/20" : "bg-accent/20"
+                        "my-2",
+                        transactionType === 'expense' ? "bg-accent/20" : "bg-primary/20"
                       )} />
-                      
+
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">หมวดหมู่:</span>
                           <span className="font-medium">{categoryValue}</span>
                         </div>
-                        
+
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">จำนวน:</span>
                           <span className={cn(
                             "font-bold",
-                            transactionType === 'expense' ? "text-primary" : "text-accent"
+                            transactionType === 'expense' ? "text-accent" : "text-primary"
                           )}>
                             {transactionType === 'expense' ? '-' : '+'}{formattedAmount || `฿${amountValue}`}
                           </span>
                         </div>
-                        
+
                         {dateValue && (
                           <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">วันที่:</span>
                             <span>{format(new Date(dateValue), 'dd MMM yyyy')}</span>
                           </div>
                         )}
-                        
+
                         {descriptionValue && (
                           <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">รายละเอียด:</span>
@@ -261,11 +261,11 @@ export default function AddTransactionForm() {
               </AnimatePresence>
 
               <div className="flex flex-col space-y-3">
-                <SubmitButton 
-                  transactionType={transactionType} 
-                  isSubmitting={isSubmitting} 
+                <SubmitButton
+                  transactionType={transactionType}
+                  isSubmitting={isSubmitting}
                 />
-                
+
                 {formState.isSuccess && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -274,16 +274,16 @@ export default function AddTransactionForm() {
                   >
                     <CheckCircle className="h-4 w-4" />
                     <span>บันทึกรายการสำเร็จ</span>
-                    <Button 
-                      variant="link" 
-                      className="h-auto p-0 text-primary font-medium ml-2" 
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-primary font-medium ml-2"
                       onClick={resetForm}
                     >
                       บันทึกรายการใหม่
                     </Button>
                   </motion.div>
                 )}
-                
+
                 {formState.error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -299,7 +299,7 @@ export default function AddTransactionForm() {
           </FormProvider>
         </CardContent>
       </Card>
-      
+
       {/* Quick Actions Footer */}
       <div className="flex justify-center mt-4">
         <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary">
@@ -324,34 +324,34 @@ const LoadingCard = () => (
       <CardContent className="p-10 flex flex-col items-center justify-center min-h-[350px] space-y-4">
         <div className="relative flex flex-col items-center">
           {/* Eye-themed loader */}
-          <motion.div 
+          <motion.div
             className="relative w-16 h-16 mb-6"
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <div className="absolute inset-0 rounded-full border-2 border-primary/60"></div>
-            <motion.div 
+            <motion.div
               className="absolute inset-4 rounded-full bg-gradient-to-r from-primary/40 to-accent/40"
               animate={{ scale: [0.8, 1.2, 0.8] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
-            
+
             {/* Scanning line */}
-            <motion.div 
-              className="absolute left-0 right-0 h-[1px] bg-primary" 
-              animate={{ 
+            <motion.div
+              className="absolute left-0 right-0 h-[1px] bg-primary"
+              animate={{
                 top: ["30%", "70%", "30%"],
                 opacity: [0.5, 0.8, 0.5]
               }}
-              transition={{ 
-                duration: 1.5, 
-                ease: "easeInOut", 
-                repeat: Infinity 
+              transition={{
+                duration: 1.5,
+                ease: "easeInOut",
+                repeat: Infinity
               }}
             />
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.3 }}
@@ -377,22 +377,22 @@ const LoginCard = () => (
           <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
-          
+
           {/* Scanning line animation */}
-          <motion.div 
-            className="absolute left-0 right-0 h-[1px] bg-white/30 pointer-events-none" 
-            animate={{ 
+          <motion.div
+            className="absolute left-0 right-0 h-[1px] bg-white/30 pointer-events-none"
+            animate={{
               top: ["10%", "90%", "10%"],
               opacity: [0.3, 0.7, 0.3]
             }}
-            transition={{ 
-              duration: 3, 
-              ease: "easeInOut", 
-              repeat: Infinity 
+            transition={{
+              duration: 3,
+              ease: "easeInOut",
+              repeat: Infinity
             }}
           />
-          
-          <motion.div 
+
+          <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -400,51 +400,51 @@ const LoginCard = () => (
           >
             {/* Eye icon in header */}
             <div className="relative w-16 h-16 mx-auto mb-4">
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 rounded-full border-2 border-white/60"
-                animate={{ 
+                animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.6, 0.9, 0.6]
                 }}
-                transition={{ 
+                transition={{
                   duration: 3,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
-              <motion.div 
+              <motion.div
                 className="absolute inset-4 rounded-full border border-white/80"
-                animate={{ 
+                animate={{
                   scale: [0.8, 1.1, 0.8],
                   opacity: [0.7, 1, 0.7]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2.5,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
               <Eye className="h-8 w-8 absolute top-4 left-4 text-white" />
-              <motion.div 
-                className="absolute left-0 right-0 h-[1px] bg-white/70" 
-                animate={{ 
+              <motion.div
+                className="absolute left-0 right-0 h-[1px] bg-white/70"
+                animate={{
                   top: ["30%", "70%", "30%"],
                 }}
-                transition={{ 
-                  duration: 2, 
-                  ease: "easeInOut", 
-                  repeat: Infinity 
+                transition={{
+                  duration: 2,
+                  ease: "easeInOut",
+                  repeat: Infinity
                 }}
               />
             </div>
-            
+
             <h2 className="text-2xl font-bold mb-2">ยินดีต้อนรับ</h2>
             <p className="text-primary-foreground/90 mb-2">เข้าสู่ระบบเพื่อจัดการรายรับรายจ่ายของคุณ</p>
           </motion.div>
         </div>
-        
+
         <div className="p-8 flex flex-col items-center bg-gradient-to-b from-card to-card/95">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4 }}
@@ -452,17 +452,17 @@ const LoginCard = () => (
           >
             <LogIn className="h-8 w-8 text-primary" />
           </motion.div>
-          
+
           <p className="mb-6 text-center">กรุณาเข้าสู่ระบบเพื่อเพิ่มและจัดการรายการของคุณ</p>
-          
-          <motion.div 
+
+          <motion.div
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             className="w-full"
           >
-            <Button 
-              onClick={() => signIn('google')} 
-              size="lg" 
+            <Button
+              onClick={() => signIn('google')}
+              size="lg"
               className="font-medium w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary/90 to-primary hover:brightness-110 text-white shadow-md transition-all duration-300"
             >
               <svg viewBox="0 0 24 24" width="20" height="20" className="text-white">
@@ -486,7 +486,7 @@ const LoginCard = () => (
               เข้าสู่ระบบด้วย Google
             </Button>
           </motion.div>
-          
+
           <div className="flex items-center gap-2 mt-8">
             <p className="text-xs text-muted-foreground">
               ต้องการความช่วยเหลือ?
@@ -496,7 +496,7 @@ const LoginCard = () => (
               <ArrowRight className="h-3 w-3" />
             </Button>
           </div>
-          
+
           <p className="text-xs text-muted-foreground mt-4 text-center">
             ระบบนี้ใช้ Google บัญชีของคุณเพื่อการยืนยันตัวตนและปกป้องข้อมูลส่วนบุคคล
           </p>

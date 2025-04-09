@@ -1,7 +1,3 @@
-import { format, Locale, parseISO } from 'date-fns';
-import { th } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -9,6 +5,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format, Locale, parseISO } from 'date-fns';
+import { th } from 'date-fns/locale';
+import { CalendarIcon } from 'lucide-react';
 
 type DatePickerInputProps = {
   value: string | null;
@@ -36,7 +36,7 @@ export function DatePickerInput({
     console.error(e);
     date = null;
   }
-  
+
 
   return (
     <Popover>

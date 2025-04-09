@@ -42,15 +42,15 @@ export function CategorySelector({
                 "w-full transition-all duration-300 py-3",
                 "focus:ring-2 focus:ring-offset-0 shadow-sm",
                 transactionType === 'expense'
-                  ? "focus:ring-primary/50 hover:border-primary/30"
-                  : "focus:ring-accent/50 hover:border-accent/30",
+                  ? "focus:ring-accent/50 hover:border-accent/30"
+                  : "focus:ring-primary/50 hover:border-primary/30",
                 field.value && "border-slate-300"
               )}>
                 <div className="flex items-center gap-2">
                   {field.value ? (
                     <Tag className={cn(
                       "h-4 w-4",
-                      transactionType === 'expense' ? "text-primary" : "text-accent"
+                      transactionType === 'expense' ? "text-accent" : "text-primary"
                     )} />
                   ) : (
                     <Folder className="h-4 w-4 text-muted-foreground" />
@@ -74,7 +74,7 @@ export function CategorySelector({
                     >
                       <Tag className={cn(
                         "h-3.5 w-3.5",
-                        transactionType === 'expense' ? "text-primary" : "text-accent"
+                        transactionType === 'expense' ? "text-accent" : "text-primary"
                       )} />
                       {category.name}
                     </motion.div>

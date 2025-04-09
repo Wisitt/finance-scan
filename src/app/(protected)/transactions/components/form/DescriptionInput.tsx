@@ -38,8 +38,8 @@ export function DescriptionInput({ form, transactionType }: DescriptionInputProp
                   "resize-none min-h-[38px] sm:min-h-[80px] transition-all duration-300 shadow-sm",
                   "focus:ring-2 focus:ring-offset-0",
                   transactionType === 'expense'
-                    ? "focus-visible:ring-primary/50 hover:border-primary/30"
-                    : "focus-visible:ring-accent/50 hover:border-accent/30",
+                    ? "focus-visible:ring-accent/50 hover:border-accent/30"
+                    : "focus-visible:ring-primary/50 hover:border-primary/30",
                   field.value && "border-slate-300"
                 )}
                 {...field}
@@ -70,7 +70,7 @@ export function DescriptionInput({ form, transactionType }: DescriptionInputProp
                       repeat: Infinity
                     }}
                     style={{
-                      backgroundColor: transactionType === 'expense' ? 'var(--primary)' : 'var(--accent)'
+                      backgroundColor: transactionType === 'expense' ? 'var(--accent)' : 'var(--primary)'
                     }}
                   />
                 </motion.div>

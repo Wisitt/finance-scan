@@ -34,7 +34,7 @@ export function AmountInput({ form, transactionType }: AmountInputProps) {
               transition={{ duration: 0.3 }}
               className={cn(
                 "absolute left-3 top-1/2 -translate-y-1/2 text-lg font-medium transition-colors duration-300",
-                transactionType === 'expense' ? "text-primary" : "text-accent"
+                transactionType === 'expense' ? "text-accent" : "text-primary"
               )}
             >
               ฿
@@ -52,8 +52,8 @@ export function AmountInput({ form, transactionType }: AmountInputProps) {
                   'focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-300',
                   field.value && 'font-bold',
                   transactionType === 'expense'
-                    ? 'focus:ring-primary/50 hover:border-primary/30'
-                    : 'focus:ring-accent/50 hover:border-accent/30'
+                    ? 'focus:ring-accent/50 hover:border-accent/30'
+                    : 'focus:ring-primary/50 hover:border-primary/30'
                 )}
                 value={field.value ?? ''}
                 onValueChange={(values: { floatValue: number | undefined }) => {
@@ -67,11 +67,11 @@ export function AmountInput({ form, transactionType }: AmountInputProps) {
             {field.value && field.value > 1000 && (
               <div className="absolute right-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
                 <div className="relative h-5 w-5">
-                  <Eye className={transactionType === 'expense' ? "text-primary" : "text-accent"} />
+                  <Eye className={transactionType === 'expense' ? "text-accent" : "text-primary"} />
                   <motion.div
                     className="absolute left-0 right-0 h-[1px]"
                     style={{
-                      backgroundColor: transactionType === 'expense' ? 'var(--primary)' : 'var(--accent)'
+                      backgroundColor: transactionType === 'expense' ? 'var(--accent)' : 'var(--primary)'
                     }}
                     animate={{
                       top: ["30%", "70%", "30%"],
@@ -92,7 +92,7 @@ export function AmountInput({ form, transactionType }: AmountInputProps) {
                 animate={{ opacity: 1, x: 0 }}
                 className={cn(
                   "absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium px-2 py-1 rounded-full",
-                  transactionType === 'expense' ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
+                  transactionType === 'expense' ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
                 )}
               >
                 {transactionType === 'expense' ? 'รายจ่าย' : 'รายรับ'}

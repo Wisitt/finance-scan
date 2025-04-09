@@ -10,8 +10,8 @@ interface SubmitButtonProps {
 
 export function SubmitButton({ transactionType, isSubmitting }: SubmitButtonProps) {
   const buttonClasses = transactionType === 'expense'
-    ? "bg-gradient-to-r from-primary to-primary/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-primary/10"
-    : "bg-gradient-to-r from-accent to-accent/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-accent/10";
+    ? "bg-gradient-to-r from-accent to-accent/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-accent/10"
+    : "bg-gradient-to-r from-primary to-primary/90 hover:brightness-105 shadow-sm hover:shadow-md hover:shadow-primary/10";
 
   return (
     <motion.div
